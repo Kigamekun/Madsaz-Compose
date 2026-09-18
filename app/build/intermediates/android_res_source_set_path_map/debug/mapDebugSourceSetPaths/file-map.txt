@@ -1,0 +1,8 @@
+id.madsaz.app-pngs-0 /Users/Shared/Projects/Madsaz-Compose/app/build/generated/res/pngs/debug
+id.madsaz.app-updated_navigation_xml-1 /Users/Shared/Projects/Madsaz-Compose/app/build/generated/updated_navigation_xml/debug
+id.madsaz.app-packageDebugResources-2 /Users/Shared/Projects/Madsaz-Compose/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+id.madsaz.app-packageDebugResources-3 /Users/Shared/Projects/Madsaz-Compose/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+id.madsaz.app-debug-4 /Users/Shared/Projects/Madsaz-Compose/app/build/intermediates/merged_res/debug/mergeDebugResources
+id.madsaz.app-debug-5 /Users/Shared/Projects/Madsaz-Compose/app/src/debug/res
+id.madsaz.app-main-6 /Users/Shared/Projects/Madsaz-Compose/app/src/main/res
+gradleHome-0 /Users/kigamekun/.gradle

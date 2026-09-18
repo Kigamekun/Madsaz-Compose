@@ -1,0 +1,110 @@
+[
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_baby.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_baby.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_ic_launcher_background.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/mipmap-anydpi_ic_launcher.xml.flat",
+        "source": "id.madsaz.app-main-5:/mipmap-anydpi/ic_launcher.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_clock_counter_clockwise.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_clock_counter_clockwise.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_activity_bottle.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_activity_bottle.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_house.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_house.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/font_quicksand.ttf.flat",
+        "source": "id.madsaz.app-main-5:/font/quicksand.ttf"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_camera_preview.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_camera_preview.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_camera.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_camera.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_microphone.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_microphone.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_moon_stars.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_moon_stars.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/mipmap-anydpi_ic_launcher_round.xml.flat",
+        "source": "id.madsaz.app-main-5:/mipmap-anydpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_home_photo.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_home_photo.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_wind.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_wind.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/raw_phosphor_license.txt.flat",
+        "source": "id.madsaz.app-main-5:/raw/phosphor_license.txt"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "id.madsaz.app-main-5:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_result_baby_halo.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_result_baby_halo.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_bowl_food.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_bowl_food.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_cry_cues_photo.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_cry_cues_photo.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "id.madsaz.app-main-5:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_stop_circle.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_stop_circle.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable_phosphor_heartbeat.xml.flat",
+        "source": "id.madsaz.app-main-5:/drawable/phosphor_heartbeat.xml"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_logo.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_logo.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_activity_sleep.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_activity_sleep.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/drawable-nodpi_madsaz_activity_clock.png.flat",
+        "source": "id.madsaz.app-main-5:/drawable-nodpi/madsaz_activity_clock.png"
+    },
+    {
+        "merged": "id.madsaz.app-debug-3:/font_fredoka.ttf.flat",
+        "source": "id.madsaz.app-main-5:/font/fredoka.ttf"
+    }
+]
