@@ -19,18 +19,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
 
-val BrandBlue = Color(0xFF5667D9)
-val BrandBlueDark = Color(0xFF3F4CB0)
-val BrandBlueSoft = Color(0xFFEEEAFE)
+val BrandBlue = Color(0xFF4A9BC0)
+val BrandBlueDark = Color(0xFF3A82AB)
+val BrandBlueSoft = Color(0xFFE6F4FB)
 val BrandCoral = Color(0xFFE38A73)
 val BrandCoralSoft = Color(0xFFFFEDE8)
-val AppBackground = Color(0xFFF8F9FF)
-val Cream = Color(0xFFF4F5FD)
-val Ink = Color(0xFF1A254A)
-val MutedInk = Color(0xFF536795)
-val Border = Color(0xFFE8EAF4)
-val Success = Color(0xFF56A986)
-val SuccessSoft = Color(0xFFE7F5EE)
+val AppBackground = Color(0xFFF7FBFF)
+val Cream = Color(0xFFE6F4FB)
+val Ink = Color(0xFF1C3A53)
+val MutedInk = Color(0xFF5E7D93)
+val Border = Color(0xFFDEEAF2)
+val Success = Color(0xFF2E6E54)
+val SuccessSoft = Color(0xFFE7F5FA)
 
 private val Fredoka = variableFont(R.font.fredoka, 600f)
 private val FredokaBold = variableFont(R.font.fredoka, 700f)

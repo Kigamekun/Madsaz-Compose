@@ -1,35 +1,49 @@
 package id.madsaz.app.ui.preview
 
-import id.madsaz.app.model.CryCategory
 import id.madsaz.app.model.RecordingItem
+import id.madsaz.app.model.CryScore
 
 object PreviewData {
     val latestRecording = RecordingItem(
-        id = "madsaz_1789351200000",
-        filePath = "/preview/latest.mp4",
+        id = "f33d1075-5369-80d1-2a58-44b86b500c21",
         recordedAtEpochMillis = 1_789_351_200_000L,
         durationMillis = 12_400L,
         sizeBytes = 8_400_000L,
-        category = CryCategory.NEH,
+        status = "completed",
+        category = "Neh",
+        confidence = 0.68,
+        solution = "Periksa tanda lapar dan tawarkan ASI atau susu sesuai kebutuhan bayi.",
+        source = "mock",
+        scores = listOf(
+            CryScore("Neh", "Lapar", 0.68),
+            CryScore("Owh", "Mengantuk", 0.15),
+            CryScore("Eh", "Perlu bersendawa", 0.09),
+            CryScore("Heh", "Tidak nyaman", 0.05),
+            CryScore("Eairh", "Perut tidak nyaman", 0.03),
+        ),
     )
 
     val recordings = listOf(
         latestRecording,
         RecordingItem(
-            id = "madsaz_1789263000000",
-            filePath = "/preview/second.mp4",
+            id = "f33d1075-5369-80d1-2a58-44b86b500c22",
             recordedAtEpochMillis = 1_789_263_000_000L,
             durationMillis = 18_100L,
             sizeBytes = 11_700_000L,
-            category = CryCategory.OWH,
+            status = "completed",
+            category = "Owh",
+            confidence = null,
+            solution = null,
         ),
         RecordingItem(
-            id = "madsaz_1789175700000",
-            filePath = "/preview/third.mp4",
+            id = "f33d1075-5369-80d1-2a58-44b86b500c23",
             recordedAtEpochMillis = 1_789_175_700_000L,
             durationMillis = 9_700L,
             sizeBytes = 6_200_000L,
-            category = CryCategory.HEH,
+            status = "completed",
+            category = "Heh",
+            confidence = null,
+            solution = null,
         ),
     )
 }

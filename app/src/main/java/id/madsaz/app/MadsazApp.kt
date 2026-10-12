@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import android.widget.Toast
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,13 +35,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import id.madsaz.app.data.local.RecordingStore
+import id.madsaz.app.data.local.AuthStore
+import id.madsaz.app.feature.auth.AuthScreen
+import id.madsaz.app.feature.auth.AuthUiState
+import id.madsaz.app.feature.auth.AuthViewModel
 import id.madsaz.app.feature.guide.GuideScreen
-import id.madsaz.app.feature.crycues.CryCuesScreen
+import id.madsaz.app.feature.education.EducationListScreen
+import id.madsaz.app.feature.education.EducationDetailScreen
 import id.madsaz.app.feature.history.HistoryScreen
 import id.madsaz.app.feature.history.HistoryUiState
 import id.madsaz.app.feature.history.HistoryViewModel
+import id.madsaz.app.feature.feedback.FeedbackScreen
 import id.madsaz.app.feature.home.HomeScreen
 import id.madsaz.app.feature.profile.ProfileScreen
+import id.madsaz.app.feature.profile.ProfileViewModel
+import id.madsaz.app.feature.plan.PlanScreen
+import id.madsaz.app.feature.plan.PlanViewModel
+import id.madsaz.app.feature.notifications.NotificationsScreen
+import id.madsaz.app.notifications.FcmRegistration
 import id.madsaz.app.feature.recording.RecordingRoute
 import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.recording.hasRecordingPermissions
@@ -56,27 +68,57 @@ private object Routes {
     const val HOME = "home"
     const val HISTORY = "history"
     const val GUIDE = "guide"
-    const val CRY_CUES = "cry-cues"
+    const val EDUCATION = "education"
+    const val EDUCATION_DETAIL = "education/{articleId}"
     const val PROFILE = "profile"
+    const val PLAN = "plan"
+    const val NOTIFICATIONS = "notifications"
     const val RECORDING = "recording"
-    const val RESULT = "result/{recordingId}"
+    const val RESULT = "result/{recordingId}?log={log}"
+    const val FEEDBACK = "feedback/{recordingId}"
 
-    fun result(recordingId: String) = "result/$recordingId"
+    fun result(recordingId: String, log: Boolean = false) = "result/$recordingId?log=$log"
+    fun feedback(recordingId: String) = "feedback/$recordingId"
+    fun educationDetail(articleId: String) = "education/$articleId"
 }
 
 @Composable
 fun MadsazApp(navController: NavHostController = rememberNavController()) {
     val context = LocalContext.current
-    val store = remember(context) { RecordingStore(context.applicationContext) }
-    val historyViewModel: HistoryViewModel = viewModel { HistoryViewModel(store) }
+    val authViewModel: AuthViewModel = viewModel {
+        AuthViewModel(AuthStore(context.applicationContext), FcmRegistration(context.applicationContext))
+    }
+    val authState = authViewModel.uiState
+    fun navigateMain(route: String) {
+        if (route == Routes.HOME && navController.popBackStack(Routes.HOME, false)) return
+        navController.navigate(route) {
+            popUpTo(Routes.HOME) { saveState = route != Routes.HOME }
+            launchSingleTop = true
+            restoreState = route != Routes.HOME
+        }
+    }
+
+    if (authState !is AuthUiState.SignedIn) {
+        AuthScreen(
+            state = authState,
+            onSubmit = authViewModel::authenticate,
+            onForgotPassword = {
+                Toast.makeText(context, "Fitur lupa password belum tersedia.", Toast.LENGTH_SHORT).show()
+            },
+        )
+        return
+    }
+
+    val store = remember(context, authState.session.userId) {
+        RecordingStore(context.applicationContext, authState.session.userId)
+    }
+    val historyViewModel: HistoryViewModel = viewModel(key = authState.session.accessToken) {
+        HistoryViewModel(authState.session.accessToken)
+    }
     val historyState = historyViewModel.uiState
 
-    fun navigateMain(route: String) {
-        navController.navigate(route) {
-            popUpTo(Routes.HOME) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
-        }
+    val profileViewModel: ProfileViewModel = viewModel {
+        ProfileViewModel(authState.session.accessToken)
     }
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
@@ -95,10 +137,9 @@ fun MadsazApp(navController: NavHostController = rememberNavController()) {
                     historyLoading = historyState is HistoryUiState.Loading,
                     historyError = historyState is HistoryUiState.Error,
                     onRecord = { navController.navigate(Routes.RECORDING) },
-                    onGuide = { navController.navigate(Routes.CRY_CUES) },
-                    onProfile = { navigateMain(Routes.PROFILE) },
                     onHistory = { navigateMain(Routes.HISTORY) },
-                    onOpenRecording = { navController.navigate(Routes.result(it.id)) },
+                    onProfile = { navigateMain(Routes.PROFILE) },
+                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     contentPadding = padding,
                 )
             }
@@ -113,30 +154,31 @@ fun MadsazApp(navController: NavHostController = rememberNavController()) {
             ) { padding ->
                 HistoryScreen(
                     state = historyState,
-                    onRetry = historyViewModel::refresh,
-                    onRecord = { navController.navigate(Routes.RECORDING) },
-                    onOpenRecording = { navController.navigate(Routes.result(it.id)) },
+                    onRetry = { historyViewModel.refresh() },
+                    onProfile = { navigateMain(Routes.PROFILE) },
+                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     onDelete = historyViewModel::delete,
-                    contentPadding = padding,
-                )
-            }
-        }
-        composable(Routes.CRY_CUES) {
-            MadsazScaffold(
-                selected = MainDestination.HOME,
-                onHome = { navigateMain(Routes.HOME) },
-                onHistory = { navigateMain(Routes.HISTORY) },
-                onProfile = { navigateMain(Routes.PROFILE) },
-                onRecord = { navController.navigate(Routes.RECORDING) },
-            ) { padding ->
-                CryCuesScreen(
-                    onSeeAll = { navigateMain(Routes.HISTORY) },
                     contentPadding = padding,
                 )
             }
         }
         composable(Routes.GUIDE) {
             GuideScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.EDUCATION) {
+            EducationListScreen(
+                onBack = { navController.popBackStack() },
+                onArticle = { navController.navigate(Routes.educationDetail(it)) },
+            )
+        }
+        composable(
+            route = Routes.EDUCATION_DETAIL,
+            arguments = listOf(navArgument("articleId") { type = NavType.StringType }),
+        ) { entry ->
+            EducationDetailScreen(
+                articleId = requireNotNull(entry.arguments?.getString("articleId")),
+                onBack = { navController.popBackStack() },
+            )
         }
         composable(Routes.PROFILE) {
             val content = historyState as? HistoryUiState.Content
@@ -148,38 +190,81 @@ fun MadsazApp(navController: NavHostController = rememberNavController()) {
                 onRecord = { navController.navigate(Routes.RECORDING) },
             ) { padding ->
                 ProfileScreen(
+                    babyState = profileViewModel.uiState,
                     recordingCount = content?.recordings?.size,
                     storageBytes = content?.totalBytes,
-                    permissionsGranted = context.hasRecordingPermissions(),
-                    onBack = { navController.popBackStack() },
+                    lastRecordingAt = content?.recordings?.firstOrNull()?.recordedAtEpochMillis,
+                    onRefresh = profileViewModel::refresh,
+                    onUpdateBaby = profileViewModel::update,
+                    onLogout = authViewModel::logout,
+                    onPlan = { navController.navigate(Routes.PLAN) },
+                    onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     modifier = Modifier.padding(padding),
                 )
             }
         }
+        composable(Routes.PLAN) {
+            val planViewModel: PlanViewModel = viewModel(key = authState.session.userId) {
+                PlanViewModel(context.applicationContext, authState.session.accessToken, authState.session.userId)
+            }
+            PlanScreen(
+                state = planViewModel.uiState,
+                onBack = { navController.popBackStack() },
+                onRetry = planViewModel::refresh,
+                onPurchase = planViewModel::purchase,
+            )
+        }
+        composable(Routes.NOTIFICATIONS) {
+            NotificationsScreen(
+                accessToken = authState.session.accessToken,
+                onBack = { navController.popBackStack() },
+            )
+        }
         composable(Routes.RECORDING) {
-            val recordingViewModel: RecordingViewModel = viewModel { RecordingViewModel(store) }
+            val recordingViewModel: RecordingViewModel = viewModel(key = authState.session.accessToken) {
+                RecordingViewModel(store, authState.session.accessToken)
+            }
             RecordingRoute(
                 viewModel = recordingViewModel,
+                accessToken = authState.session.accessToken,
                 onBack = { navController.popBackStack() },
-                onHistory = {
+                onFeedback = { navController.navigate(Routes.feedback(it)) },
+                onRecordingSaved = { recordingId ->
                     historyViewModel.refresh()
-                    navigateMain(Routes.HISTORY)
+                    navController.navigate(Routes.result(recordingId)) {
+                        popUpTo(Routes.RECORDING) { inclusive = true }
+                    }
                 },
-                onRecordingSaved = historyViewModel::refresh,
+            )
+        }
+        composable(
+            route = Routes.FEEDBACK,
+            arguments = listOf(navArgument("recordingId") { type = NavType.StringType }),
+        ) { entry ->
+            FeedbackScreen(
+                recordingId = requireNotNull(entry.arguments?.getString("recordingId")),
+                accessToken = authState.session.accessToken,
+                onSubmitted = { navigateMain(Routes.HOME) },
             )
         }
         composable(
             route = Routes.RESULT,
-            arguments = listOf(navArgument("recordingId") { type = NavType.StringType }),
+            arguments = listOf(
+                navArgument("recordingId") { type = NavType.StringType },
+                navArgument("log") { type = NavType.BoolType; defaultValue = false },
+            ),
         ) { entry ->
             val recordingId = requireNotNull(entry.arguments?.getString("recordingId"))
             RecordingResultDestination(
                 recordingId = recordingId,
+                startInLog = entry.arguments?.getBoolean("log") == true,
+                accessToken = authState.session.accessToken,
                 historyState = historyState,
                 onBack = { navController.popBackStack() },
-                onRetry = historyViewModel::refresh,
+                onRetry = { historyViewModel.refresh() },
                 onRecordAgain = { navController.navigate(Routes.RECORDING) },
-                onHistory = { navigateMain(Routes.HISTORY) },
+                onRefresh = { historyViewModel.refresh() },
+                onFeedback = { navController.navigate(Routes.feedback(it)) },
             )
         }
     }
@@ -188,11 +273,14 @@ fun MadsazApp(navController: NavHostController = rememberNavController()) {
 @Composable
 private fun RecordingResultDestination(
     recordingId: String,
+    startInLog: Boolean,
+    accessToken: String,
     historyState: HistoryUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
     onRecordAgain: () -> Unit,
-    onHistory: () -> Unit,
+    onRefresh: () -> Unit,
+    onFeedback: (String) -> Unit,
 ) {
     when (historyState) {
         HistoryUiState.Loading -> SimpleStateScreen(onBack = onBack) {
@@ -207,9 +295,12 @@ private fun RecordingResultDestination(
             if (recording != null) {
                 ResultScreen(
                     state = RecordingUiState.Completed(recording),
-                    onBack = onBack,
+                    accessToken = accessToken,
                     onRecordAgain = onRecordAgain,
-                    onHistory = onHistory,
+                    onBack = onBack,
+                    onRefresh = onRefresh,
+                    onFeedback = onFeedback,
+                    startInLog = startInLog,
                 )
             } else {
                 SimpleStateScreen(onBack = onBack) {

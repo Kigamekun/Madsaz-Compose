@@ -1,38 +1,36 @@
 package id.madsaz.app.ui.components
 
-import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
-import android.os.Build
 import android.text.format.Formatter
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChildCare
-import androidx.compose.material.icons.rounded.VideoFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
 import id.madsaz.app.model.CryCategory
 import id.madsaz.app.ui.theme.BrandBlue
+import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.BrandCoralSoft
 import id.madsaz.app.ui.theme.Cream
@@ -40,8 +38,6 @@ import id.madsaz.app.ui.theme.MutedInk
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CompactContainer(
@@ -83,34 +79,6 @@ fun CategoryBadge(category: CryCategory, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RecordingThumbnail(filePath: String, modifier: Modifier = Modifier) {
-    val bitmap = produceState<Bitmap?>(initialValue = null, filePath) {
-        value = withContext(Dispatchers.IO) { loadThumbnail(filePath) }
-    }.value
-
-    Box(
-        modifier = modifier.background(BrandBlueSoft),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (bitmap != null) {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = stringResource(R.string.video_thumbnail),
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop,
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Rounded.VideoFile,
-                contentDescription = null,
-                tint = BrandBlue,
-                modifier = Modifier.size(28.dp),
-            )
-        }
-    }
-}
-
-@Composable
 fun BabyMark(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
@@ -119,11 +87,48 @@ fun BabyMark(modifier: Modifier = Modifier) {
         contentColor = BrandBlue,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = Icons.Rounded.ChildCare,
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
+            Icon(painterResource(R.drawable.phosphor_baby), contentDescription = null, modifier = Modifier.size(24.dp))
+        }
+    }
+}
+
+@Composable
+fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(13.dp),
+            color = Color.White,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDEEAF2)),
+            shadowElevation = 4.dp,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(painterResource(R.drawable.phosphor_baby), null, tint = BrandBlueDark, modifier = Modifier.size(24.dp))
+            }
+        }
+        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+            Text(
+                "Madsaz",
+                color = Color(0xFF0B2A2D),
+                fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 19.sp,
             )
+            Text("Cry patterns", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, lineHeight = 13.sp)
+        }
+        Surface(
+            modifier = Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onProfile),
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = Color.White,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDEEAF2)),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text("P", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            }
         }
     }
 }
@@ -139,26 +144,3 @@ fun formatRecordedAt(epochMillis: Long): String =
 
 @Composable
 fun formatStorageSize(bytes: Long): String = Formatter.formatShortFileSize(LocalContext.current, bytes)
-
-private fun loadThumbnail(filePath: String): Bitmap? = runCatching {
-    val retriever = MediaMetadataRetriever()
-    try {
-        retriever.setDataSource(filePath)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            retriever.getScaledFrameAtTime(
-                0L,
-                MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                320,
-                240,
-            )
-        } else {
-            retriever.getFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { source ->
-                Bitmap.createScaledBitmap(source, 320, 240, true).also { scaled ->
-                    if (scaled !== source) source.recycle()
-                }
-            }
-        }
-    } finally {
-        retriever.release()
-    }
-}.getOrNull()

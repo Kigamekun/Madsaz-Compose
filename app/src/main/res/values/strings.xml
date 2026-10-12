@@ -34,23 +34,21 @@
     <string name="home_latest_cry">Latest cry cue</string>
     <string name="home_latest_empty">No result yet</string>
     <string name="home_just_now">Just now</string>
-    <string name="home_see_all">See all</string>
+    <string name="home_see_all">Cry cues</string>
     <string name="home_recorded_at">Recorded at %1$s</string>
 
-    <string name="cry_cues_hero_description">Happy baby in a blue nursery</string>
-    <string name="cry_cues_title">Cry cues</string>
     <string name="cry_cues_see_all">See all cues  ›</string>
 
     <string name="history_title">Riwayat</string>
-    <string name="history_subtitle">Semua video tersimpan privat di perangkat ini.</string>
+    <string name="history_subtitle">Video tersimpan di server dan hanya bisa diakses oleh akun Anda.</string>
     <string name="history_count">%1$d rekaman</string>
     <string name="history_empty_title">Riwayat masih kosong</string>
     <string name="history_empty_body">Mulai rekaman pertama untuk melihat hasil analisis di sini.</string>
     <string name="history_delete_recording">Hapus rekaman</string>
-    <string name="history_delete_confirmation">Video %1$s akan dihapus permanen dari perangkat ini.</string>
+    <string name="history_delete_confirmation">Video %1$s akan dihapus permanen dari server beserta hasil dan feedbacknya.</string>
     <string name="history_load_error">Riwayat tidak dapat dibaca.</string>
     <string name="history_missing_title">Rekaman tidak ditemukan</string>
-    <string name="history_missing_body">File mungkin sudah dihapus dari perangkat.</string>
+    <string name="history_missing_body">Rekaman mungkin sudah dihapus dari server.</string>
 
     <string name="guide_title">Panduan merekam</string>
     <string name="guide_intro_title">Tiga hal kecil sebelum mulai</string>
@@ -63,8 +61,8 @@
     <string name="guide_sound_body">Dekatkan perangkat secukupnya dan matikan TV atau sumber suara lain bila memungkinkan.</string>
     <string name="guide_categories_title">Lima bahasa tangisan</string>
     <string name="guide_categories_body">Kategori awal mengikuti lima pola DBL dari aplikasi Madsaz sebelumnya.</string>
-    <string name="guide_privacy_title">Tetap di perangkat</string>
-    <string name="guide_privacy_body">Rekaman disimpan di ruang privat aplikasi dan tidak masuk ke Galeri.</string>
+    <string name="guide_privacy_title">Tersimpan privat</string>
+    <string name="guide_privacy_body">Video tidak masuk ke Galeri. Setelah upload berhasil, salinan sementara di perangkat dihapus.</string>
 
     <string name="profile_title">Profil</string>
     <string name="profile_name">Pengguna Madsaz</string>
@@ -73,10 +71,10 @@
     <string name="profile_permissions">Izin kamera dan mikrofon</string>
     <string name="profile_permission_granted">Diberikan</string>
     <string name="profile_permission_missing">Belum diberikan</string>
-    <string name="profile_storage">Penyimpanan lokal</string>
+    <string name="profile_storage">Penyimpanan server</string>
     <string name="profile_recording_count">%1$d video tersimpan</string>
     <string name="profile_privacy_title">Privasi rekaman</string>
-    <string name="profile_privacy_body">Video hanya tersedia di dalam aplikasi dan ikut terhapus saat aplikasi dihapus.</string>
+    <string name="profile_privacy_body">Video diunggah ke server. Setelah berhasil, file sementara di perangkat dihapus. Hapus rekaman dari riwayat untuk menghapusnya dari server.</string>
     <string name="profile_about_title">Tentang</string>
     <string name="profile_about_body">Madsaz membantu orang tua memahami pola tangisan melalui suara dan mimik wajah.</string>
     <string name="profile_version">Versi 1.0 · Prototipe internal</string>
@@ -93,19 +91,17 @@
     <string name="recording_limit">Maks. 30 detik</string>
     <string name="recording_camera_error">Kamera tidak dapat digunakan. Periksa izin lalu coba lagi.</string>
     <string name="recording_save_error">Video gagal disimpan. Silakan coba merekam kembali.</string>
+    <string name="recording_upload_error">Video belum selesai dikirim ke server. File sementara tetap ada; periksa koneksi lalu tekan Coba lagi.</string>
     <string name="recording_keep_baby_in_view">Keep baby in view</string>
     <string name="recording_tap_to_record">Tap to record</string>
     <string name="recording_camera_ready">Camera + microphone ready</string>
-    <string name="recording_title">Recording your baby’s cry</string>
-    <string name="recording_subtitle">Keep the phone close and let Madsaz listen for a moment.</string>
-    <string name="recording_in_progress">Recording in progress</string>
     <string name="recording_stop_label">Stop recording</string>
     <string name="recording_stop_helper">You can stop whenever your baby feels calm.</string>
 
     <string name="analysis_saving_title">Menyimpan rekaman</string>
     <string name="analysis_saving_body">Jangan tutup halaman ini sebentar.</string>
-    <string name="analysis_running_title">Menganalisis tangisan</string>
-    <string name="analysis_running_body">Suara dan mimik sedang diproses bersama.</string>
+    <string name="analysis_running_title">Mengunggah rekaman</string>
+    <string name="analysis_running_body">Video sedang dikirim ke server.</string>
     <string name="analysis_result_title">Hasil analisis</string>
     <string name="analysis_combined">KESIMPULAN GABUNGAN</string>
     <string name="analysis_input_title">Input yang dianalisis</string>
@@ -123,8 +119,8 @@
     <string name="result_heading_eh">Pandu might need... A burp</string>
     <string name="result_heading_eairh">Pandu might feel... Gassy</string>
     <string name="result_heading_heh">Pandu might be... Uncomfortable</string>
-    <string name="result_confidence">High Confidence (87%)</string>
-    <string name="result_explanation">We compared the cry pattern to thousands of similar recordings.</string>
+    <string name="result_confidence">Demo result</string>
+    <string name="result_explanation">This temporary result is for demonstration only and has not been analyzed by ML.</string>
     <string name="result_suggested_neh_title">Try feeding</string>
     <string name="result_suggested_neh_body">Neh often means baby may be hungry.</string>
     <string name="result_care_neh_title">Look for rooting</string>
