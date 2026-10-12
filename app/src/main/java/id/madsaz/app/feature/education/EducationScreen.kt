@@ -178,7 +178,7 @@ fun EducationDetailScreen(articleId: String, onBack: () -> Unit) {
     CompactContainer {
         Box(Modifier.fillMaxSize().background(Color.White)) {
             Image(
-                painterResource(if (isSleepArticle) R.drawable.education_sleep_cover else article.image), null,
+                painterResource(if (isSleepArticle) R.drawable.education_sleep else article.image), null,
                 Modifier.fillMaxWidth().height(282.dp), contentScale = ContentScale.Crop,
             )
             LazyColumn(Modifier.fillMaxSize()) {

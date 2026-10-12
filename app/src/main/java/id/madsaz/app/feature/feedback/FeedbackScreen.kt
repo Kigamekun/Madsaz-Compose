@@ -76,7 +76,7 @@ fun FeedbackScreen(
     CompactContainer {
         Column(Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState())) {
             Image(
-                painter = painterResource(R.drawable.madsaz_cry_cues_photo),
+                painter = painterResource(R.drawable.education_hero),
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth().height(210.dp),
                 contentScale = ContentScale.Crop,

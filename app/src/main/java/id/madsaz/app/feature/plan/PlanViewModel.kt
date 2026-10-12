@@ -170,6 +170,5 @@ class PlanViewModel(
 
     override fun onCleared() {
         billingClient.endConnection()
-        super.onCleared()
     }
 }
