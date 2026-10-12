@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -15,6 +17,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val secretsFile = rootProject.file("secrets.properties")
+        val secrets = Properties().apply {
+            check(secretsFile.exists()) { "Missing secrets.properties" }
+            secretsFile.inputStream().use { load(it) }
+        }
+        val apiBaseUrl = secrets.getProperty("madsazApiBaseUrl")
+            ?.takeIf { it.isNotBlank() }
+            ?: error("Missing madsazApiBaseUrl in secrets.properties")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -34,10 +46,19 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
+}
+
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 dependencies {
+    implementation("com.android.billingclient:billing:9.1.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
