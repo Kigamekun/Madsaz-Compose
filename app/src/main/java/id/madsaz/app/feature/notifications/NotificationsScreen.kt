@@ -1,6 +1,9 @@
 package id.madsaz.app.feature.notifications
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import id.madsaz.app.notifications.FcmRegistration
+import id.madsaz.app.BuildConfig
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
@@ -105,6 +109,23 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
                         },
                         color = Ink,
                     )
+                }
+                if (BuildConfig.DEBUG && enabled) item {
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                try {
+                                    val token = withContext(Dispatchers.IO) { registration.token() }
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboard.setPrimaryClip(ClipData.newPlainText("FCM token", token))
+                                    error = null
+                                } catch (exception: Exception) {
+                                    error = exception.message ?: "Token FCM tidak tersedia."
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Salin token uji FCM") }
                 }
                 if (error != null) item { Text(error.orEmpty(), color = MaterialTheme.colorScheme.error) }
                 item {

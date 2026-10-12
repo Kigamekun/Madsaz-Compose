@@ -13,23 +13,25 @@ class FcmRegistration(private val context: Context, private val api: Notificatio
 
     fun configured(): Boolean = FirebaseApp.getApps(context).isNotEmpty()
 
+    fun token(): String = Tasks.await(FirebaseMessaging.getInstance().token)
+
     fun enable(accessToken: String) {
         if (!configured()) throw IllegalStateException("Firebase belum dikonfigurasi.")
-        val token = Tasks.await(FirebaseMessaging.getInstance().token)
+        val token = token()
         api.register(accessToken, token)
         preferences.edit().putBoolean("enabled", true).apply()
     }
 
     fun refresh(accessToken: String) {
         if (!enabled() || !configured()) return
-        api.register(accessToken, Tasks.await(FirebaseMessaging.getInstance().token))
+        api.register(accessToken, token())
     }
 
     fun disable(accessToken: String) {
         val wasEnabled = enabled()
         preferences.edit().putBoolean("enabled", false).apply()
         if (wasEnabled && configured()) {
-            val token = Tasks.await(FirebaseMessaging.getInstance().token)
+            val token = token()
             try {
                 api.unregister(accessToken, token)
             } finally {

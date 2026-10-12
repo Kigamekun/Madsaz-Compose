@@ -30,8 +30,13 @@ class MadsazMessagingService : FirebaseMessagingService() {
         val title = message.notification?.title ?: return
         val body = message.notification?.body.orEmpty()
         val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(NotificationChannel("plan_reminders", "Pengingat paket", NotificationManager.IMPORTANCE_DEFAULT))
-        val intent = Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(NotificationChannel("plan_reminders", "Pengingat paket", NotificationManager.IMPORTANCE_DEFAULT))
+        }
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(MainActivity.EXTRA_NOTIFICATION_DESTINATION, message.data["destination"])
+        }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(this, "plan_reminders")
             .setSmallIcon(R.mipmap.ic_launcher)

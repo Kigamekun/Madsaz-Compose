@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,7 +84,11 @@ private object Routes {
 }
 
 @Composable
-fun MadsazApp(navController: NavHostController = rememberNavController()) {
+fun MadsazApp(
+    navController: NavHostController = rememberNavController(),
+    notificationDestination: String? = null,
+    onNotificationDestinationHandled: () -> Unit = {},
+) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = viewModel {
         AuthViewModel(AuthStore(context.applicationContext), FcmRegistration(context.applicationContext))
@@ -266,6 +271,13 @@ fun MadsazApp(navController: NavHostController = rememberNavController()) {
                 onRefresh = { historyViewModel.refresh() },
                 onFeedback = { navController.navigate(Routes.feedback(it)) },
             )
+        }
+    }
+
+    LaunchedEffect(authState, notificationDestination) {
+        if (authState is AuthUiState.SignedIn && notificationDestination == "plan") {
+            navController.navigate(Routes.PLAN) { launchSingleTop = true }
+            onNotificationDestinationHandled()
         }
     }
 }
