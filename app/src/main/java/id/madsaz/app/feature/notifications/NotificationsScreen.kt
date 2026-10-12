@@ -110,7 +110,7 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
                         color = Ink,
                     )
                 }
-                if (BuildConfig.DEBUG && enabled) item {
+                if (BuildConfig.DEBUG && configured) item {
                     OutlinedButton(
                         onClick = {
                             scope.launch {
