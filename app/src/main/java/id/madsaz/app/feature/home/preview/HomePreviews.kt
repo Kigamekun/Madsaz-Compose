@@ -24,9 +24,8 @@ private fun HomeEmptyPreview() {
                 historyLoading = false,
                 historyError = false,
                 onRecord = {},
-                onGuide = {},
-                onProfile = {},
                 onHistory = {},
+                onProfile = {},
                 onOpenRecording = {},
                 contentPadding = padding,
             )
@@ -51,9 +50,8 @@ private fun HomeWithResultPreview() {
                 historyLoading = false,
                 historyError = false,
                 onRecord = {},
-                onGuide = {},
-                onProfile = {},
                 onHistory = {},
+                onProfile = {},
                 onOpenRecording = {},
                 contentPadding = padding,
             )
