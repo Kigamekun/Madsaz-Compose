@@ -1,11 +1,14 @@
 package id.madsaz.app.feature.notifications
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +64,7 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
     var enabled by remember { mutableStateOf(registration.enabled()) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var permissionSettingsRequired by remember { mutableStateOf(false) }
     val configured = registration.configured()
 
     fun enable() {
@@ -79,7 +83,14 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
     }
 
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) enable() else error = "Izinkan notifikasi agar pengingat dapat ditampilkan."
+        if (granted) {
+            permissionSettingsRequired = false
+            enable()
+        } else {
+            error = "Izinkan notifikasi agar pengingat dapat ditampilkan."
+            permissionSettingsRequired = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                (context as? Activity)?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) == false
+        }
     }
 
     Scaffold(
@@ -128,6 +139,17 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
                     ) { Text("Salin token uji FCM") }
                 }
                 if (error != null) item { Text(error.orEmpty(), color = MaterialTheme.colorScheme.error) }
+                if (permissionSettingsRequired) item {
+                    OutlinedButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Buka pengaturan notifikasi") }
+                }
                 item {
                     if (busy) CircularProgressIndicator()
                     else if (enabled) OutlinedButton(

@@ -1,5 +1,8 @@
 package id.madsaz.app
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +32,9 @@ import android.widget.Toast
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -90,10 +96,35 @@ fun MadsazApp(
     onNotificationDestinationHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val fcmRegistration = remember(context) { FcmRegistration(context.applicationContext) }
+    val notificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        fcmRegistration.completeFirstLaunchPermissionRequest(granted)
+    }
     val authViewModel: AuthViewModel = viewModel {
-        AuthViewModel(AuthStore(context.applicationContext), FcmRegistration(context.applicationContext))
+        AuthViewModel(AuthStore(context.applicationContext), fcmRegistration)
     }
     val authState = authViewModel.uiState
+    LaunchedEffect(authState is AuthUiState.SignedIn, fcmRegistration) {
+        if (authState !is AuthUiState.SignedIn) return@LaunchedEffect
+        if (fcmRegistration.permissionPrompted()) return@LaunchedEffect
+
+        if (!fcmRegistration.configured()) {
+            fcmRegistration.completeFirstLaunchPermissionRequest(false)
+            return@LaunchedEffect
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fcmRegistration.completeFirstLaunchPermissionRequest(true)
+            return@LaunchedEffect
+        }
+
+        fcmRegistration.markPermissionPrompted()
+        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
     fun navigateMain(route: String) {
         if (route == Routes.HOME && navController.popBackStack(Routes.HOME, false)) return
         navController.navigate(route) {

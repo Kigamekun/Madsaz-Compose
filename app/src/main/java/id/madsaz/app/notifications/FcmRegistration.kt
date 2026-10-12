@@ -11,6 +11,19 @@ class FcmRegistration(private val context: Context, private val api: Notificatio
 
     fun enabled(): Boolean = preferences.getBoolean("enabled", false)
 
+    fun permissionPrompted(): Boolean = preferences.getBoolean("permission_prompted", false)
+
+    fun markPermissionPrompted() {
+        preferences.edit().putBoolean("permission_prompted", true).apply()
+    }
+
+    fun completeFirstLaunchPermissionRequest(granted: Boolean) {
+        preferences.edit()
+            .putBoolean("permission_prompted", true)
+            .putBoolean("enabled", granted)
+            .apply()
+    }
+
     fun configured(): Boolean = FirebaseApp.getApps(context).isNotEmpty()
 
     fun token(): String = Tasks.await(FirebaseMessaging.getInstance().token)
