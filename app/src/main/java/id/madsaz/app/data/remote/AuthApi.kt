@@ -13,6 +13,8 @@ data class AuthResponse(
     val name: String?,
 )
 
+class AuthApiException(val statusCode: Int, message: String) : IllegalStateException(message)
+
 class AuthApi {
     fun login(email: String, password: String): AuthResponse = requireNotNull(request(
         path = "/auth/login",
@@ -52,7 +54,10 @@ class AuthApi {
 
             if (connection.responseCode !in 200..299) {
                 val message = runCatching { JSONObject(responseBody).optString("error") }.getOrNull()
-                throw IllegalStateException(message?.ifBlank { null } ?: "Permintaan auth gagal (${connection.responseCode})")
+                throw AuthApiException(
+                    connection.responseCode,
+                    message?.ifBlank { null } ?: "Permintaan auth gagal (${connection.responseCode})",
+                )
             }
 
             if (!expectBody) return null

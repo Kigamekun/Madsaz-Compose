@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import id.madsaz.app.data.local.AuthSession
 import id.madsaz.app.data.local.AuthStore
 import id.madsaz.app.data.remote.AuthApi
+import id.madsaz.app.data.remote.AuthApiException
 import id.madsaz.app.notifications.FcmRegistration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -44,9 +45,15 @@ class AuthViewModel(
                     AuthUiState.SignedIn(session)
                 } catch (error: CancellationException) {
                     throw error
+                } catch (error: AuthApiException) {
+                    if (error.statusCode == 401) {
+                        store.clear()
+                        AuthUiState.SignedOut
+                    } else {
+                        AuthUiState.Error("Sesi belum dapat diperbarui. Periksa koneksi lalu coba lagi.")
+                    }
                 } catch (_: Exception) {
-                    store.clear()
-                    AuthUiState.SignedOut
+                    AuthUiState.Error("Sesi belum dapat diperbarui. Periksa koneksi lalu coba lagi.")
                 }
             }
         }
