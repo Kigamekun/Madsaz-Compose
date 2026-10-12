@@ -37,9 +37,10 @@ private fun PreviewResult(state: RecordingUiState) {
     MadsazTheme {
         ResultScreen(
             state = state,
-            onBack = {},
+            accessToken = "preview",
             onRecordAgain = {},
-            onHistory = {},
+            onBack = {},
+            onFeedback = {},
         )
     }
 }

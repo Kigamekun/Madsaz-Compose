@@ -2,90 +2,64 @@ package id.madsaz.app.data.local
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import id.madsaz.app.model.DemoClassifier
-import id.madsaz.app.model.RecordingItem
 import java.io.File
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.util.UUID
 
-class RecordingStore(context: Context) {
-    private val directory = File(context.filesDir, DIRECTORY_NAME)
+class RecordingStore(context: Context, userId: String) {
+    private val directory = File(context.filesDir, "pending-recordings/$userId")
+    private val pending = context.getSharedPreferences("pending_recordings", Context.MODE_PRIVATE)
+    private val pendingKey = userId
 
     fun createOutputFile(): File {
-        ensureDirectory()
-        return File(directory, "$FILE_PREFIX${System.currentTimeMillis()}.$FILE_EXTENSION")
+        if (pendingUpload() != null) throw IOException("Unggahan sebelumnya belum selesai")
+        if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Direktori rekaman gagal dibuat")
+        return File(directory, "${UUID.randomUUID()}.mp4")
     }
 
-    suspend fun listRecordings(): List<RecordingItem> = withContext(Dispatchers.IO) {
-        ensureDirectory()
-        val files = directory.listFiles { file ->
-            file.isFile && file.extension == FILE_EXTENSION && ID_PATTERN.matches(file.nameWithoutExtension)
-        } ?: throw IOException("Direktori rekaman tidak dapat dibaca")
-
-        files.map(::toRecordingItem).sortedByDescending(RecordingItem::recordedAtEpochMillis)
+    fun pendingUpload(): File? {
+        val name = pending.getString(pendingKey, null) ?: return null
+        val file = File(directory, name)
+        if (file.parentFile?.canonicalFile == directory.canonicalFile && file.isFile) return file
+        pending.edit().remove(pendingKey).apply()
+        return null
     }
 
-    suspend fun recordingFrom(file: File): RecordingItem = withContext(Dispatchers.IO) {
-        require(file.parentFile?.canonicalFile == directory.canonicalFile) {
-            "File berada di luar direktori rekaman"
-        }
-        require(file.isFile) { "File rekaman tidak ditemukan" }
-        toRecordingItem(file)
-    }
-
-    suspend fun delete(recording: RecordingItem) = withContext(Dispatchers.IO) {
-        val file = File(recording.filePath)
-        require(file.parentFile?.canonicalFile == directory.canonicalFile) {
-            "File berada di luar direktori rekaman"
-        }
-        if (file.exists() && !file.delete()) throw IOException("Rekaman gagal dihapus")
-    }
-
-    suspend fun deletePartial(file: File) = withContext(Dispatchers.IO) {
-        if (file.parentFile?.canonicalFile == directory.canonicalFile && file.exists()) {
-            file.delete()
+    fun markReady(file: File) {
+        checkFile(file)
+        if (!pending.edit().putString(pendingKey, file.name).commit()) {
+            throw IOException("Status unggahan gagal disimpan")
         }
     }
 
-    private fun ensureDirectory() {
-        if (!directory.isDirectory && !directory.mkdirs()) {
-            throw IOException("Direktori rekaman gagal dibuat")
-        }
+    fun durationSeconds(file: File): Int? {
+        checkFile(file)
+        return runCatching {
+            MediaMetadataRetriever().run {
+                try {
+                    setDataSource(file.absolutePath)
+                    extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull()?.let { ((it + 999) / 1000).toInt() }
+                } finally {
+                    release()
+                }
+            }
+        }.getOrNull()
     }
 
-    private fun toRecordingItem(file: File): RecordingItem {
-        val id = file.nameWithoutExtension
-        val recordedAt = id.removePrefix(FILE_PREFIX).toLongOrNull()
-            ?: throw IOException("Nama file rekaman tidak valid")
-        return RecordingItem(
-            id = id,
-            filePath = file.absolutePath,
-            recordedAtEpochMillis = recordedAt,
-            durationMillis = readDuration(file),
-            sizeBytes = file.length(),
-            category = DemoClassifier.classify(id),
-        )
+    fun deleteUploaded(file: File) {
+        checkFile(file)
+        if (!file.delete()) throw IOException("Salinan sementara gagal dihapus")
+        pending.edit().remove(pendingKey).apply()
     }
 
-    private fun readDuration(file: File): Long? = runCatching {
-        MediaMetadataRetriever().use { retriever ->
-            retriever.setDataSource(file.absolutePath)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
-        }
-    }.getOrNull()
+    fun deletePartial(file: File) {
+        if (file.parentFile?.canonicalFile == directory.canonicalFile && file.exists()) file.delete()
+    }
 
-    private inline fun <T> MediaMetadataRetriever.use(block: (MediaMetadataRetriever) -> T): T =
-        try {
-            block(this)
-        } finally {
-            release()
+    private fun checkFile(file: File) {
+        require(file.parentFile?.canonicalFile == directory.canonicalFile && file.isFile) {
+            "File rekaman sementara tidak ditemukan"
         }
-
-    private companion object {
-        const val DIRECTORY_NAME = "recordings"
-        const val FILE_PREFIX = "madsaz_"
-        const val FILE_EXTENSION = "mp4"
-        val ID_PATTERN = Regex("^madsaz_\\d+$")
     }
 }

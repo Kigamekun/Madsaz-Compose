@@ -1,84 +1,64 @@
 package id.madsaz.app.feature.result
 
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import id.madsaz.app.R
-import id.madsaz.app.model.CryCategory
+import id.madsaz.app.data.remote.RecordingApi
+import id.madsaz.app.model.CryScore
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.formatDuration
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
-import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
-
-private val ResultBorder = Color(0xFFE8EAF4)
-private val ResultGreen = Color(0xFFD1F1E3)
-private val ResultGreenText = Color(0xFF2E6E54)
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ResultScreen(
     state: RecordingUiState,
-    onBack: () -> Unit,
+    accessToken: String,
     onRecordAgain: () -> Unit,
-    onHistory: () -> Unit,
+    onBack: () -> Unit,
+    onRefresh: (() -> Unit)? = null,
+    onFeedback: (String) -> Unit,
+    startInLog: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     CompactContainer(modifier) {
         when (state) {
-            RecordingUiState.Saving -> ProgressContent(
-                title = stringResource(R.string.analysis_saving_title),
-                body = stringResource(R.string.analysis_saving_body),
-            )
-            RecordingUiState.Analyzing -> ProgressContent(
-                title = stringResource(R.string.analysis_running_title),
-                body = stringResource(R.string.analysis_running_body),
-            )
-            is RecordingUiState.Completed -> CompletedContent(
-                recording = state.recording,
-                onBack = onBack,
-                onHistory = onHistory,
-            )
-            is RecordingUiState.Error -> ErrorContent(
-                message = stringResource(state.messageRes),
-                onRetry = onRecordAgain,
-            )
+            RecordingUiState.Saving -> ProgressContent(stringResource(R.string.analysis_saving_title), stringResource(R.string.analysis_saving_body))
+            RecordingUiState.Analyzing -> ProgressContent(stringResource(R.string.analysis_running_title), stringResource(R.string.analysis_running_body))
+            is RecordingUiState.Completed -> CompletedContent(state.recording, accessToken, onBack, onRefresh, onFeedback, startInLog)
+            is RecordingUiState.Error -> ErrorContent(stringResource(state.messageRes), onRecordAgain)
             else -> error("ResultScreen hanya menerima state hasil rekaman")
         }
     }
@@ -87,16 +67,8 @@ fun ResultScreen(
 @Composable
 private fun ProgressContent(title: String, body: String) {
     Box(Modifier.fillMaxSize().background(AppBackground), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.padding(24.dp),
-        ) {
-            Surface(modifier = Modifier.size(82.dp), shape = CircleShape, color = BrandBlueSoft) {
-                Box(contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(modifier = Modifier.size(38.dp), strokeWidth = 3.dp)
-                }
-            }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            CircularProgressIndicator()
             Text(title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
             Text(body, style = MaterialTheme.typography.bodyMedium, color = MutedInk, textAlign = TextAlign.Center)
         }
@@ -106,170 +78,179 @@ private fun ProgressContent(title: String, body: String) {
 @Composable
 private fun CompletedContent(
     recording: RecordingItem,
+    accessToken: String,
     onBack: () -> Unit,
-    onHistory: () -> Unit,
+    onRefresh: (() -> Unit)?,
+    onFeedback: (String) -> Unit,
+    startInLog: Boolean,
 ) {
-    val copy = resultCopy(recording.category)
+    var showLog by remember(recording.id, startInLog) { mutableStateOf(startInLog) }
+    if (showLog || recording.scores.isEmpty()) {
+        RecordingLog(recording, accessToken, onBack, onRefresh, onFeedback, startInLog) { showLog = false }
+    } else {
+        PatternResult(recording) { onFeedback(recording.id) }
+    }
+}
 
-    Box(Modifier.fillMaxSize().background(Color.White)) {
-        Text(
-            text = stringResource(R.string.result_status_time),
-            modifier = Modifier.offset(x = 20.dp, y = 28.dp),
-            color = Ink,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Image(
-            painter = painterResource(R.drawable.madsaz_result_baby_halo),
-            contentDescription = stringResource(R.string.result_baby_description),
-            modifier = Modifier.offset(x = 143.dp, y = 112.dp).size(104.dp),
-            contentScale = ContentScale.FillBounds,
-        )
-        Text(
-            text = copy.heading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = 247.dp)
-                .padding(horizontal = 24.dp),
-            color = Ink,
-            fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-            fontSize = 23.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
-        Surface(
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 285.dp).size(width = 122.dp, height = 24.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = ResultGreen,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.result_confidence),
-                    color = ResultGreenText,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-        Text(
-            text = stringResource(R.string.result_explanation),
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = 327.dp)
-                .padding(horizontal = 38.dp),
-            color = MutedInk,
-            fontSize = 11.sp,
-            lineHeight = 15.sp,
-            textAlign = TextAlign.Center,
-        )
-        ResultSuggestionCard(
-            modifier = Modifier.offset(x = 24.dp, y = 384.dp),
-            icon = R.drawable.madsaz_activity_bottle,
-            title = copy.suggestionTitle,
-            body = copy.suggestionBody,
-            height = 104,
-        )
-        ResultSuggestionCard(
-            modifier = Modifier.offset(x = 24.dp, y = 504.dp),
-            icon = R.drawable.madsaz_activity_clock,
-            title = copy.careTitle,
-            body = copy.careBody,
-            helper = copy.careHelper,
-            height = 112,
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .height(104.dp)
-                .background(Color.White),
-        ) {
+@Composable
+private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
+    val leading = recording.scores.first()
+    Column(Modifier.fillMaxSize().background(Color.White)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
+            Spacer(Modifier.height(48.dp))
+            Image(
+                painter = painterResource(R.drawable.madsaz_result_baby_halo),
+                contentDescription = stringResource(R.string.result_baby_description),
+                modifier = Modifier.align(Alignment.CenterHorizontally).size(104.dp),
+                contentScale = ContentScale.Fit,
+            )
+            Spacer(Modifier.height(20.dp))
+            Text("Cry pattern result", style = MaterialTheme.typography.titleLarge, color = Ink, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(16.dp))
             Surface(
-                modifier = Modifier
-                    .offset(x = 24.dp, y = 10.dp)
-                    .size(width = 155.dp, height = 48.dp)
-                    .clickable(onClick = onBack),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = Color(0xFFEAF6FC),
+                border = BorderStroke(1.dp, Color(0xFFC8E4F3)),
+            ) {
+                Row(Modifier.padding(horizontal = 16.dp, vertical = 13.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text("MOST LIKELY", color = BrandBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("${leading.code} - ${leading.label}", color = Ink, fontSize = 16.sp)
+                    }
+                    Surface(shape = RoundedCornerShape(18.dp), color = BrandBlue) {
+                        Text("${(leading.confidence * 100).toInt()}%", Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = Color.White, fontSize = 12.sp)
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Text("Cry cue confidence", color = Ink, fontSize = 13.sp)
+            Spacer(Modifier.height(10.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                recording.scores.forEachIndexed { index, score -> ScoreBar(score, index == 0) }
+            }
+            Spacer(Modifier.height(18.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
                 color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFD5E2F4)),
+                border = BorderStroke(1.dp, Color(0xFFD5E6EE)),
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.result_skip),
-                        color = BrandBlue,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.size(44.dp).background(Color(0xFFE8F5EE), RoundedCornerShape(22.dp)))
+                    Column {
+                        Text("SUGGESTED ACTION", color = Color(0xFF387A67), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("What you can try", color = Ink, fontSize = 15.sp)
+                        Text(recording.solution.orEmpty(), color = MutedInk, fontSize = 11.sp, lineHeight = 14.sp)
+                    }
                 }
             }
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = 204.dp, y = 10.dp)
-                    .size(width = 155.dp, height = 48.dp)
-                    .clickable(onClick = onHistory),
-                shape = RoundedCornerShape(24.dp),
-                color = BrandBlue,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.result_add_log),
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+            if (recording.source == "mock") {
+                Spacer(Modifier.height(10.dp))
+                Text("Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.", color = MutedInk, fontSize = 10.sp)
             }
+            Spacer(Modifier.height(16.dp))
+        }
+        Button(onClick = onFeedback, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp).height(48.dp)) {
+            Text("Feedback")
         }
     }
 }
 
 @Composable
-private fun ResultSuggestionCard(
-    modifier: Modifier,
-    icon: Int,
-    title: String,
-    body: String,
-    helper: String? = null,
-    height: Int,
+private fun ScoreBar(score: CryScore, leading: Boolean) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("${score.code} - ${score.label}", color = if (leading) Ink else MutedInk, fontSize = 11.sp)
+            Text("${(score.confidence * 100).toInt()}%", color = if (leading) BrandBlue else MutedInk, fontSize = 11.sp)
+        }
+        Box(Modifier.fillMaxWidth().height(7.dp).background(Color(0xFFE8EEF1), RoundedCornerShape(4.dp))) {
+            Box(Modifier.fillMaxWidth(score.confidence.toFloat().coerceIn(0f, 1f)).height(7.dp)
+                .background(if (leading) BrandBlue else Color(0xFFA9C7D5), RoundedCornerShape(4.dp)))
+        }
+    }
+}
+
+@Composable
+private fun RecordingLog(
+    recording: RecordingItem,
+    accessToken: String,
+    onBack: () -> Unit,
+    onRefresh: (() -> Unit)?,
+    onFeedback: (String) -> Unit,
+    startInLog: Boolean,
+    onResult: () -> Unit,
 ) {
-    Surface(
-        modifier = modifier.size(width = 342.dp, height = height.dp),
-        shape = RoundedCornerShape(20.dp),
-        color = Color.White,
-        border = BorderStroke(1.dp, ResultBorder),
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                modifier = Modifier.offset(x = 9.dp, y = if (height == 104) 19.dp else 24.dp).size(65.dp),
-                contentScale = ContentScale.Fit,
-            )
-            Text(
-                text = title,
-                modifier = Modifier.offset(x = 84.dp, y = 14.dp),
-                color = Ink,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = body,
-                modifier = Modifier.offset(x = 84.dp, y = 42.dp).width(230.dp),
-                color = MutedInk,
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
-            )
-            if (helper != null) {
-                Text(
-                    text = helper,
-                    modifier = Modifier.offset(x = 84.dp, y = 80.dp),
-                    color = MutedInk,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
+    val context = LocalContext.current
+    var playbackError by remember(recording.id) { mutableStateOf(false) }
+    var playing by remember(recording.id) { mutableStateOf(false) }
+    var loadingVideo by remember(recording.id) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val player = remember(context, recording.id, accessToken) {
+        VideoView(context).apply {
+            val controls = MediaController(context)
+            controls.setAnchorView(this)
+            setMediaController(controls)
+            setOnCompletionListener { playing = false }
+            setOnErrorListener { _, _, _ -> playbackError = true; playing = false; loadingVideo = false; true }
+            setBackgroundColor(android.graphics.Color.BLACK)
+        }
+    }
+    DisposableEffect(player) { onDispose { player.stopPlayback() } }
+    val playRecording = {
+        scope.launch {
+            loadingVideo = true
+            playbackError = false
+            try {
+                val url = withContext(Dispatchers.IO) {
+                    RecordingApi().presignedVideoUrl(accessToken, recording.id)
+                }
+                player.setOnPreparedListener { mediaPlayer ->
+                    loadingVideo = false
+                    playing = true
+                    mediaPlayer.start()
+                }
+                player.setVideoURI(Uri.parse(url))
+            } catch (_: Exception) {
+                loadingVideo = false
+                playbackError = true
             }
         }
+    }
+    Column(Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        OutlinedButton(onClick = if (startInLog || recording.scores.isEmpty()) onBack else onResult) { Text("Kembali") }
+        Text("Log rekaman", style = MaterialTheme.typography.headlineMedium, color = Ink)
+        Text(
+            "${SimpleDateFormat("d MMM yyyy · HH:mm", Locale.forLanguageTag("id-ID")).format(Date(recording.recordedAtEpochMillis))}  ·  ${formatDuration(recording.durationMillis)}",
+            color = MutedInk,
+        )
+        if (recording.scores.isNotEmpty()) {
+            Text("${recording.scores.first().code} - ${recording.scores.first().label}", style = MaterialTheme.typography.titleMedium, color = Ink)
+        } else {
+            Text(if (recording.status == "failed") "Analisis gagal. Video tetap tersimpan." else "Video tersimpan. Analisis belum tersedia.", color = Ink)
+        }
+        Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFF1F7FA)) {
+            Box(Modifier.fillMaxWidth().height(260.dp), contentAlignment = Alignment.Center) {
+                AndroidView(factory = { player }, modifier = Modifier.fillMaxSize())
+                if (loadingVideo) {
+                    CircularProgressIndicator(color = BrandBlue)
+                } else if (!playing && !playbackError) {
+                    Button(onClick = { playRecording() }) { Text("Putar rekaman") }
+                }
+            }
+        }
+        if (playbackError) {
+            Text("Video gagal diputar. Periksa koneksi lalu coba lagi.", color = MaterialTheme.colorScheme.error)
+            OutlinedButton(onClick = { playRecording() }) { Text(stringResource(R.string.common_retry)) }
+        }
+        if (recording.status == "processing" && onRefresh != null) {
+            OutlinedButton(onClick = onRefresh) { Text("Perbarui hasil") }
+        }
+        if (recording.source == "mock") {
+            Text("Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.", color = MutedInk, fontSize = 10.sp)
+        }
+        Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
+        Button(onClick = { onFeedback(recording.id) }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text("Feedback") }
     }
 }
 
@@ -277,68 +258,8 @@ private fun ResultSuggestionCard(
 private fun ErrorContent(message: String, onRetry: () -> Unit) {
     Box(Modifier.fillMaxSize().background(AppBackground).padding(24.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.errorContainer) {
-                Icon(
-                    Icons.Rounded.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(18.dp).size(28.dp),
-                )
-            }
             Text(message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
             OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
         }
     }
-}
-
-private data class ResultCopy(
-    val heading: String,
-    val suggestionTitle: String,
-    val suggestionBody: String,
-    val careTitle: String,
-    val careBody: String,
-    val careHelper: String,
-)
-
-private fun resultCopy(category: CryCategory): ResultCopy = when (category) {
-    CryCategory.NEH -> ResultCopy(
-        heading = "Pandu might be... Hungry",
-        suggestionTitle = "Try feeding",
-        suggestionBody = "Neh often means baby may be hungry.",
-        careTitle = "Look for rooting",
-        careBody = "Lip-smacking and rooting can support this result.",
-        careHelper = "Observe before feeding.",
-    )
-    CryCategory.OWH -> ResultCopy(
-        heading = "Pandu might be... Sleepy",
-        suggestionTitle = "Try settling",
-        suggestionBody = "Owh can appear when baby is ready to rest.",
-        careTitle = "Watch for sleepy cues",
-        careBody = "A calm, dim room can support this result.",
-        careHelper = "Keep the routine gentle.",
-    )
-    CryCategory.EH -> ResultCopy(
-        heading = "Pandu might need... A burp",
-        suggestionTitle = "Try burping",
-        suggestionBody = "Eh can appear after feeding when baby needs a burp.",
-        careTitle = "Keep baby upright",
-        careBody = "A gentle upright hold can support comfort.",
-        careHelper = "Stop if baby seems uncomfortable.",
-    )
-    CryCategory.EAIRH -> ResultCopy(
-        heading = "Pandu might feel... Gassy",
-        suggestionTitle = "Try gentle comfort",
-        suggestionBody = "Eairh can point to tummy discomfort.",
-        careTitle = "Check the tummy",
-        careBody = "Slow, gentle movement may help baby settle.",
-        careHelper = "Contact a clinician if concerned.",
-    )
-    CryCategory.HEH -> ResultCopy(
-        heading = "Pandu might be... Uncomfortable",
-        suggestionTitle = "Check comfort",
-        suggestionBody = "Heh can appear when something feels uncomfortable.",
-        careTitle = "Look around baby",
-        careBody = "Check clothing, diaper, temperature, and position.",
-        careHelper = "Make one small change at a time.",
-    )
 }

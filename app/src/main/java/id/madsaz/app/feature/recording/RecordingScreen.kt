@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,8 +49,6 @@ import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
 private val CameraPanel = Color(0xFFE6F0FC)
-private val RecordingPanel = Color(0xFFF6F7FD)
-private val StopCoral = Color(0xFFE56E78)
 
 @Composable
 fun RecordingScreen(
@@ -76,18 +75,15 @@ fun RecordingScreen(
             onOpenSettings = onOpenSettings,
             modifier = modifier,
         )
-        RecordingUiState.Ready -> ListenCameraContent(
+        RecordingUiState.Ready,
+        is RecordingUiState.Recording -> ListenCameraContent(
             canSwitchCamera = canSwitchCamera,
             onBack = onBack,
             onSwitchCamera = onSwitchCamera,
             onStart = onStart,
-            cameraPreview = cameraPreview,
-            modifier = modifier,
-        )
-        is RecordingUiState.Recording -> RecordingContent(
-            state = state,
-            cameraPreview = cameraPreview,
             onStop = onStop,
+            elapsedSeconds = (state as? RecordingUiState.Recording)?.elapsedSeconds,
+            cameraPreview = cameraPreview,
             modifier = modifier,
         )
         else -> error("RecordingScreen hanya menerima state izin, siap, atau merekam")
@@ -145,6 +141,8 @@ private fun ListenCameraContent(
     onBack: () -> Unit,
     onSwitchCamera: () -> Unit,
     onStart: () -> Unit,
+    onStop: () -> Unit,
+    elapsedSeconds: Int?,
     cameraPreview: @Composable () -> Unit,
     modifier: Modifier,
 ) {
@@ -158,6 +156,16 @@ private fun ListenCameraContent(
             ) {
                 // This slot is the CameraX PreviewView supplied by RecordingRoute.
                 cameraPreview()
+                Surface(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.TopStart).offset(x = 14.dp, y = 20.dp).size(40.dp),
+                    shape = CircleShape,
+                    color = Color(0x7A1A254A),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Color.White)
+                    }
+                }
                 Box(
                     Modifier
                         .align(Alignment.BottomStart)
@@ -188,7 +196,7 @@ private fun ListenCameraContent(
                         .border(1.dp, Color.White.copy(alpha = 0.46f), RoundedCornerShape(22.dp)),
                 )
                 Text(
-                    text = stringResource(R.string.recording_keep_baby_in_view),
+                    text = if (elapsedSeconds == null) stringResource(R.string.recording_keep_baby_in_view) else formatTimer(elapsedSeconds),
                     modifier = Modifier.align(Alignment.TopCenter).offset(y = 30.dp),
                     color = Color.White,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
@@ -206,7 +214,7 @@ private fun ListenCameraContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(Modifier.size(6.dp).background(Color(0xFFE56E78), CircleShape))
-                        Text("LIVE", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                        Text(if (elapsedSeconds == null) "READY" else "REC", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -230,21 +238,21 @@ private fun ListenCameraContent(
                     Box(
                         modifier = Modifier.clickable(
                             role = Role.Button,
-                            onClickLabel = stringResource(R.string.recording_start),
-                            onClick = onStart,
+                            onClickLabel = stringResource(if (elapsedSeconds == null) R.string.recording_start else R.string.recording_stop),
+                            onClick = if (elapsedSeconds == null) onStart else onStop,
                         ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.phosphor_camera),
-                            contentDescription = stringResource(R.string.recording_start),
+                            painter = painterResource(if (elapsedSeconds == null) R.drawable.phosphor_camera else R.drawable.phosphor_stop_circle),
+                            contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(38.dp),
                         )
                     }
                 }
                 Text(
-                    text = stringResource(R.string.recording_tap_to_record),
+                    text = stringResource(if (elapsedSeconds == null) R.string.recording_tap_to_record else R.string.recording_stop_label),
                     modifier = Modifier.align(Alignment.TopCenter).offset(y = 201.dp),
                     color = Ink,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
@@ -252,134 +260,13 @@ private fun ListenCameraContent(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = stringResource(R.string.recording_camera_ready),
+                    text = stringResource(if (elapsedSeconds == null) R.string.recording_camera_ready else R.string.recording_stop_helper),
                     modifier = Modifier.align(Alignment.TopCenter).offset(y = 234.dp),
                     color = MutedInk,
                     fontSize = 10.sp,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun RecordingContent(
-    state: RecordingUiState.Recording,
-    cameraPreview: @Composable () -> Unit,
-    onStop: () -> Unit,
-    modifier: Modifier,
-) {
-    Box(modifier.fillMaxSize().background(RecordingPanel)) {
-        // Keep CameraX bound while recording; the design intentionally uses an opaque waveform surface.
-        cameraPreview()
-        Box(Modifier.fillMaxSize().background(RecordingPanel))
-        Text(
-            text = "9:41",
-            modifier = Modifier.offset(x = 24.dp, y = 24.dp),
-            color = Ink,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = stringResource(R.string.recording_title),
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 80.dp),
-            color = Ink,
-            fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = stringResource(R.string.recording_subtitle),
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = 118.dp)
-                .padding(horizontal = 42.dp),
-            color = MutedInk,
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-        )
-        Surface(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = 205.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(300.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = Color.White,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE4E7F2)),
-        ) {
-            Box(Modifier.fillMaxSize()) {
-                Text(
-                    text = formatTimer(state.elapsedSeconds),
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = 24.dp),
-                    color = Ink,
-                    fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Row(
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = 92.dp),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    listOf(16, 25, 38, 52, 72, 46, 28, 19, 31, 55, 82, 63, 38, 24, 18, 27, 46, 74, 58, 33, 22, 16, 24, 40, 60).forEachIndexed { index, height ->
-                        Box(
-                            Modifier
-                                .width(5.dp)
-                                .height(height.dp)
-                                .background(
-                                    if (index % 3 == 0) StopCoral.copy(alpha = 0.8f) else BrandBlue.copy(alpha = 0.9f),
-                                    RoundedCornerShape(3.dp),
-                                ),
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.recording_in_progress),
-                    modifier = Modifier.align(Alignment.BottomCenter).offset(y = (-25).dp),
-                    color = MutedInk,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        }
-        Surface(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = 574.dp)
-                .size(64.dp)
-                .clickable(
-                    role = Role.Button,
-                    onClickLabel = stringResource(R.string.recording_stop),
-                    onClick = onStop,
-                ),
-            shape = CircleShape,
-            color = StopCoral,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    painter = painterResource(R.drawable.phosphor_stop_circle),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-        }
-        Text(
-            text = stringResource(R.string.recording_stop_label),
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 650.dp),
-            color = Ink,
-            fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = stringResource(R.string.recording_stop_helper),
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 686.dp),
-            color = MutedInk,
-            fontSize = 10.sp,
-        )
     }
 }
 

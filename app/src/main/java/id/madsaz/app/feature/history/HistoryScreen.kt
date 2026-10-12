@@ -1,6 +1,8 @@
 package id.madsaz.app.feature.history
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,19 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -37,25 +37,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
+import id.madsaz.app.model.CryCategory
 import id.madsaz.app.model.RecordingItem
-import id.madsaz.app.ui.components.CategoryBadge
 import id.madsaz.app.ui.components.CompactContainer
-import id.madsaz.app.ui.components.RecordingThumbnail
+import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatDuration
-import id.madsaz.app.ui.components.formatRecordedAt
+import id.madsaz.app.ui.theme.AppBackground
+import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueSoft
+import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
 @Composable
 fun HistoryScreen(
     state: HistoryUiState,
     onRetry: () -> Unit,
-    onRecord: () -> Unit,
+    onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     onDelete: (RecordingItem) -> Unit,
     contentPadding: PaddingValues,
@@ -66,12 +72,12 @@ fun HistoryScreen(
     CompactContainer(modifier = modifier.padding(contentPadding)) {
         when (state) {
             HistoryUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
+                CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp, color = BrandBlue)
             }
             is HistoryUiState.Error -> ErrorState(state.messageRes, onRetry)
             is HistoryUiState.Content -> HistoryContent(
                 recordings = state.recordings,
-                onRecord = onRecord,
+                onProfile = onProfile,
                 onOpenRecording = onOpenRecording,
                 onDelete = { pendingDelete = it },
             )
@@ -82,7 +88,7 @@ fun HistoryScreen(
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text(stringResource(R.string.history_delete_recording)) },
-            text = { Text(stringResource(R.string.history_delete_confirmation, recording.category.code)) },
+            text = { Text(stringResource(R.string.history_delete_confirmation, recording.category ?: recording.id.take(8))) },
             confirmButton = {
                 TextButton(onClick = {
                     pendingDelete = null
@@ -99,122 +105,121 @@ fun HistoryScreen(
 @Composable
 private fun HistoryContent(
     recordings: List<RecordingItem>,
-    onRecord: () -> Unit,
+    onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     onDelete: (RecordingItem) -> Unit,
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        contentPadding = PaddingValues(start = 0.dp, end = 0.dp, top = 0.dp, bottom = 110.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
+        item { MadsazHeader(onProfile = onProfile) }
+        item { Spacer(Modifier.height(40.dp)) }
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(stringResource(R.string.history_title), style = MaterialTheme.typography.headlineLarge)
-                Text(
-                    stringResource(R.string.history_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MutedInk,
-                )
-                if (recordings.isNotEmpty()) {
+            Row(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.history_count, recordings.size),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = BrandBlue,
-                        modifier = Modifier.padding(top = 4.dp),
+                        "Recording history",
+                        color = Color(0xFF0B2A2D),
+                        fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text("Semua rekaman", color = MutedInk, fontSize = 10.sp)
+                }
+                Surface(shape = CircleShape, color = Color(0xFFF4F9FD)) {
+                    Text(
+                        "${recordings.size} recordings",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        color = Color(0xFF0B2A2D),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
         }
+        item { Spacer(Modifier.height(14.dp)) }
         if (recordings.isEmpty()) {
-            item { EmptyHistory(onRecord) }
+            item { EmptyHistory(Modifier.padding(horizontal = 18.dp)) }
         } else {
-            items(recordings, key = RecordingItem::id) { recording ->
-                HistoryRecordingCard(
-                    recording = recording,
-                    onOpen = { onOpenRecording(recording) },
-                    onDelete = { onDelete(recording) },
-                )
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Border),
+                ) {
+                    Column(Modifier.padding(horizontal = 14.dp)) {
+                        recordings.forEachIndexed { index, recording ->
+                            HistoryRecordingRow(
+                                recording = recording,
+                                onOpen = { onOpenRecording(recording) },
+                                onDelete = { onDelete(recording) },
+                            )
+                            if (index != recordings.lastIndex) {
+                                Box(Modifier.fillMaxWidth().padding(start = 54.dp).height(1.dp).background(Border))
+                            }
+                        }
+                    }
+                }
             }
         }
-        item { Spacer(Modifier.height(12.dp)) }
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun HistoryRecordingCard(
+private fun HistoryRecordingRow(
     recording: RecordingItem,
     onOpen: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
+    Row(
+        modifier = Modifier.fillMaxWidth().height(63.dp)
+            .combinedClickable(role = Role.Button, onClick = onOpen, onLongClick = onDelete),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            RecordingThumbnail(
-                filePath = recording.filePath,
-                modifier = Modifier.size(width = 92.dp, height = 82.dp).clip(RoundedCornerShape(14.dp)),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CategoryBadge(recording.category)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        formatDuration(recording.durationMillis),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MutedInk,
-                    )
-                }
-                Text(stringResource(recording.category.meaningRes), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    formatRecordedAt(recording.recordedAtEpochMillis),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MutedInk,
-                )
+        Surface(Modifier.size(40.dp), RoundedCornerShape(13.dp), BrandBlueSoft) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(22.dp))
             }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Rounded.DeleteOutline,
-                    contentDescription = stringResource(R.string.history_delete_recording),
-                    tint = MaterialTheme.colorScheme.error,
-                )
+        }
+        Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(recording.category ?: recording.status.replaceFirstChar { it.uppercase() }, color = Color(0xFF0B2A2D), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "${formatHistoryTime(recording.recordedAtEpochMillis)} · ${formatDuration(recording.durationMillis)}",
+                color = Color(0xFF465E68),
+                fontSize = 9.sp,
+            )
+        }
+        Surface(
+            onClick = onOpen,
+            modifier = Modifier.size(32.dp),
+            shape = CircleShape,
+            color = BrandBlueSoft,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.PlayArrow, contentDescription = "Open recording", tint = BrandBlue, modifier = Modifier.size(18.dp))
             }
         }
     }
 }
 
 @Composable
-private fun EmptyHistory(onRecord: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-        shape = MaterialTheme.shapes.large,
-        color = BrandBlueSoft,
-    ) {
+private fun EmptyHistory(modifier: Modifier = Modifier) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(20.dp), color = BrandBlueSoft) {
         Column(
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(Icons.Rounded.History, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(34.dp))
             Text(stringResource(R.string.history_empty_title), style = MaterialTheme.typography.titleLarge)
-            Text(
-                stringResource(R.string.history_empty_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MutedInk,
-            )
-            Button(onClick = onRecord, modifier = Modifier.padding(top = 6.dp)) {
-                Icon(Icons.Rounded.Videocam, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.home_start_recording))
-            }
+            Text(stringResource(R.string.history_empty_body), style = MaterialTheme.typography.bodyMedium, color = MutedInk, textAlign = TextAlign.Center)
         }
     }
 }
@@ -228,3 +233,6 @@ private fun ErrorState(messageRes: Int, onRetry: () -> Unit) {
         }
     }
 }
+
+private fun formatHistoryTime(epochMillis: Long): String =
+    java.text.SimpleDateFormat("d MMM, HH:mm", java.util.Locale.ENGLISH).format(java.util.Date(epochMillis))

@@ -45,9 +45,10 @@ import java.io.File
 @Composable
 fun RecordingRoute(
     viewModel: RecordingViewModel,
+    accessToken: String,
     onBack: () -> Unit,
-    onHistory: () -> Unit,
-    onRecordingSaved: () -> Unit,
+    onFeedback: (String) -> Unit,
+    onRecordingSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -108,12 +109,11 @@ fun RecordingRoute(
     val state = viewModel.uiState
     val completedId = (state as? RecordingUiState.Completed)?.recording?.id
     LaunchedEffect(completedId) {
-        if (completedId != null) onRecordingSaved()
+        if (completedId != null) onRecordingSaved(completedId)
     }
 
     fun stopRecording() {
         val recording = activeRecording ?: return
-        viewModel.onSaving()
         recording.stop()
     }
 
@@ -128,7 +128,7 @@ fun RecordingRoute(
             state = state,
             permissionPreviouslyRequested = permissionPreviouslyRequested,
             canSwitchCamera = hasBackCamera && hasFrontCamera,
-            onBack = onBack,
+            onBack = { if (state is RecordingUiState.Recording) stopRecording() else onBack() },
             onRequestPermission = { permissionLauncher.launch(REQUIRED_PERMISSIONS) },
             onOpenSettings = { context.openAppSettings() },
             onSwitchCamera = {
@@ -166,6 +166,8 @@ fun RecordingRoute(
                                         activeRecording = null
                                         val finalizedFile = currentFile
                                         currentFile = null
+                                        cameraController.unbind()
+                                        viewModel.onSaving()
                                         if (finalizedFile != null && event.isUsableResult()) {
                                             viewModel.onRecordingFinalized(finalizedFile)
                                         } else if (finalizedFile != null) {
@@ -180,6 +182,7 @@ fun RecordingRoute(
                         } catch (_: RuntimeException) {
                             activeRecording = null
                             currentFile = null
+                            cameraController.unbind()
                             viewModel.onRecordingFailed(outputFile)
                         }
                     }
@@ -201,9 +204,13 @@ fun RecordingRoute(
         is RecordingUiState.Error,
         -> ResultScreen(
             state = state,
+            accessToken = accessToken,
+            onRecordAgain = {
+                if (viewModel.hasPendingUpload) viewModel.retryUpload()
+                else viewModel.reset(permissionsGranted)
+            },
             onBack = onBack,
-            onRecordAgain = { viewModel.reset(permissionsGranted) },
-            onHistory = onHistory,
+            onFeedback = onFeedback,
             modifier = modifier,
         )
     }
