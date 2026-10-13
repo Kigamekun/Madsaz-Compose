@@ -1,0 +1,67 @@
+name: Release to Closed testing (Alpha)
+
+# Push ke branch release/closed-testing menguji, membangun AAB bertanda tangan, lalu mengunggahnya ke track Alpha.
+# Secret dan langkah satu kali: lihat RELEASE.md. Tanpa secret itu workflow gagal di langkah penulisan berkas, bukan diam-diam.
+on:
+  push:
+    branches: [release/closed-testing]
+  workflow_dispatch:
+
+concurrency:
+  group: release-closed-testing
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Environment dengan "Required reviewers" memberi persetujuan manual sebelum build dan unggah berjalan.
+    environment: play-closed-testing
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Write signing and API config (never committed)
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          UPLOAD_STORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+          API_BASE_URL: ${{ secrets.MADSAZ_API_BASE_URL }}
+        run: |
+          set -euo pipefail
+          for name in GOOGLE_SERVICES_JSON_BASE64 UPLOAD_KEYSTORE_BASE64 UPLOAD_STORE_PASSWORD UPLOAD_KEY_ALIAS UPLOAD_KEY_PASSWORD API_BASE_URL; do
+            [ -n "${!name}" ] || { echo "Secret untuk $name belum diisi (lihat RELEASE.md)"; exit 1; }
+          done
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$RUNNER_TEMP/upload.jks" "$UPLOAD_STORE_PASSWORD" "$UPLOAD_KEY_ALIAS" "$UPLOAD_KEY_PASSWORD" > keystore.properties
+          printf 'madsazApiBaseUrl=%s\n' "$API_BASE_URL" > secrets.properties
+
+      - name: Test, lint and build the signed bundle
+        # versionCode harus naik di tiap unggahan; run_number + 1000 selalu di atas versi yang sudah diunggah manual (1, 2).
+        run: ./gradlew :app:testDebugUnitTest :app:lintRelease :app:bundleRelease -PversionCode=$((1000 + GITHUB_RUN_NUMBER)) --no-daemon
+
+      - uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: id.madsaz.app
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: alpha
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f app/google-services.json keystore.properties secrets.properties "$RUNNER_TEMP/upload.jks"

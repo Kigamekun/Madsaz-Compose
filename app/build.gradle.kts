@@ -13,7 +13,8 @@ android {
         applicationId = "id.madsaz.app"
         minSdk = 33
         targetSdk = 37
-        versionCode = 2
+        // CI (release/closed-testing) mengirim -PversionCode=<nomor naik>; build lokal memakai nilai tetap ini.
+        versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(2).get()
         versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
