@@ -112,7 +112,7 @@ private fun BoxScope.BottomNavModern(
         }
         Box(
             modifier = Modifier
-                .offset(x = 18.dp, y = 18.dp)
+                .offset(x = 5.dp, y = 18.dp)
                 .size(width = 58.dp, height = 52.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clickable(
@@ -138,8 +138,8 @@ private fun BoxScope.BottomNavModern(
         }
         Box(
             modifier = Modifier
-                .offset(x = 157.dp, y = 18.dp)
-                .size(width = 50.dp, height = 52.dp)
+                .offset(x = 159.dp, y = 18.dp)
+                .size(width = 58.dp, height = 52.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -155,7 +155,7 @@ private fun BoxScope.BottomNavModern(
             )
             Text(
                 text = stringResource(R.string.nav_history),
-                modifier = Modifier.align(Alignment.BottomCenter).width(50.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).width(58.dp),
                 color = if (selected == MainDestination.HISTORY) BrandBlue else MutedInk,
                 textAlign = TextAlign.Center,
                 fontSize = 9.sp,

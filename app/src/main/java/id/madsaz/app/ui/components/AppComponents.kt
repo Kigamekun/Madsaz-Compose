@@ -1,7 +1,9 @@
 package id.madsaz.app.ui.components
 
 import android.text.format.Formatter
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,10 +19,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
+import id.madsaz.app.data.local.AppLanguage
 import id.madsaz.app.model.CryCategory
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -38,6 +46,14 @@ import id.madsaz.app.ui.theme.MutedInk
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
+
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+@Composable
+fun tr(english: String, indonesian: String): String =
+    if (AppLanguage.selected(LocalContext.current) == "id") indonesian else english
 
 @Composable
 fun CompactContainer(
@@ -93,7 +109,7 @@ fun BabyMark(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier) {
+fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier, avatarUrl: String? = null, name: String? = null) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -120,15 +136,22 @@ fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier) {
             )
             Text("Cry patterns", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, lineHeight = 13.sp)
         }
-        Surface(
-            modifier = Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onProfile),
-            shape = androidx.compose.foundation.shape.CircleShape,
-            color = Color.White,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDEEAF2)),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("P", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-            }
+        ProfileAvatar(avatarUrl, name, Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onProfile))
+    }
+}
+
+@Composable
+fun ProfileAvatar(url: String?, name: String?, modifier: Modifier = Modifier) {
+    val image by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, url) {
+        value = if (url == null) null else withContext(Dispatchers.IO) {
+            runCatching { URL(url).openStream().use(BitmapFactory::decodeStream)?.asImageBitmap() }.getOrNull()
+        }
+    }
+    Box(modifier.clip(CircleShape).background(Color(0xFFE6F4FB)), contentAlignment = Alignment.Center) {
+        if (image == null) {
+            Text(name?.firstOrNull()?.uppercase() ?: "P", color = BrandBlueDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        } else {
+            Image(image!!, "Profile photo", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         }
     }
 }
