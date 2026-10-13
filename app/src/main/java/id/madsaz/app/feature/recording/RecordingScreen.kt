@@ -214,7 +214,7 @@ private fun ListenCameraContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(Modifier.size(6.dp).background(Color(0xFFE56E78), CircleShape))
-                        Text(if (elapsedSeconds == null) "READY" else "REC", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(if (elapsedSeconds == null) R.string.recording_status_ready else R.string.recording_status_rec), color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -245,7 +245,7 @@ private fun ListenCameraContent(
                     ) {
                         Icon(
                             painter = painterResource(if (elapsedSeconds == null) R.drawable.phosphor_camera else R.drawable.phosphor_stop_circle),
-                            contentDescription = null,
+                            contentDescription = stringResource(if (elapsedSeconds == null) R.string.recording_start else R.string.recording_stop),
                             tint = Color.White,
                             modifier = Modifier.size(38.dp),
                         )

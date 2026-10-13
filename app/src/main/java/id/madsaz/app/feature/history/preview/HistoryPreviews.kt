@@ -17,7 +17,6 @@ private fun EmptyHistoryPreview() {
             selected = MainDestination.HISTORY,
             onHome = {},
             onHistory = {},
-            onProfile = {},
             onRecord = {},
         ) { padding ->
             HistoryScreen(
@@ -26,6 +25,7 @@ private fun EmptyHistoryPreview() {
                 onProfile = {},
                 onOpenRecording = {},
                 onDelete = {},
+                onNoticeShown = {},
                 contentPadding = padding,
             )
         }
@@ -40,7 +40,6 @@ private fun FilledHistoryPreview() {
             selected = MainDestination.HISTORY,
             onHome = {},
             onHistory = {},
-            onProfile = {},
             onRecord = {},
         ) { padding ->
             HistoryScreen(
@@ -49,6 +48,7 @@ private fun FilledHistoryPreview() {
                 onProfile = {},
                 onOpenRecording = {},
                 onDelete = {},
+                onNoticeShown = {},
                 contentPadding = padding,
             )
         }

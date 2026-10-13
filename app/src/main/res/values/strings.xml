@@ -1,70 +1,315 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Bahasa default (Indonesia). Terjemahan: values-en, values-ar. Setiap kunci harus ada di ketiganya (dicek oleh LocalizationTest). -->
 <resources>
-    <string name="app_name">Madsaz</string>
+    <string name="app_name" translatable="false">Madsaz</string>
     <string name="app_description">Penerjemah tangisan bayi melalui suara dan mimik wajah</string>
+    <string name="notification_channel_plan_id" translatable="false">plan_reminders</string>
+    <string name="notification_channel_plan_name">Pengingat paket</string>
 
-    <string name="nav_home">Home</string>
-    <string name="nav_history">Logs</string>
-<string name="nav_record">Take a recording</string>
+    <!-- Umum -->
     <string name="common_back">Kembali</string>
     <string name="common_retry">Coba lagi</string>
     <string name="common_cancel">Batal</string>
     <string name="common_delete">Hapus</string>
-<string name="home_recent_empty_title">Belum ada rekaman</string>
-<string name="home_recent_error_title">Riwayat belum dapat dibaca</string>
-<string name="home_hero_description">Kamar bayi Madsaz</string>
-<string name="home_latest_cry">Latest cry cue</string>
-    <string name="home_latest_empty">No result yet</string>
-<string name="history_empty_title">Riwayat masih kosong</string>
+    <string name="common_close">Tutup</string>
+
+    <!-- Navigasi dan header -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_history">Riwayat</string>
+    <string name="nav_record">Mulai merekam</string>
+    <string name="header_tagline">Pola tangisan</string>
+    <string name="header_profile_initial">P</string>
+    <string name="header_profile_description">Profil</string>
+
+    <!-- Masuk dan daftar -->
+    <string name="auth_brand" translatable="false">madsaz</string>
+    <string name="auth_login_title">Masuk</string>
+    <string name="auth_register_title">Daftar</string>
+    <string name="auth_headline_login">Cara yang lebih tenang untuk mendengarkan</string>
+    <string name="auth_headline_register">Cara yang lebih tenang untuk memulai</string>
+    <string name="auth_sub_login">Lanjutkan dari tempat Anda berhenti dengan petunjuk terbaru bayi Anda.</string>
+    <string name="auth_sub_register">Buat akun untuk menyimpan petunjuk terbaru bayi Anda.</string>
+    <string name="auth_privacy_note">Rekaman Anda tetap privat untuk akun Anda.</string>
+    <string name="auth_field_name">Nama bayi</string>
+    <string name="auth_field_email">Alamat email</string>
+    <string name="auth_field_password">Kata sandi</string>
+    <string name="auth_forgot">Lupa kata sandi?</string>
+    <string name="auth_forgot_unavailable">Fitur lupa kata sandi belum tersedia.</string>
+    <string name="auth_submit_login">Masuk</string>
+    <string name="auth_submit_register">Buat akun</string>
+    <string name="auth_prompt_have_account">Sudah punya akun?</string>
+    <string name="auth_prompt_new">Baru di Madsaz?</string>
+    <string name="auth_switch_to_register">Buat akun</string>
+    <string name="auth_show_password">Tampilkan kata sandi</string>
+    <string name="auth_hide_password">Sembunyikan kata sandi</string>
+
+    <!-- Beranda -->
+    <string name="home_hero_description">Kamar bayi Madsaz</string>
+    <string name="home_latest_cry">Petunjuk tangisan terbaru</string>
+    <string name="home_latest_empty">Belum ada hasil</string>
+    <string name="home_status_waiting">Menunggu analisis</string>
+    <string name="home_status_failed">Analisis gagal</string>
+    <string name="home_status_result">Hasil analisis</string>
+    <string name="home_cry_cues_title">Petunjuk Tangisan</string>
+    <string name="home_cry_cues_description">Pahami petunjuk dari bayi Anda</string>
+    <string name="home_recent_title">Rekaman terbaru</string>
+    <string name="home_see_all">Lihat semua  ›</string>
+    <string name="home_recent_empty_title">Belum ada rekaman</string>
+    <string name="home_recent_error_title">Riwayat belum dapat dibaca</string>
+    <string name="home_recorded_at">Direkam pukul %1$s</string>
+    <string name="home_duration">Durasi %1$s</string>
+
+    <!-- Riwayat -->
+    <string name="history_title">Riwayat rekaman</string>
+    <string name="history_subtitle">Semua rekaman</string>
+    <plurals name="history_count">
+        <item quantity="other">%d rekaman</item>
+    </plurals>
+    <string name="history_empty_title">Riwayat masih kosong</string>
     <string name="history_empty_body">Mulai rekaman pertama untuk melihat hasil analisis di sini.</string>
     <string name="history_delete_recording">Hapus rekaman</string>
     <string name="history_delete_confirmation">Video %1$s akan dihapus permanen dari server beserta hasil dan feedbacknya.</string>
-    <string name="history_load_error">Riwayat tidak dapat dibaca.</string>
-    <string name="history_missing_title">Rekaman tidak ditemukan</string>
-    <string name="history_missing_body">Rekaman mungkin sudah dihapus dari server.</string>
+    <string name="history_open_recording">Buka rekaman</string>
+    <string name="status_processing">Diproses</string>
+    <string name="status_completed">Selesai</string>
+    <string name="status_failed">Gagal</string>
 
-    <string name="guide_title">Panduan merekam</string>
-    <string name="guide_intro_title">Tiga hal kecil sebelum mulai</string>
-    <string name="guide_intro_body">Tidak perlu setup rumit. Pastikan wajah terlihat, suara cukup dekat, dan bayi tetap nyaman.</string>
-    <string name="guide_light_title">Cari cahaya lembut</string>
-    <string name="guide_light_body">Hadapkan wajah bayi ke sumber cahaya. Hindari lampu yang menyilaukan langsung ke mata.</string>
-    <string name="guide_frame_title">Jaga wajah di dalam bingkai</string>
-    <string name="guide_frame_body">Posisikan seluruh wajah terlihat dan jangan menutup area mata atau mulut.</string>
-    <string name="guide_sound_title">Kurangi suara sekitar</string>
-    <string name="guide_sound_body">Dekatkan perangkat secukupnya dan matikan TV atau sumber suara lain bila memungkinkan.</string>
-    <string name="guide_categories_title">Lima bahasa tangisan</string>
-    <string name="guide_categories_body">Kategori awal mengikuti lima pola DBL dari aplikasi Madsaz sebelumnya.</string>
-    <string name="guide_privacy_title">Tersimpan privat</string>
-    <string name="guide_privacy_body">Video tidak masuk ke Galeri. Setelah upload berhasil, salinan sementara di perangkat dihapus.</string>
-<string name="permission_title">Kamera dan mikrofon diperlukan</string>
+    <!-- Rekam -->
+    <string name="permission_title">Kamera dan mikrofon diperlukan</string>
     <string name="permission_body">Madsaz merekam video beserta suara agar kedua input tersedia untuk analisis.</string>
     <string name="permission_allow">Izinkan akses</string>
     <string name="permission_settings">Buka pengaturan</string>
-<string name="recording_start">Mulai rekam</string>
+    <string name="recording_start">Mulai rekam</string>
     <string name="recording_stop">Hentikan rekaman</string>
-<string name="recording_camera_error">Kamera tidak dapat digunakan. Periksa izin lalu coba lagi.</string>
+    <string name="recording_camera_error">Kamera tidak dapat digunakan. Periksa izin lalu coba lagi.</string>
     <string name="recording_save_error">Video gagal disimpan. Silakan coba merekam kembali.</string>
     <string name="recording_upload_error">Video belum selesai dikirim ke server. File sementara tetap ada; periksa koneksi lalu tekan Coba lagi.</string>
-    <string name="recording_keep_baby_in_view">Keep baby in view</string>
-    <string name="recording_tap_to_record">Tap to record</string>
-    <string name="recording_camera_ready">Camera + microphone ready</string>
-    <string name="recording_stop_label">Stop recording</string>
-    <string name="recording_stop_helper">You can stop whenever your baby feels calm.</string>
+    <string name="recording_keep_baby_in_view">Jaga bayi tetap terlihat</string>
+    <string name="recording_tap_to_record">Ketuk untuk merekam</string>
+    <string name="recording_camera_ready">Kamera + mikrofon siap</string>
+    <string name="recording_stop_label">Hentikan rekaman</string>
+    <string name="recording_stop_helper">Anda bisa berhenti kapan saja saat bayi sudah tenang.</string>
+    <string name="recording_status_ready">SIAP</string>
+    <string name="recording_status_rec">REKAM</string>
+    <string name="recording_discard">Rekam ulang</string>
 
+    <!-- Hasil analisis -->
     <string name="analysis_saving_title">Menyimpan rekaman</string>
     <string name="analysis_saving_body">Jangan tutup halaman ini sebentar.</string>
     <string name="analysis_running_title">Mengunggah rekaman</string>
     <string name="analysis_running_body">Video sedang dikirim ke server.</string>
-<string name="analysis_disclaimer">Hasil ini bukan diagnosis medis. Hubungi tenaga kesehatan jika Anda mengkhawatirkan kondisi bayi.</string>
-<string name="result_baby_description">Crying baby</string>
-<string name="category_neh_meaning">Bayi mungkin merasa lapar</string>
-    <string name="category_neh_action">Periksa tanda lapar dan tawarkan ASI atau susu sesuai rutinitas bayi.</string>
-    <string name="category_owh_meaning">Bayi mungkin mulai mengantuk</string>
-    <string name="category_owh_action">Bantu bayi beristirahat di lingkungan yang tenang dan nyaman.</string>
-    <string name="category_eh_meaning">Bayi mungkin perlu bersendawa</string>
-    <string name="category_eh_action">Coba bantu bayi bersendawa dengan posisi yang aman dan lembut.</string>
-    <string name="category_eairh_meaning">Bayi mungkin merasa perutnya kembung</string>
-    <string name="category_eairh_action">Periksa tanda tidak nyaman dan tenangkan bayi dengan lembut.</string>
-    <string name="category_heh_meaning">Bayi mungkin merasa tidak nyaman</string>
-    <string name="category_heh_action">Periksa popok, suhu ruangan, pakaian, dan posisi bayi.</string>
+    <string name="analysis_disclaimer">Hasil ini bukan diagnosis medis. Hubungi tenaga kesehatan jika Anda mengkhawatirkan kondisi bayi.</string>
+    <string name="result_loading_title">Memuat hasil</string>
+    <string name="result_loading_body">Sebentar ya.</string>
+    <string name="result_processing_title">Menganalisis rekaman</string>
+    <string name="result_processing_body">Hasil akan muncul otomatis.</string>
+    <string name="result_baby_description">Bayi menangis</string>
+    <string name="result_title">Hasil pola tangisan</string>
+    <string name="result_most_likely">PALING MUNGKIN</string>
+    <string name="result_confidence_title">Tingkat keyakinan petunjuk tangisan</string>
+    <string name="result_suggested_action">SARAN TINDAKAN</string>
+    <string name="result_what_to_try">Yang bisa dicoba</string>
+    <string name="result_mock_note">Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.</string>
+    <string name="result_feedback">Masukan</string>
+    <string name="result_log_title">Log rekaman</string>
+    <string name="result_log_failed">Analisis gagal. Video tetap tersimpan.</string>
+    <string name="result_log_pending">Video tersimpan. Analisis belum tersedia.</string>
+    <string name="result_play">Putar rekaman</string>
+    <string name="result_play_error">Video gagal diputar. Periksa koneksi lalu coba lagi.</string>
+    <string name="result_refresh">Perbarui hasil</string>
+
+    <!-- Paket -->
+    <string name="plan_title">Paket Anda</string>
+    <string name="plan_free_title">Paket Gratis</string>
+    <string name="plan_monthly_analyses">Analisis bulanan</string>
+    <string name="plan_used_of">%1$d dari %2$d terpakai</string>
+    <plurals name="plan_remaining_month">
+        <item quantity="other">Sisa %d rekaman bulan ini</item>
+    </plurals>
+    <plurals name="plan_remaining_chip">
+        <item quantity="other">Sisa %d rekaman</item>
+    </plurals>
+    <string name="plan_included_title">Termasuk dalam paket Gratis</string>
+    <plurals name="plan_benefit_analyses">
+        <item quantity="other">%d analisis tangisan setiap bulan</item>
+    </plurals>
+    <string name="plan_benefit_cues">Interpretasi petunjuk dasar</string>
+    <string name="plan_benefit_recent">Rekaman terbaru tersimpan</string>
+    <string name="plan_explore_plus">Jelajahi Madsaz Plus</string>
+    <string name="plan_continue_free">Lanjut dengan paket gratis</string>
+    <string name="plan_limit_reset">Batas Anda direset pada hari pertama setiap bulan.</string>
+    <string name="plan_plus_brand" translatable="false">Madsaz Plus</string>
+    <string name="plan_plus_tagline">Lebih tenang, lebih paham.</string>
+    <string name="plan_plus_benefit_unlimited">Rekaman tanpa batas</string>
+    <string name="plan_plus_benefit_history">Riwayat lengkap dan wawasan</string>
+    <string name="plan_plus_benefit_cues">Pelajari setiap petunjuk</string>
+    <string name="plan_choose">Pilih paket Anda</string>
+    <string name="plan_yearly">Tahunan</string>
+    <string name="plan_monthly">Bulanan</string>
+    <string name="plan_best_value">Paling hemat</string>
+    <string name="plan_flexible">Fleksibel</string>
+    <string name="plan_save_badge">HEMAT %1$s</string>
+    <string name="plan_price_unavailable">Harga tidak tersedia</string>
+    <string name="plan_manage">Kelola langganan di Google Play</string>
+    <string name="plan_plus_active">Madsaz Plus aktif</string>
+    <string name="plan_plus_renews">Diperpanjang otomatis pada %1$s</string>
+    <string name="plan_plus_ends">Berakhir pada %1$s. Tidak diperpanjang otomatis.</string>
+    <string name="plan_start">Mulai Madsaz Plus</string>
+    <string name="plan_cancel_anytime">Batalkan kapan saja. Paket gratis Anda tetap tersedia.</string>
+
+    <!-- Profil -->
+    <string name="profile_badge_baby">P</string>
+    <string name="profile_badge_plus" translatable="false">M</string>
+    <string name="profile_badge_notifications">N</string>
+    <string name="profile_badge_privacy">P</string>
+    <string name="profile_badge_feedback">B</string>
+    <string name="profile_badge_logout">K</string>
+    <string name="profile_badge_delete">H</string>
+    <string name="profile_account">Akun</string>
+    <string name="profile_baby_row_title">Profil bayi</string>
+    <string name="profile_baby_row_subtitle">Perbarui data %1$s</string>
+    <string name="profile_baby_row_subtitle_generic">Perbarui data bayi</string>
+    <string name="profile_plus_subtitle">Kelola paket Anda</string>
+    <string name="profile_notifications_subtitle">Pengingat lembut</string>
+    <string name="profile_privacy_title">Privasi dan data</string>
+    <string name="profile_privacy_subtitle">Atur rekaman Anda</string>
+    <string name="profile_feedback_title">Beri masukan</string>
+    <string name="profile_feedback_subtitle">Bantu kami berkembang</string>
+    <string name="profile_logout_title">Keluar</string>
+    <string name="profile_logout_subtitle">Sampai jumpa</string>
+    <string name="profile_delete_title">Hapus akun</string>
+    <string name="profile_delete_subtitle">Hapus data Anda secara permanen</string>
+    <string name="profile_delete_warning">Akun, profil bayi, semua rekaman video beserta hasil analisis, dan feedback akan dihapus permanen dan tidak dapat dikembalikan.</string>
+    <string name="profile_delete_subscription_note">Langganan Madsaz Plus di Google Play tidak dibatalkan otomatis. Batalkan lebih dulu di Google Play &gt; Pembayaran dan langganan.</string>
+    <string name="profile_delete_password">Kata sandi</string>
+    <string name="profile_delete_confirm">Hapus akun saya</string>
+    <plurals name="profile_usage">
+        <item quantity="other">%1$d rekaman · %2$s</item>
+    </plurals>
+    <string name="profile_your_profile">Profil Anda</string>
+    <string name="profile_edit">Ubah</string>
+    <string name="profile_not_analyzed">Belum dianalisis</string>
+    <string name="profile_last_analyzed">Terakhir dianalisis: %1$s</string>
+    <plurals name="profile_age_months">
+        <item quantity="other">%d bulan</item>
+    </plurals>
+    <string name="profile_weight_kg">%1$s kg</string>
+    <string name="profile_sheet_subtitle">Perbarui data bayi Anda</string>
+    <string name="profile_field_baby_name">Nama bayi</string>
+    <string name="profile_field_birth_date">Tanggal lahir (hh/bb/tttt)</string>
+    <string name="profile_field_weight">Berat (kg)</string>
+    <string name="profile_save">Simpan perubahan</string>
+    <string name="date_unit_day">hari</string>
+    <string name="date_unit_month">bulan</string>
+    <string name="date_unit_year">tahun</string>
+    <string name="date_increase">Tambah %1$s</string>
+    <string name="date_decrease">Kurangi %1$s</string>
+
+    <!-- Masukan -->
+    <string name="feedback_eyebrow">Bantu bentuk Madsaz</string>
+    <string name="feedback_title">Sampaikan pendapat Anda</string>
+    <string name="feedback_subtitle">Beberapa ketukan membantu kami membuat fitur mendengarkan lebih berguna.</string>
+    <string name="feedback_question">Bagaimana pengalaman Anda dengan Madsaz hari ini?</string>
+    <string name="feedback_rating_1">Kurang baik</string>
+    <string name="feedback_rating_2">Cukup</string>
+    <string name="feedback_rating_3">Suka sekali</string>
+    <string name="feedback_improve_title">Apa yang bisa kami perbaiki?</string>
+    <string name="feedback_topic_accuracy">Akurasi</string>
+    <string name="feedback_topic_usability">Kemudahan</string>
+    <string name="feedback_topic_other">Lainnya</string>
+    <string name="feedback_note_prompt">Ceritakan apa yang bisa membuat Madsaz lebih baik</string>
+    <string name="feedback_note_hint">Tulis catatan Anda di sini...</string>
+    <string name="feedback_note_counter">%1$d / %2$d</string>
+    <string name="feedback_send">Kirim masukan</string>
+    <string name="feedback_sending">Mengirim...</string>
+
+    <!-- Notifikasi -->
+    <string name="notifications_title">Notifikasi</string>
+    <string name="notifications_heading">Pengingat paket</string>
+    <string name="notifications_body">Kami mengingatkan saat paket Plus yang tidak diperpanjang otomatis mendekati akhir masa aktifnya.</string>
+    <string name="notifications_status_unconfigured">Firebase belum dikonfigurasi pada APK ini.</string>
+    <string name="notifications_status_on">Pengingat aktif di perangkat ini.</string>
+    <string name="notifications_status_off">Pengingat belum aktif di perangkat ini.</string>
+    <string name="notifications_open_settings">Buka pengaturan notifikasi</string>
+    <string name="notifications_disable">Matikan pengingat</string>
+    <string name="notifications_enable">Aktifkan pengingat</string>
+    <string name="notifications_permission_denied">Izinkan notifikasi agar pengingat dapat ditampilkan.</string>
+
+    <!-- Petunjuk tangisan -->
+    <string name="cry_cues_close">Tutup petunjuk tangisan</string>
+    <string name="cry_cues_signs">Ciri-ciri</string>
+    <string name="cry_cues_actions">Yang bisa dilakukan</string>
+    <string name="cry_cues_got_it">Mengerti</string>
+    <string name="cue_neh_meaning">Lapar</string>
+    <string name="cue_neh_description">Tangisan ini biasanya menandakan bayi merasa lapar dan ingin menyusu.</string>
+    <string name="cue_neh_metric_meaning">Lapar</string>
+    <string name="cue_neh_metric_detail">Butuh susu</string>
+    <string name="cue_neh_feature_1">Suara tangisan seperti ‘neh neh neh’</string>
+    <string name="cue_neh_feature_2">Biasanya berulang dan semakin kuat</string>
+    <string name="cue_neh_feature_3">Mencari puting atau membuka mulut</string>
+    <string name="cue_neh_action_1">Segera berikan ASI atau susu formula</string>
+    <string name="cue_neh_action_2">Pastikan posisi menyusu nyaman</string>
+    <string name="cue_neh_action_3">Perhatikan tanda kenyang pada bayi</string>
+    <string name="cue_owh_meaning">Mengantuk</string>
+    <string name="cue_owh_description">Suara ini bisa menjadi tanda bayi mulai lelah dan membutuhkan waktu untuk beristirahat.</string>
+    <string name="cue_owh_metric_meaning">Mengantuk</string>
+    <string name="cue_owh_metric_detail">Waktunya istirahat</string>
+    <string name="cue_owh_feature_1">Suara seperti ‘owh’ dengan nada panjang</string>
+    <string name="cue_owh_feature_2">Menguap atau menggosok mata</string>
+    <string name="cue_owh_feature_3">Gerakan bayi mulai melambat</string>
+    <string name="cue_owh_action_1">Pindahkan bayi ke tempat yang tenang</string>
+    <string name="cue_owh_action_2">Redupkan cahaya dan kurangi suara</string>
+    <string name="cue_owh_action_3">Bantu bayi tidur dengan rutinitas lembut</string>
+    <string name="cue_eh_meaning">Perlu bersendawa</string>
+    <string name="cue_eh_description">Bayi mungkin sedang memberi tahu bahwa ada udara yang perlu dikeluarkan setelah menyusu.</string>
+    <string name="cue_eh_metric_meaning">Perlu bersendawa</string>
+    <string name="cue_eh_metric_detail">Setelah menyusu</string>
+    <string name="cue_eh_feature_1">Suara pendek seperti ‘eh’</string>
+    <string name="cue_eh_feature_2">Muncul setelah bayi menyusu</string>
+    <string name="cue_eh_feature_3">Bayi terlihat menggeliat atau tidak nyaman</string>
+    <string name="cue_eh_action_1">Tegakkan tubuh bayi dengan lembut</string>
+    <string name="cue_eh_action_2">Usap atau tepuk punggung perlahan</string>
+    <string name="cue_eh_action_3">Berhenti jika bayi sudah terlihat nyaman</string>
+    <string name="cue_heh_meaning">Tidak nyaman</string>
+    <string name="cue_heh_description">Bayi mungkin sedang merasa kurang nyaman dan membutuhkan pemeriksaan sederhana.</string>
+    <string name="cue_heh_metric_meaning">Tidak nyaman</string>
+    <string name="cue_heh_metric_detail">Periksa kenyamanan</string>
+    <string name="cue_heh_feature_1">Suara seperti ‘heh’ dengan jeda pendek</string>
+    <string name="cue_heh_feature_2">Bayi banyak bergerak atau merengek</string>
+    <string name="cue_heh_feature_3">Ekspresi wajah tampak tidak nyaman</string>
+    <string name="cue_heh_action_1">Periksa popok dan pakaian bayi</string>
+    <string name="cue_heh_action_2">Pastikan suhu ruangan nyaman</string>
+    <string name="cue_heh_action_3">Gendong dan tenangkan bayi perlahan</string>
+    <string name="cue_eairh_meaning">Perut kembung</string>
+    <string name="cue_eairh_description">Suara ini bisa menandakan bayi merasa tidak nyaman karena gas di perut.</string>
+    <string name="cue_eairh_metric_meaning">Gas di perut</string>
+    <string name="cue_eairh_metric_detail">Perut tidak nyaman</string>
+    <string name="cue_eairh_feature_1">Suara seperti ‘eairh’ dengan tekanan</string>
+    <string name="cue_eairh_feature_2">Bayi menekuk kaki ke arah perut</string>
+    <string name="cue_eairh_feature_3">Perut terasa penuh atau bayi sulit tenang</string>
+    <string name="cue_eairh_action_1">Bantu bayi bersendawa</string>
+    <string name="cue_eairh_action_2">Gerakkan kaki bayi seperti mengayuh sepeda</string>
+    <string name="cue_eairh_action_3">Pijat perut dengan sangat lembut</string>
+
+    <!-- Pesan error (dipetakan dari status/kode BE; teks `error` BE tidak ditampilkan) -->
+    <string name="error_network">Tidak dapat terhubung ke server. Periksa koneksi internet lalu coba lagi.</string>
+    <string name="error_server">Server sedang bermasalah. Coba lagi sebentar lagi.</string>
+    <string name="error_unknown">Terjadi kesalahan. Silakan coba lagi.</string>
+    <string name="error_session_expired">Sesi berakhir. Silakan masuk lagi.</string>
+    <string name="error_login_incomplete">Isi email dan kata sandi.</string>
+    <string name="error_invalid_credentials">Email atau kata sandi salah.</string>
+    <string name="error_email_taken">Email ini sudah terdaftar.</string>
+    <string name="error_invalid_input">Lengkapi data dengan benar. Kata sandi minimal 8 karakter.</string>
+    <string name="error_free_limit">Batas analisis gratis bulan ini sudah tercapai. Upgrade ke Madsaz Plus atau tunggu bulan depan.</string>
+    <string name="error_analysis_in_progress">Analisis sebelumnya masih berjalan. Coba lagi sebentar lagi.</string>
+    <string name="error_upload_invalid">Video belum diterima server. Coba unggah lagi.</string>
+    <string name="error_storage">Penyimpanan video sedang tidak tersedia. Coba lagi nanti.</string>
+    <string name="error_plan_unavailable">Paket belum tersedia di Google Play. Coba lagi nanti.</string>
+    <string name="error_billing_unavailable">Google Play Billing belum tersedia di perangkat ini.</string>
+    <string name="error_billing_pending">Pembayaran masih menunggu konfirmasi Google Play.</string>
+    <string name="error_billing_failed">Pembayaran gagal.</string>
+    <string name="error_billing_server">Pembayaran belum dapat diproses saat ini. Coba lagi nanti.</string>
+    <string name="error_purchase_other_account">Langganan ini terhubung ke akun Madsaz lain.</string>
+    <string name="error_name_required">Nama bayi wajib diisi.</string>
+    <string name="error_weight_invalid">Berat harus berupa angka, mis. 7,5.</string>
 </resources>

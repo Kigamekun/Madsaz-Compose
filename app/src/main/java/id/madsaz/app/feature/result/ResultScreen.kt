@@ -25,41 +25,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import id.madsaz.app.R
-import id.madsaz.app.data.remote.RecordingApi
 import id.madsaz.app.model.CryScore
 import id.madsaz.app.model.RecordingItem
+import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.formatDateTime
 import id.madsaz.app.ui.components.formatDuration
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+/** Layar sementara saat video disimpan dan diunggah, atau saat unggahan gagal. Hasil analisis ada di [ResultScreen]. */
+@Composable
+fun RecordingStatusScreen(
+    state: RecordingUiState,
+    onRetry: () -> Unit,
+    onDiscard: (() -> Unit)?,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CompactContainer(modifier) {
+        when (state) {
+            RecordingUiState.Saving -> ProgressContent(stringResource(R.string.analysis_saving_title), stringResource(R.string.analysis_saving_body))
+            // Completed sebentar tampil di sini sebelum rute hasil terbuka.
+            RecordingUiState.Analyzing, is RecordingUiState.Completed ->
+                ProgressContent(stringResource(R.string.analysis_running_title), stringResource(R.string.analysis_running_body))
+            is RecordingUiState.Error -> ErrorContent(stringResource(state.messageRes), state.canRetry, onRetry, onDiscard, onBack)
+            else -> error("RecordingStatusScreen hanya menerima state menyimpan, mengunggah, selesai, atau gagal")
+        }
+    }
+}
 
 @Composable
 fun ResultScreen(
-    state: RecordingUiState,
-    accessToken: String,
-    onRecordAgain: () -> Unit,
+    state: ResultUiState,
+    loadVideoUrl: suspend () -> String,
     onBack: () -> Unit,
-    onRefresh: (() -> Unit)? = null,
+    onRefresh: () -> Unit,
     onFeedback: (String) -> Unit,
     startInLog: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     CompactContainer(modifier) {
         when (state) {
-            RecordingUiState.Saving -> ProgressContent(stringResource(R.string.analysis_saving_title), stringResource(R.string.analysis_saving_body))
-            RecordingUiState.Analyzing -> ProgressContent(stringResource(R.string.analysis_running_title), stringResource(R.string.analysis_running_body))
-            is RecordingUiState.Completed -> CompletedContent(state.recording, accessToken, onBack, onRefresh, onFeedback, startInLog)
-            is RecordingUiState.Error -> ErrorContent(stringResource(state.messageRes), onRecordAgain)
-            else -> error("ResultScreen hanya menerima state hasil rekaman")
+            ResultUiState.Loading ->
+                ProgressContent(stringResource(R.string.result_loading_title), stringResource(R.string.result_loading_body))
+            is ResultUiState.Error -> ErrorContent(stringResource(state.messageRes), true, onRefresh, null, onBack)
+            is ResultUiState.Content -> {
+                val recording = state.recording
+                if (recording.status == RecordingStatus.PROCESSING && !startInLog) {
+                    ProgressContent(stringResource(R.string.result_processing_title), stringResource(R.string.result_processing_body))
+                } else {
+                    CompletedContent(recording, loadVideoUrl, onBack, onRefresh, onFeedback, startInLog)
+                }
+            }
         }
     }
 }
@@ -78,15 +101,15 @@ private fun ProgressContent(title: String, body: String) {
 @Composable
 private fun CompletedContent(
     recording: RecordingItem,
-    accessToken: String,
+    loadVideoUrl: suspend () -> String,
     onBack: () -> Unit,
-    onRefresh: (() -> Unit)?,
+    onRefresh: () -> Unit,
     onFeedback: (String) -> Unit,
     startInLog: Boolean,
 ) {
     var showLog by remember(recording.id, startInLog) { mutableStateOf(startInLog) }
     if (showLog || recording.scores.isEmpty()) {
-        RecordingLog(recording, accessToken, onBack, onRefresh, onFeedback, startInLog) { showLog = false }
+        RecordingLog(recording, loadVideoUrl, onBack, onRefresh, onFeedback, startInLog) { showLog = false }
     } else {
         PatternResult(recording) { onFeedback(recording.id) }
     }
@@ -96,8 +119,8 @@ private fun CompletedContent(
 private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
     val leading = recording.scores.first()
     Column(Modifier.fillMaxSize().background(Color.White)) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
-            Spacer(Modifier.height(48.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).statusBarsPadding().padding(horizontal = 24.dp)) {
+            Spacer(Modifier.height(24.dp))
             Image(
                 painter = painterResource(R.drawable.madsaz_result_baby_halo),
                 contentDescription = stringResource(R.string.result_baby_description),
@@ -105,7 +128,7 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
                 contentScale = ContentScale.Fit,
             )
             Spacer(Modifier.height(20.dp))
-            Text("Cry pattern result", style = MaterialTheme.typography.titleLarge, color = Ink, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.result_title), style = MaterialTheme.typography.titleLarge, color = Ink, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(16.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -115,7 +138,7 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
             ) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 13.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text("MOST LIKELY", color = BrandBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.result_most_likely), color = BrandBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         Text("${leading.code} - ${leading.label}", color = Ink, fontSize = 16.sp)
                     }
                     Surface(shape = RoundedCornerShape(18.dp), color = BrandBlue) {
@@ -124,7 +147,7 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(16.dp))
-            Text("Cry cue confidence", color = Ink, fontSize = 13.sp)
+            Text(stringResource(R.string.result_confidence_title), color = Ink, fontSize = 13.sp)
             Spacer(Modifier.height(10.dp))
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 recording.scores.forEachIndexed { index, score -> ScoreBar(score, index == 0) }
@@ -139,20 +162,20 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(Modifier.size(44.dp).background(Color(0xFFE8F5EE), RoundedCornerShape(22.dp)))
                     Column {
-                        Text("SUGGESTED ACTION", color = Color(0xFF387A67), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        Text("What you can try", color = Ink, fontSize = 15.sp)
+                        Text(stringResource(R.string.result_suggested_action), color = Color(0xFF387A67), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.result_what_to_try), color = Ink, fontSize = 15.sp)
                         Text(recording.solution.orEmpty(), color = MutedInk, fontSize = 11.sp, lineHeight = 14.sp)
                     }
                 }
             }
             if (recording.source == "mock") {
                 Spacer(Modifier.height(10.dp))
-                Text("Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.", color = MutedInk, fontSize = 10.sp)
+                Text(stringResource(R.string.result_mock_note), color = MutedInk, fontSize = 10.sp)
             }
             Spacer(Modifier.height(16.dp))
         }
-        Button(onClick = onFeedback, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp).height(48.dp)) {
-            Text("Feedback")
+        Button(onClick = onFeedback, modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 20.dp).height(48.dp)) {
+            Text(stringResource(R.string.result_feedback))
         }
     }
 }
@@ -174,9 +197,9 @@ private fun ScoreBar(score: CryScore, leading: Boolean) {
 @Composable
 private fun RecordingLog(
     recording: RecordingItem,
-    accessToken: String,
+    loadVideoUrl: suspend () -> String,
     onBack: () -> Unit,
-    onRefresh: (() -> Unit)?,
+    onRefresh: () -> Unit,
     onFeedback: (String) -> Unit,
     startInLog: Boolean,
     onResult: () -> Unit,
@@ -186,7 +209,7 @@ private fun RecordingLog(
     var playing by remember(recording.id) { mutableStateOf(false) }
     var loadingVideo by remember(recording.id) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val player = remember(context, recording.id, accessToken) {
+    val player = remember(context, recording.id) {
         VideoView(context).apply {
             val controls = MediaController(context)
             controls.setAnchorView(this)
@@ -202,32 +225,36 @@ private fun RecordingLog(
             loadingVideo = true
             playbackError = false
             try {
-                val url = withContext(Dispatchers.IO) {
-                    RecordingApi().presignedVideoUrl(accessToken, recording.id)
-                }
+                val url = loadVideoUrl()
                 player.setOnPreparedListener { mediaPlayer ->
                     loadingVideo = false
                     playing = true
                     mediaPlayer.start()
                 }
                 player.setVideoURI(Uri.parse(url))
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: Exception) {
+                // Gagal mengambil URL atau memutar: pengguna melihat pesan "video gagal diputar" dengan tombol coba lagi.
                 loadingVideo = false
                 playbackError = true
             }
         }
     }
-    Column(Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        OutlinedButton(onClick = if (startInLog || recording.scores.isEmpty()) onBack else onResult) { Text("Kembali") }
-        Text("Log rekaman", style = MaterialTheme.typography.headlineMedium, color = Ink)
+    Column(
+        Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        OutlinedButton(onClick = if (startInLog || recording.scores.isEmpty()) onBack else onResult) { Text(stringResource(R.string.common_back)) }
+        Text(stringResource(R.string.result_log_title), style = MaterialTheme.typography.headlineMedium, color = Ink)
         Text(
-            "${SimpleDateFormat("d MMM yyyy · HH:mm", Locale.forLanguageTag("id-ID")).format(Date(recording.recordedAtEpochMillis))}  ·  ${formatDuration(recording.durationMillis)}",
+            "${formatDateTime(recording.recordedAtEpochMillis)}  ·  ${formatDuration(recording.durationMillis)}",
             color = MutedInk,
         )
         if (recording.scores.isNotEmpty()) {
             Text("${recording.scores.first().code} - ${recording.scores.first().label}", style = MaterialTheme.typography.titleMedium, color = Ink)
         } else {
-            Text(if (recording.status == "failed") "Analisis gagal. Video tetap tersimpan." else "Video tersimpan. Analisis belum tersedia.", color = Ink)
+            Text(stringResource(if (recording.status == RecordingStatus.FAILED) R.string.result_log_failed else R.string.result_log_pending), color = Ink)
         }
         Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFF1F7FA)) {
             Box(Modifier.fillMaxWidth().height(260.dp), contentAlignment = Alignment.Center) {
@@ -235,31 +262,33 @@ private fun RecordingLog(
                 if (loadingVideo) {
                     CircularProgressIndicator(color = BrandBlue)
                 } else if (!playing && !playbackError) {
-                    Button(onClick = { playRecording() }) { Text("Putar rekaman") }
+                    Button(onClick = { playRecording() }) { Text(stringResource(R.string.result_play)) }
                 }
             }
         }
         if (playbackError) {
-            Text("Video gagal diputar. Periksa koneksi lalu coba lagi.", color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.result_play_error), color = MaterialTheme.colorScheme.error)
             OutlinedButton(onClick = { playRecording() }) { Text(stringResource(R.string.common_retry)) }
         }
-        if (recording.status == "processing" && onRefresh != null) {
-            OutlinedButton(onClick = onRefresh) { Text("Perbarui hasil") }
+        if (recording.status == RecordingStatus.PROCESSING) {
+            OutlinedButton(onClick = onRefresh) { Text(stringResource(R.string.result_refresh)) }
         }
         if (recording.source == "mock") {
-            Text("Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.", color = MutedInk, fontSize = 10.sp)
+            Text(stringResource(R.string.result_mock_note), color = MutedInk, fontSize = 10.sp)
         }
         Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
-        Button(onClick = { onFeedback(recording.id) }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text("Feedback") }
+        Button(onClick = { onFeedback(recording.id) }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text(stringResource(R.string.result_feedback)) }
     }
 }
 
 @Composable
-private fun ErrorContent(message: String, onRetry: () -> Unit) {
+private fun ErrorContent(message: String, canRetry: Boolean, onRetry: () -> Unit, onDiscard: (() -> Unit)?, onBack: () -> Unit) {
     Box(Modifier.fillMaxSize().background(AppBackground).padding(24.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+            if (canRetry) OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+            if (onDiscard != null) TextButton(onClick = onDiscard) { Text(stringResource(R.string.recording_discard)) }
+            if (!canRetry) OutlinedButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
         }
     }
 }

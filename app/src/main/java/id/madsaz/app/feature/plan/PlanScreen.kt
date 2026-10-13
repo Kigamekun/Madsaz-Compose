@@ -3,6 +3,7 @@ package id.madsaz.app.feature.plan
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import java.text.NumberFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -54,8 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import id.madsaz.app.R
+import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.formatDate
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -68,48 +74,74 @@ fun PlanScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onPurchase: (Activity, String) -> Unit,
+    onPurchase: (Activity, PlanInterval) -> Unit,
 ) {
     val context = LocalContext.current
-    var selectedPlan by remember { mutableStateOf("yearly") }
-    var showSubscription by remember(state.status?.code) { mutableStateOf(state.status?.code == "plus") }
-    val isPlus = state.status?.code == "plus"
-    val selectedPrice = state.prices[selectedPlan]
+    var selectedPlan by remember { mutableStateOf(PlanInterval.YEARLY) }
+    val status = state.status
+    val isPlus = status is PlanStatus.Plus
+    var showSubscription by remember(isPlus) { mutableStateOf(isPlus) }
+    val selectedPrice = state.prices[selectedPlan]?.formatted
 
     BackHandler(enabled = showSubscription && !isPlus) { showSubscription = false }
 
     CompactContainer(Modifier.fillMaxSize().background(AppBackground)) {
-        if (showSubscription) {
-            SubscriptionContent(
+        when {
+            // Tanpa data paket yang berhasil dimuat, jangan menampilkan Free maupun Plus.
+            status == null -> PlanUnavailableContent(state, onRetry, onBack)
+            showSubscription -> SubscriptionContent(
                 state = state,
                 selectedPlan = selectedPlan,
                 selectedPrice = selectedPrice,
                 isPlus = isPlus,
                 onSelectPlan = { selectedPlan = it },
-                onPurchase = {
-                    (context as? Activity)?.let { onPurchase(it, selectedPlan) }
-                },
+                onPurchase = { (context as? Activity)?.let { onPurchase(it, selectedPlan) } },
                 onManage = {
-                    val uri = Uri.parse("https://play.google.com/store/account/subscriptions?package=id.madsaz.app&sku=madsaz_plus")
+                    val uri = Uri.parse("https://play.google.com/store/account/subscriptions?package=${context.packageName}&sku=${state.productId}")
                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                 },
                 onRetry = onRetry,
                 onBack = { if (isPlus) onBack() else showSubscription = false },
             )
-        } else {
-            FreePlanContent(
+            status is PlanStatus.Free -> FreePlanContent(
                 state = state,
+                status = status,
                 onExplorePlus = { showSubscription = true },
                 onContinue = onBack,
                 onRetry = onRetry,
                 onBack = onBack,
             )
+            else -> Unit
         }
     }
 }
 
 @Composable
-private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onContinue: () -> Unit, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun PlanUnavailableContent(state: PlanUiState, onRetry: () -> Unit, onBack: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().background(Color.White).statusBarsPadding().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (state.loading) {
+            CircularProgressIndicator(color = BrandBlue)
+        } else {
+            Text(stringResource(state.errorRes ?: R.string.error_unknown), color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+            OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+            OutlinedButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
+        }
+    }
+}
+
+@Composable
+private fun FreePlanContent(
+    state: PlanUiState,
+    status: PlanStatus.Free,
+    onExplorePlus: () -> Unit,
+    onContinue: () -> Unit,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
@@ -118,9 +150,9 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
         item {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Ink)
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
                 }
-                Text("Your plan", color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                Text(stringResource(R.string.plan_title), color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
             }
         }
@@ -128,59 +160,50 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
             Surface(shape = RoundedCornerShape(24.dp), color = BrandBlue) {
                 Box(Modifier.fillMaxWidth().height(174.dp)) {
                     Column(Modifier.offset(x = 20.dp, y = 16.dp)) {
-                        Text("Free plan", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text("Monthly analyses", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                        if (state.status != null) {
-                            Text(
-                                "${state.status.used} of 5 used",
-                                color = Color.White,
-                                fontSize = 23.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 6.dp),
-                            )
-                            Text(
-                                "${state.status.remaining} recordings left this month",
-                                color = Color.White.copy(alpha = 0.9f),
-                                fontSize = 11.sp,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        } else if (state.loading) {
-                            Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                                Text("Loading plan…", Modifier.padding(start = 8.dp), color = Color.White, fontSize = 12.sp)
-                            }
-                        }
-                    }
-                    if (state.status != null) {
-                        Surface(
-                            modifier = Modifier.offset(x = 20.dp, y = 130.dp),
-                            shape = CircleShape,
+                        Text(stringResource(R.string.plan_free_title), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.plan_monthly_analyses), color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            stringResource(R.string.plan_used_of, status.used, status.limit),
                             color = Color.White,
-                        ) {
-                            Text(
-                                "${state.status.remaining} recordings left",
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp),
-                                color = BrandBlueDark,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                            fontSize = 23.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                        Text(
+                            pluralStringResource(R.plurals.plan_remaining_month, status.remaining, status.remaining),
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
                     }
-                    UsageBars(used = state.status?.used ?: 0, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 36.dp, bottom = 22.dp))
+                    Surface(
+                        modifier = Modifier.offset(x = 20.dp, y = 130.dp),
+                        shape = CircleShape,
+                        color = Color.White,
+                    ) {
+                        Text(
+                            pluralStringResource(R.plurals.plan_remaining_chip, status.remaining, status.remaining),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp),
+                            color = BrandBlueDark,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    UsageBars(used = status.used, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 36.dp, bottom = 22.dp))
                 }
             }
         }
-        if (state.error != null) {
+        if (state.errorRes != null) {
             item {
                 Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(state.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = onRetry) { Text("Try again") }
+                    Text(stringResource(state.errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                 }
             }
         }
         item {
             Text(
-                "Included in Free",
+                stringResource(R.string.plan_included_title),
                 modifier = Modifier.padding(top = 30.dp, bottom = 16.dp),
                 color = Color(0xFF0B2A2D),
                 fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
@@ -188,15 +211,12 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        items(3) { index ->
-            FreeBenefit(
-                when (index) {
-                    0 -> "5 cry analyses each month"
-                    1 -> "Basic cue interpretation"
-                    else -> "Recent recordings saved"
-                },
-            )
-            if (index < 2) Spacer(Modifier.height(16.dp))
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                FreeBenefit(pluralStringResource(R.plurals.plan_benefit_analyses, status.limit, status.limit))
+                FreeBenefit(stringResource(R.string.plan_benefit_cues))
+                FreeBenefit(stringResource(R.string.plan_benefit_recent))
+            }
         }
         item {
             Button(
@@ -204,11 +224,11 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
                 modifier = Modifier.fillMaxWidth().padding(top = 38.dp).height(52.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-            ) { Text("Explore Madsaz Plus", fontWeight = FontWeight.SemiBold) }
+            ) { Text(stringResource(R.string.plan_explore_plus), fontWeight = FontWeight.SemiBold) }
         }
         item {
             Text(
-                "Continue with free plan",
+                stringResource(R.string.plan_continue_free),
                 modifier = Modifier.fillMaxWidth().clickable(onClick = onContinue).padding(top = 24.dp, bottom = 12.dp),
                 color = BrandBlueDark,
                 fontSize = 13.sp,
@@ -216,7 +236,7 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
             Text(
-                "Your limit resets on the first day of each month.",
+                stringResource(R.string.plan_limit_reset),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
                 color = MutedInk,
                 fontSize = 10.sp,
@@ -254,10 +274,10 @@ private fun FreeBenefit(label: String) {
 @Composable
 private fun SubscriptionContent(
     state: PlanUiState,
-    selectedPlan: String,
+    selectedPlan: PlanInterval,
     selectedPrice: String?,
     isPlus: Boolean,
-    onSelectPlan: (String) -> Unit,
+    onSelectPlan: (PlanInterval) -> Unit,
     onPurchase: () -> Unit,
     onManage: () -> Unit,
     onRetry: () -> Unit,
@@ -281,7 +301,7 @@ private fun SubscriptionContent(
                     shape = CircleShape, color = Color.White,
                 ) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Ink)
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
                     }
                 }
                 Box(
@@ -295,12 +315,12 @@ private fun SubscriptionContent(
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         Column(Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp)) {
-                            Text("Madsaz Plus", color = Color.White, fontSize = 12.sp)
-                            Text("More calm, more context.", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                            listOf("Unlimited recordings", "Full history & insights", "Learn every cue").forEach { item ->
+                            Text(stringResource(R.string.plan_plus_brand), color = Color.White, fontSize = 12.sp)
+                            Text(stringResource(R.string.plan_plus_tagline), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
+                            listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { item ->
                                 Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Box(Modifier.size(9.dp).background(Color.White, CircleShape))
-                                    Text(item, color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
+                                    Text(stringResource(item), color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
                                 }
                             }
                         }
@@ -308,41 +328,48 @@ private fun SubscriptionContent(
                 }
             }
         }
-        item {
-            Text(
-                "Choose your plan",
-                modifier = Modifier.padding(top = 20.dp, bottom = 16.dp),
-                color = Color(0xFF0B2A2D),
-                fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                fontSize = 19.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
+        val plus = state.status as? PlanStatus.Plus
+        if (plus != null) {
+            item { PlusStatus(plus) }
+        } else {
+            item {
+                Text(
+                    stringResource(R.string.plan_choose),
+                    modifier = Modifier.padding(top = 20.dp, bottom = 16.dp),
+                    color = Color(0xFF0B2A2D),
+                    fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            item {
+                val savings = state.yearlySavingsPercent
+                PlanOption(
+                    title = stringResource(R.string.plan_yearly),
+                    price = state.prices[PlanInterval.YEARLY]?.formatted,
+                    // "Paling hemat" dan badge hanya bila harga Play memang lebih murah daripada 12 bulan paket bulanan.
+                    helper = savings?.let { stringResource(R.string.plan_best_value) },
+                    badge = savings?.let { stringResource(R.string.plan_save_badge, NumberFormat.getPercentInstance().format(it / 100.0)) },
+                    selected = selectedPlan == PlanInterval.YEARLY,
+                    onClick = { onSelectPlan(PlanInterval.YEARLY) },
+                )
+            }
+            item { Spacer(Modifier.height(14.dp)) }
+            item {
+                PlanOption(
+                    title = stringResource(R.string.plan_monthly),
+                    price = state.prices[PlanInterval.MONTHLY]?.formatted,
+                    helper = stringResource(R.string.plan_flexible),
+                    selected = selectedPlan == PlanInterval.MONTHLY,
+                    onClick = { onSelectPlan(PlanInterval.MONTHLY) },
+                )
+            }
         }
-        item {
-            PlanOption(
-                title = "Yearly",
-                price = state.prices["yearly"],
-                helper = "Best value",
-                badge = "SAVE 30%",
-                selected = selectedPlan == "yearly",
-                onClick = { onSelectPlan("yearly") },
-            )
-        }
-        item { Spacer(Modifier.height(14.dp)) }
-        item {
-            PlanOption(
-                title = "Monthly",
-                price = state.prices["monthly"],
-                helper = "Flexible",
-                selected = selectedPlan == "monthly",
-                onClick = { onSelectPlan("monthly") },
-            )
-        }
-        if (state.error != null) {
+        if (state.errorRes != null) {
             item {
                 Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(state.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = onRetry) { Text("Try again") }
+                    Text(stringResource(state.errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                 }
             }
         }
@@ -353,7 +380,7 @@ private fun SubscriptionContent(
                     modifier = Modifier.fillMaxWidth().padding(top = 28.dp).height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-                ) { Text("Manage subscription in Google Play") }
+                ) { Text(stringResource(R.string.plan_manage)) }
             } else {
                 Button(
                     onClick = onPurchase,
@@ -363,13 +390,13 @@ private fun SubscriptionContent(
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) {
                     if (state.purchasing) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                    else Text("Start Madsaz Plus")
+                    else Text(stringResource(R.string.plan_start))
                 }
             }
         }
         item {
             Text(
-                "Cancel anytime. Your free plan stays available.",
+                stringResource(R.string.plan_cancel_anytime),
                 modifier = Modifier.fillMaxWidth().padding(top = 28.dp, bottom = 20.dp),
                 color = MutedInk,
                 fontSize = 10.sp,
@@ -380,10 +407,30 @@ private fun SubscriptionContent(
 }
 
 @Composable
+private fun PlusStatus(plus: PlanStatus.Plus) {
+    val date = formatDate(plus.expiresAt.toEpochMilli())
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        shape = RoundedCornerShape(22.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, Border),
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(stringResource(R.string.plan_plus_active), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(if (plus.autoRenewing) R.string.plan_plus_renews else R.string.plan_plus_ends, date),
+                color = MutedInk,
+                fontSize = 12.sp,
+            )
+        }
+    }
+}
+
+@Composable
 private fun PlanOption(
     title: String,
     price: String?,
-    helper: String,
+    helper: String?,
     selected: Boolean,
     onClick: () -> Unit,
     badge: String? = null,
@@ -402,7 +449,7 @@ private fun PlanOption(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(title, color = if (selected) Color.White else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text(price ?: "Price unavailable", color = if (selected) Color.White else Ink,
+                Text(price ?: stringResource(R.string.plan_price_unavailable), color = if (selected) Color.White else Ink,
                     fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 6.dp))
             }
@@ -411,9 +458,9 @@ private fun PlanOption(
                     Surface(shape = CircleShape, color = Color.White) {
                         Text(badge, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = BrandBlueDark, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text(helper, color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
-                } else {
-                    Text(helper, color = MutedInk, fontSize = 10.sp)
+                    if (helper != null) Text(helper, color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+                } else if (helper != null) {
+                    Text(helper, color = if (selected) Color.White else MutedInk, fontSize = 10.sp)
                 }
             }
         }

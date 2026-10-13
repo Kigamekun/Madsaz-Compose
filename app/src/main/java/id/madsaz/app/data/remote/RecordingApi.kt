@@ -1,149 +1,92 @@
 package id.madsaz.app.data.remote
 
-import id.madsaz.app.BuildConfig
-import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.CryScore
+import id.madsaz.app.model.RecordingItem
+import id.madsaz.app.model.RecordingStatus
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
-import org.json.JSONObject
 
-class RecordingApi {
-    fun upload(accessToken: String, file: File, durationSeconds: Int?): String {
+class RecordingApi(private val client: ApiClient) {
+    /**
+     * upload-url -> PUT ke penyimpanan -> complete. Nama file adalah UUID rekaman (lihat RecordingStore).
+     * Idempoten di BE: bila rekaman sudah ada, upload-url menjawab already_uploaded dan PUT dilewati.
+     * Mengembalikan id rekaman; hasil analisis diambil lewat [get].
+     */
+    fun upload(file: File, durationSeconds: Int?): String {
         val recordingId = file.nameWithoutExtension
-        val request = JSONObject().put("recording_id", recordingId).put("size_bytes", file.length())
-        val uploadData = requestJson("/records/upload-url", accessToken, "POST", request).getJSONObject("data")
-        if (uploadData.optBoolean("already_uploaded")) return recordingId
-        val uploadUrl = uploadData.getString("upload_url")
-        val upload = (URL(uploadUrl).openConnection() as HttpURLConnection).apply {
+        val target = client.requestJson(
+            "POST",
+            "/records/upload-url",
+            JSONObject().put("recording_id", recordingId).put("size_bytes", file.length()),
+        ).obj("data")
+        if (!target.has("already_uploaded")) putVideo(target.string("upload_url"), file)
+
+        val complete = JSONObject()
+        if (durationSeconds != null) complete.put("duration_seconds", durationSeconds)
+        client.requestJson("POST", "/records/$recordingId/complete", complete, readTimeoutMs = COMPLETE_READ_TIMEOUT_MS)
+        return recordingId
+    }
+
+    fun list(): List<RecordingItem> =
+        client.requestJson("GET", "/records").array("data").objects().map(::parseRecording)
+
+    fun get(recordingId: String): RecordingItem =
+        parseRecording(client.requestJson("GET", "/records/$recordingId/result").obj("data"))
+
+    fun delete(recordingId: String) {
+        client.requestNoContent("DELETE", "/records/$recordingId")
+    }
+
+    fun presignedVideoUrl(recordingId: String): String =
+        client.requestJson("GET", "/records/$recordingId/video-url").obj("data").string("url")
+
+    fun sendFeedback(recordingId: String, rating: Int, improvement: String, comment: String) {
+        client.requestJson(
+            "POST",
+            "/feedback",
+            JSONObject().put("recording_id", recordingId).put("rating", rating).put("improvement", improvement).put("comment", comment),
+        )
+    }
+
+    // URL pra-tanda-tangan menunjuk ke penyimpanan objek (bukan API), jadi tanpa Authorization dan tanpa retry 401.
+    private fun putVideo(uploadUrl: String, file: File) {
+        val connection = (URL(uploadUrl).openConnection() as HttpURLConnection).apply {
             requestMethod = "PUT"
             doOutput = true
-            connectTimeout = 10_000
-            readTimeout = 60_000
+            connectTimeout = ApiClient.CONNECT_TIMEOUT_MS
+            readTimeout = UPLOAD_READ_TIMEOUT_MS
             setFixedLengthStreamingMode(file.length())
             setRequestProperty("Content-Type", "video/mp4")
         }
         try {
-            upload.outputStream.use { output -> file.inputStream().use { it.copyTo(output) } }
-            if (upload.responseCode !in 200..299) throw IllegalStateException("Unggah MinIO gagal (${upload.responseCode})")
-        } finally {
-            upload.disconnect()
-        }
-        val complete = JSONObject()
-        if (durationSeconds != null) complete.put("duration_seconds", durationSeconds)
-        requestJson("/records/$recordingId/complete", accessToken, "POST", complete)
-        return recordingId
-    }
-
-    private fun requestJson(path: String, accessToken: String, method: String, body: JSONObject): JSONObject {
-        val connection = connection(path, accessToken).apply {
-            requestMethod = method
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json")
-            readTimeout = 60_000
-        }
-        try {
-            connection.outputStream.use { it.write(body.toString().toByteArray()) }
-            return response(connection)
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    fun list(accessToken: String): List<RecordingItem> {
-        val connection = connection("/records", accessToken)
-        try {
-            val data = response(connection).getJSONArray("data")
-            return (0 until data.length()).map { parseRecording(data.getJSONObject(it)) }
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    fun get(accessToken: String, recordingId: String): RecordingItem {
-        val connection = connection("/records/$recordingId/result", accessToken)
-        try {
-            return parseRecording(response(connection).getJSONObject("data"))
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    fun delete(accessToken: String, recordingId: String) {
-        val connection = connection("/records/$recordingId", accessToken).apply { requestMethod = "DELETE" }
-        try {
-            if (connection.responseCode !in 200..299) response(connection)
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    fun presignedVideoUrl(accessToken: String, recordingId: String): String {
-        val connection = connection("/records/$recordingId/video-url", accessToken)
-        try {
-            return response(connection).getJSONObject("data").getString("url")
+            connection.outputStream.use { output -> file.inputStream().use { it.copyTo(output) } }
+            val status = connection.responseCode
+            if (status !in 200..299) throw ApiException(status, "storage_rejected", "Video upload rejected with HTTP $status")
         } finally {
             connection.disconnect()
         }
     }
 
     private fun parseRecording(json: JSONObject) = RecordingItem(
-        id = json.getString("id"),
-        recordedAtEpochMillis = Instant.parse(json.getString("created_at")).toEpochMilli(),
-        durationMillis = if (json.isNull("duration_seconds")) null else json.getLong("duration_seconds") * 1000,
-        sizeBytes = json.optLong("size_bytes"),
-        status = json.getString("status"),
-        category = if (json.isNull("category")) null else json.getString("category").ifBlank { null },
-        confidence = if (json.isNull("confidence")) null else json.getDouble("confidence"),
-        solution = if (json.isNull("solution")) null else json.getString("solution").ifBlank { null },
-        source = if (json.isNull("source")) null else json.getString("source"),
-        scores = json.optJSONArray("scores")?.let { scores ->
-            (0 until scores.length()).mapNotNull { index ->
-                scores.optJSONObject(index)?.let { score ->
-                    val code = score.optString("code")
-                    if (code.isBlank() || score.isNull("confidence")) null
-                    else CryScore(code, score.optString("label", code), score.optDouble("confidence"))
-                }
-            }
-        }.orEmpty(),
+        id = json.string("id"),
+        recordedAtEpochMillis = Instant.parse(json.string("created_at")).toEpochMilli(),
+        durationMillis = json.intOrNull("duration_seconds")?.let { it * 1000L },
+        sizeBytes = json.long("size_bytes"),
+        status = RecordingStatus.fromWire(json.string("status")),
+        category = json.stringOrNull("category"),
+        solution = json.stringOrNull("solution"),
+        source = json.stringOrNull("source"),
+        scores = json.arrayOrNull("scores")?.objects()
+            ?.map { CryScore(it.string("code"), it.string("label"), it.double("confidence")) }
+            .orEmpty(),
     )
 
-    fun sendFeedback(accessToken: String, recordingId: String, rating: Int, improvement: String, comment: String) {
-        val connection = connection("/feedback", accessToken).apply {
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json")
-        }
-        try {
-            val body = JSONObject()
-                .put("recording_id", recordingId)
-                .put("rating", rating)
-                .put("improvement", improvement)
-                .put("comment", comment)
-            connection.outputStream.use { it.write(body.toString().toByteArray()) }
-            response(connection)
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    private fun connection(path: String, accessToken: String) =
-        (URL(BuildConfig.API_BASE_URL.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 10_000
-            readTimeout = 20_000
-            setRequestProperty("Authorization", "Bearer $accessToken")
-            setRequestProperty("Accept", "application/json")
-        }
-
-    private fun response(connection: HttpURLConnection): JSONObject {
-        val status = connection.responseCode
-        val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
-            ?.bufferedReader()?.use { it.readText() }.orEmpty()
-        if (status !in 200..299) {
-            val message = runCatching { JSONObject(body).optString("error") }.getOrNull()
-            throw IllegalStateException(message?.ifBlank { null } ?: "Permintaan gagal ($status)")
-        }
-        return JSONObject(body)
+    private companion object {
+        // /complete mengunduh video dari penyimpanan lalu (mode mock) menganalisis secara sinkron.
+        const val COMPLETE_READ_TIMEOUT_MS = 60_000
+        const val UPLOAD_READ_TIMEOUT_MS = 60_000
     }
 }

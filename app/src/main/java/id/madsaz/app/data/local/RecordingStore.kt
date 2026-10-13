@@ -47,9 +47,10 @@ class RecordingStore(context: Context, userId: String) {
         }.getOrNull()
     }
 
-    fun deleteUploaded(file: File) {
-        checkFile(file)
-        if (!file.delete()) throw IOException("Salinan sementara gagal dihapus")
+    /** Membuang salinan lokal (sudah terkirim, atau dibuang pengguna) dan melepas status pending. */
+    fun delete(file: File) {
+        require(file.parentFile?.canonicalFile == directory.canonicalFile) { "File rekaman sementara tidak ditemukan" }
+        if (file.exists() && !file.delete()) throw IOException("Salinan sementara gagal dihapus")
         pending.edit().remove(pendingKey).apply()
     }
 

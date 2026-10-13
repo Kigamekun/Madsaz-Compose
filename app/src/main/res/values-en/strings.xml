@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_description">Baby cry translator using sound and facial expressions</string>
+    <string name="notification_channel_plan_name">Plan reminders</string>
+
+    <!-- Common -->
+    <string name="common_back">Back</string>
+    <string name="common_retry">Try again</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_close">Close</string>
+
+    <!-- Navigation and header -->
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_record">Take a recording</string>
+    <string name="header_tagline">Cry patterns</string>
+    <string name="header_profile_initial">P</string>
+    <string name="header_profile_description">Profile</string>
+
+    <!-- Sign in and register -->
+    <string name="auth_login_title">Log in</string>
+    <string name="auth_register_title">Register</string>
+    <string name="auth_headline_login">A calmer way to listen</string>
+    <string name="auth_headline_register">A calmer way to begin</string>
+    <string name="auth_sub_login">Pick up where you left off with your baby\'s latest cues.</string>
+    <string name="auth_sub_register">Create an account to keep your baby\'s latest cues.</string>
+    <string name="auth_privacy_note">Your recordings stay private to your account.</string>
+    <string name="auth_field_name">Baby\'s name</string>
+    <string name="auth_field_email">Email address</string>
+    <string name="auth_field_password">Password</string>
+    <string name="auth_forgot">Forgot password?</string>
+    <string name="auth_forgot_unavailable">Password reset isn\'t available yet.</string>
+    <string name="auth_submit_login">Log in</string>
+    <string name="auth_submit_register">Create account</string>
+    <string name="auth_prompt_have_account">Already have an account?</string>
+    <string name="auth_prompt_new">New to Madsaz?</string>
+    <string name="auth_switch_to_register">Create an account</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
+
+    <!-- Home -->
+    <string name="home_hero_description">Madsaz nursery</string>
+    <string name="home_latest_cry">Latest cry cue</string>
+    <string name="home_latest_empty">No result yet</string>
+    <string name="home_status_waiting">Waiting for analysis</string>
+    <string name="home_status_failed">Analysis failed</string>
+    <string name="home_status_result">Analysis result</string>
+    <string name="home_cry_cues_title">Cry Cues</string>
+    <string name="home_cry_cues_description">Understand your baby\'s cues</string>
+    <string name="home_recent_title">Recent recordings</string>
+    <string name="home_see_all">See all  ›</string>
+    <string name="home_recent_empty_title">No recordings yet</string>
+    <string name="home_recent_error_title">History couldn\'t be loaded</string>
+    <string name="home_recorded_at">Recorded at %1$s</string>
+    <string name="home_duration">Duration %1$s</string>
+
+    <!-- History -->
+    <string name="history_title">Recording history</string>
+    <string name="history_subtitle">All recordings</string>
+    <plurals name="history_count">
+        <item quantity="one">%d recording</item>
+        <item quantity="other">%d recordings</item>
+    </plurals>
+    <string name="history_empty_title">Your history is empty</string>
+    <string name="history_empty_body">Make your first recording to see the analysis here.</string>
+    <string name="history_delete_recording">Delete recording</string>
+    <string name="history_delete_confirmation">The video %1$s will be permanently deleted from the server, along with its result and feedback.</string>
+    <string name="history_open_recording">Open recording</string>
+    <string name="status_processing">Processing</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+
+    <!-- Recording -->
+    <string name="permission_title">Camera and microphone required</string>
+    <string name="permission_body">Madsaz records video with sound so both inputs are available for analysis.</string>
+    <string name="permission_allow">Allow access</string>
+    <string name="permission_settings">Open settings</string>
+    <string name="recording_start">Start recording</string>
+    <string name="recording_stop">Stop recording</string>
+    <string name="recording_camera_error">The camera can\'t be used. Check the permissions and try again.</string>
+    <string name="recording_save_error">The video couldn\'t be saved. Please try recording again.</string>
+    <string name="recording_upload_error">The video hasn\'t finished uploading. The temporary file is kept; check your connection and tap Try again.</string>
+    <string name="recording_keep_baby_in_view">Keep baby in view</string>
+    <string name="recording_tap_to_record">Tap to record</string>
+    <string name="recording_camera_ready">Camera + microphone ready</string>
+    <string name="recording_stop_label">Stop recording</string>
+    <string name="recording_stop_helper">You can stop whenever your baby feels calm.</string>
+    <string name="recording_status_ready">READY</string>
+    <string name="recording_status_rec">REC</string>
+    <string name="recording_discard">Record again</string>
+
+    <!-- Analysis result -->
+    <string name="analysis_saving_title">Saving your recording</string>
+    <string name="analysis_saving_body">Please keep this page open for a moment.</string>
+    <string name="analysis_running_title">Uploading your recording</string>
+    <string name="analysis_running_body">The video is being sent to the server.</string>
+    <string name="analysis_disclaimer">This result is not a medical diagnosis. Contact a healthcare professional if you are concerned about your baby\'s condition.</string>
+    <string name="result_loading_title">Loading the result</string>
+    <string name="result_loading_body">Just a moment.</string>
+    <string name="result_processing_title">Analysing your recording</string>
+    <string name="result_processing_body">The result will appear automatically.</string>
+    <string name="result_baby_description">Crying baby</string>
+    <string name="result_title">Cry pattern result</string>
+    <string name="result_most_likely">MOST LIKELY</string>
+    <string name="result_confidence_title">Cry cue confidence</string>
+    <string name="result_suggested_action">SUGGESTED ACTION</string>
+    <string name="result_what_to_try">What you can try</string>
+    <string name="result_mock_note">Sample result for testing; not analysed from the recorded sound.</string>
+    <string name="result_feedback">Feedback</string>
+    <string name="result_log_title">Recording log</string>
+    <string name="result_log_failed">Analysis failed. The video is still saved.</string>
+    <string name="result_log_pending">Video saved. The analysis isn\'t available yet.</string>
+    <string name="result_play">Play recording</string>
+    <string name="result_play_error">The video couldn\'t be played. Check your connection and try again.</string>
+    <string name="result_refresh">Refresh result</string>
+
+    <!-- Plan -->
+    <string name="plan_title">Your plan</string>
+    <string name="plan_free_title">Free plan</string>
+    <string name="plan_monthly_analyses">Monthly analyses</string>
+    <string name="plan_used_of">%1$d of %2$d used</string>
+    <plurals name="plan_remaining_month">
+        <item quantity="one">%d recording left this month</item>
+        <item quantity="other">%d recordings left this month</item>
+    </plurals>
+    <plurals name="plan_remaining_chip">
+        <item quantity="one">%d recording left</item>
+        <item quantity="other">%d recordings left</item>
+    </plurals>
+    <string name="plan_included_title">Included in Free</string>
+    <plurals name="plan_benefit_analyses">
+        <item quantity="one">%d cry analysis each month</item>
+        <item quantity="other">%d cry analyses each month</item>
+    </plurals>
+    <string name="plan_benefit_cues">Basic cue interpretation</string>
+    <string name="plan_benefit_recent">Recent recordings saved</string>
+    <string name="plan_explore_plus">Explore Madsaz Plus</string>
+    <string name="plan_continue_free">Continue with free plan</string>
+    <string name="plan_limit_reset">Your limit resets on the first day of each month.</string>
+    <string name="plan_plus_tagline">More calm, more context.</string>
+    <string name="plan_plus_benefit_unlimited">Unlimited recordings</string>
+    <string name="plan_plus_benefit_history">Full history and insights</string>
+    <string name="plan_plus_benefit_cues">Learn every cue</string>
+    <string name="plan_choose">Choose your plan</string>
+    <string name="plan_yearly">Yearly</string>
+    <string name="plan_monthly">Monthly</string>
+    <string name="plan_best_value">Best value</string>
+    <string name="plan_flexible">Flexible</string>
+    <string name="plan_save_badge">SAVE %1$s</string>
+    <string name="plan_price_unavailable">Price unavailable</string>
+    <string name="plan_manage">Manage subscription in Google Play</string>
+    <string name="plan_plus_active">Madsaz Plus is active</string>
+    <string name="plan_plus_renews">Renews automatically on %1$s</string>
+    <string name="plan_plus_ends">Ends on %1$s. It will not renew automatically.</string>
+    <string name="plan_start">Start Madsaz Plus</string>
+    <string name="plan_cancel_anytime">Cancel anytime. Your free plan stays available.</string>
+
+    <!-- Profile -->
+    <string name="profile_badge_baby">B</string>
+    <string name="profile_badge_notifications">N</string>
+    <string name="profile_badge_privacy">P</string>
+    <string name="profile_badge_feedback">S</string>
+    <string name="profile_badge_logout">L</string>
+    <string name="profile_badge_delete">D</string>
+    <string name="profile_account">Account</string>
+    <string name="profile_baby_row_title">Baby profile</string>
+    <string name="profile_baby_row_subtitle">Update %1$s\'s details</string>
+    <string name="profile_baby_row_subtitle_generic">Update baby\'s details</string>
+    <string name="profile_plus_subtitle">Manage your plan</string>
+    <string name="profile_notifications_subtitle">Gentle reminders</string>
+    <string name="profile_privacy_title">Privacy and data</string>
+    <string name="profile_privacy_subtitle">Control your recordings</string>
+    <string name="profile_feedback_title">Share feedback</string>
+    <string name="profile_feedback_subtitle">Help us improve</string>
+    <string name="profile_logout_title">Log out</string>
+    <string name="profile_logout_subtitle">See you soon</string>
+    <string name="profile_delete_title">Delete account</string>
+    <string name="profile_delete_subtitle">Remove your data permanently</string>
+    <string name="profile_delete_warning">Your account, baby profile, all video recordings with their results, and feedback will be permanently deleted and can\'t be restored.</string>
+    <string name="profile_delete_subscription_note">A Madsaz Plus subscription on Google Play is not cancelled automatically. Cancel it first in Google Play &gt; Payments and subscriptions.</string>
+    <string name="profile_delete_password">Password</string>
+    <string name="profile_delete_confirm">Delete my account</string>
+    <plurals name="profile_usage">
+        <item quantity="one">%1$d recording · %2$s</item>
+        <item quantity="other">%1$d recordings · %2$s</item>
+    </plurals>
+    <string name="profile_your_profile">Your profile</string>
+    <string name="profile_edit">Edit</string>
+    <string name="profile_not_analyzed">Not analyzed yet</string>
+    <string name="profile_last_analyzed">Last analyzed: %1$s</string>
+    <plurals name="profile_age_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="profile_weight_kg">%1$s kg</string>
+    <string name="profile_sheet_subtitle">Update your baby\'s details</string>
+    <string name="profile_field_baby_name">Baby name</string>
+    <string name="profile_field_birth_date">Birth date (dd/mm/yyyy)</string>
+    <string name="profile_field_weight">Weight (kg)</string>
+    <string name="profile_save">Save changes</string>
+    <string name="date_unit_day">day</string>
+    <string name="date_unit_month">month</string>
+    <string name="date_unit_year">year</string>
+    <string name="date_increase">Increase %1$s</string>
+    <string name="date_decrease">Decrease %1$s</string>
+
+    <!-- Feedback -->
+    <string name="feedback_eyebrow">Help shape Madsaz</string>
+    <string name="feedback_title">Share your thoughts</string>
+    <string name="feedback_subtitle">A few taps help us make listening more useful.</string>
+    <string name="feedback_question">How is your experience with Madsaz today?</string>
+    <string name="feedback_rating_1">Not great</string>
+    <string name="feedback_rating_2">Okay</string>
+    <string name="feedback_rating_3">Love it</string>
+    <string name="feedback_improve_title">What can we improve?</string>
+    <string name="feedback_topic_accuracy">Accuracy</string>
+    <string name="feedback_topic_usability">Usability</string>
+    <string name="feedback_topic_other">Something else</string>
+    <string name="feedback_note_prompt">Tell us what would make Madsaz better</string>
+    <string name="feedback_note_hint">Your note goes here...</string>
+    <string name="feedback_note_counter">%1$d / %2$d</string>
+    <string name="feedback_send">Send feedback</string>
+    <string name="feedback_sending">Sending...</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_heading">Plan reminders</string>
+    <string name="notifications_body">We remind you when a Plus plan that doesn\'t renew automatically is nearing the end of its term.</string>
+    <string name="notifications_status_unconfigured">Firebase isn\'t configured in this build.</string>
+    <string name="notifications_status_on">Reminders are on for this device.</string>
+    <string name="notifications_status_off">Reminders are off for this device.</string>
+    <string name="notifications_open_settings">Open notification settings</string>
+    <string name="notifications_disable">Turn off reminders</string>
+    <string name="notifications_enable">Turn on reminders</string>
+    <string name="notifications_permission_denied">Allow notifications so reminders can be shown.</string>
+
+    <!-- Cry cues -->
+    <string name="cry_cues_close">Close cry cues</string>
+    <string name="cry_cues_signs">Signs</string>
+    <string name="cry_cues_actions">What you can do</string>
+    <string name="cry_cues_got_it">Got it</string>
+    <string name="cue_neh_meaning">Hungry</string>
+    <string name="cue_neh_description">This cry usually means your baby is hungry and wants to feed.</string>
+    <string name="cue_neh_metric_meaning">Hunger</string>
+    <string name="cue_neh_metric_detail">Needs milk</string>
+    <string name="cue_neh_feature_1">A cry that sounds like “neh neh neh”</string>
+    <string name="cue_neh_feature_2">Usually repeated and getting louder</string>
+    <string name="cue_neh_feature_3">Rooting or opening the mouth</string>
+    <string name="cue_neh_action_1">Offer breast milk or formula right away</string>
+    <string name="cue_neh_action_2">Make sure the feeding position is comfortable</string>
+    <string name="cue_neh_action_3">Watch for signs that your baby is full</string>
+    <string name="cue_owh_meaning">Sleepy</string>
+    <string name="cue_owh_description">This sound can be a sign your baby is getting tired and needs rest.</string>
+    <string name="cue_owh_metric_meaning">Sleepy</string>
+    <string name="cue_owh_metric_detail">Time to rest</string>
+    <string name="cue_owh_feature_1">A long “owh” sound</string>
+    <string name="cue_owh_feature_2">Yawning or rubbing the eyes</string>
+    <string name="cue_owh_feature_3">Movements start to slow down</string>
+    <string name="cue_owh_action_1">Move your baby somewhere quiet</string>
+    <string name="cue_owh_action_2">Dim the lights and reduce noise</string>
+    <string name="cue_owh_action_3">Help your baby sleep with a gentle routine</string>
+    <string name="cue_eh_meaning">Needs a burp</string>
+    <string name="cue_eh_description">Your baby may be telling you there\'s air to release after feeding.</string>
+    <string name="cue_eh_metric_meaning">Needs a burp</string>
+    <string name="cue_eh_metric_detail">After feeding</string>
+    <string name="cue_eh_feature_1">A short “eh” sound</string>
+    <string name="cue_eh_feature_2">Happens after feeding</string>
+    <string name="cue_eh_feature_3">Your baby wriggles or looks uncomfortable</string>
+    <string name="cue_eh_action_1">Hold your baby upright gently</string>
+    <string name="cue_eh_action_2">Rub or pat the back slowly</string>
+    <string name="cue_eh_action_3">Stop once your baby looks comfortable</string>
+    <string name="cue_heh_meaning">Uncomfortable</string>
+    <string name="cue_heh_description">Your baby may be uncomfortable and needs a simple check.</string>
+    <string name="cue_heh_metric_meaning">Uncomfortable</string>
+    <string name="cue_heh_metric_detail">Check comfort</string>
+    <string name="cue_heh_feature_1">A “heh” sound with short pauses</string>
+    <string name="cue_heh_feature_2">Your baby moves a lot or fusses</string>
+    <string name="cue_heh_feature_3">The face looks uncomfortable</string>
+    <string name="cue_heh_action_1">Check the diaper and clothing</string>
+    <string name="cue_heh_action_2">Make sure the room temperature is comfortable</string>
+    <string name="cue_heh_action_3">Hold and soothe your baby slowly</string>
+    <string name="cue_eairh_meaning">Gassy tummy</string>
+    <string name="cue_eairh_description">This sound can mean your baby is uncomfortable because of gas in the tummy.</string>
+    <string name="cue_eairh_metric_meaning">Lower gas</string>
+    <string name="cue_eairh_metric_detail">Tummy discomfort</string>
+    <string name="cue_eairh_feature_1">An “eairh” sound with straining</string>
+    <string name="cue_eairh_feature_2">Your baby pulls the legs toward the tummy</string>
+    <string name="cue_eairh_feature_3">The tummy feels full or your baby is hard to settle</string>
+    <string name="cue_eairh_action_1">Help your baby burp</string>
+    <string name="cue_eairh_action_2">Move the legs like cycling</string>
+    <string name="cue_eairh_action_3">Massage the tummy very gently</string>
+
+    <!-- Errors -->
+    <string name="error_network">Can\'t connect to the server. Check your internet connection and try again.</string>
+    <string name="error_server">The server is having problems. Please try again shortly.</string>
+    <string name="error_unknown">Something went wrong. Please try again.</string>
+    <string name="error_session_expired">Your session has ended. Please log in again.</string>
+    <string name="error_login_incomplete">Enter your email and password.</string>
+    <string name="error_invalid_credentials">Incorrect email or password.</string>
+    <string name="error_email_taken">This email is already registered.</string>
+    <string name="error_invalid_input">Please complete the form correctly. The password needs at least 8 characters.</string>
+    <string name="error_free_limit">You\'ve reached this month\'s free analysis limit. Upgrade to Madsaz Plus or wait until next month.</string>
+    <string name="error_analysis_in_progress">The previous analysis is still running. Please try again in a moment.</string>
+    <string name="error_upload_invalid">The server didn\'t receive the video. Please upload it again.</string>
+    <string name="error_storage">Video storage is unavailable right now. Please try again later.</string>
+    <string name="error_plan_unavailable">The plan isn\'t available on Google Play yet. Please try again later.</string>
+    <string name="error_billing_unavailable">Google Play Billing isn\'t available on this device.</string>
+    <string name="error_billing_pending">The payment is still waiting for Google Play confirmation.</string>
+    <string name="error_billing_failed">The payment failed.</string>
+    <string name="error_billing_server">We can’t process payments right now. Please try again later.</string>
+    <string name="error_purchase_other_account">This subscription is linked to another Madsaz account.</string>
+    <string name="error_name_required">The baby\'s name is required.</string>
+    <string name="error_weight_invalid">Weight must be a number, e.g. 7.5.</string>
+</resources>

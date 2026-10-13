@@ -1,15 +1,16 @@
 package id.madsaz.app.feature.auth
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import id.madsaz.app.data.local.AuthSession
-import id.madsaz.app.data.local.AuthStore
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import id.madsaz.app.R
 import id.madsaz.app.data.remote.AuthApi
-import id.madsaz.app.data.remote.AuthApiException
+import id.madsaz.app.data.remote.SessionManager
 import id.madsaz.app.notifications.FcmRegistration
+import id.madsaz.app.ui.userMessageRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,85 +18,117 @@ import kotlinx.coroutines.withContext
 
 sealed interface AuthUiState {
     data object SignedOut : AuthUiState
-    data class SignedIn(val session: AuthSession) : AuthUiState
-    data class Error(val message: String) : AuthUiState
     data object Submitting : AuthUiState
+    data class Error(@StringRes val messageRes: Int) : AuthUiState
+    data class SignedIn(val userId: String, val email: String) : AuthUiState
+}
+
+sealed interface DeleteAccountState {
+    data object Idle : DeleteAccountState
+    data object Deleting : DeleteAccountState
+    data class Error(@StringRes val messageRes: Int) : DeleteAccountState
 }
 
 class AuthViewModel(
-    private val store: AuthStore,
+    private val sessionManager: SessionManager,
+    private val authApi: AuthApi,
     private val fcmRegistration: FcmRegistration,
-    private val api: AuthApi = AuthApi(),
 ) : ViewModel() {
-    var uiState: AuthUiState by mutableStateOf(AuthUiState.SignedOut)
+    var uiState: AuthUiState by mutableStateOf(
+        sessionManager.session.value?.let { AuthUiState.SignedIn(it.userId, it.email) } ?: AuthUiState.SignedOut,
+    )
+        private set
+
+    var deleteState: DeleteAccountState by mutableStateOf(DeleteAccountState.Idle)
         private set
 
     init {
-        val savedSession = store.read()
-        if (savedSession == null) {
-            uiState = AuthUiState.SignedOut
-        } else {
-            uiState = AuthUiState.Submitting
-            viewModelScope.launch {
-                uiState = try {
-                    val response = withContext(Dispatchers.IO) { api.refresh(savedSession.refreshToken) }
-                    val session = AuthSession(response.userId, response.accessToken, response.refreshToken, response.email, response.name)
-                    store.write(session)
-                    withContext(Dispatchers.IO) { runCatching { fcmRegistration.refresh(session.accessToken) } }
-                    AuthUiState.SignedIn(session)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: AuthApiException) {
-                    if (error.statusCode == 401) {
-                        store.clear()
-                        AuthUiState.SignedOut
-                    } else {
-                        AuthUiState.Error("Sesi belum dapat diperbarui. Periksa koneksi lalu coba lagi.")
-                    }
-                } catch (_: Exception) {
-                    AuthUiState.Error("Sesi belum dapat diperbarui. Periksa koneksi lalu coba lagi.")
+        // Sumber kebenaran sesi adalah SessionManager: login, logout, hapus akun, dan refresh yang ditolak server semuanya lewat sini.
+        viewModelScope.launch {
+            sessionManager.session.collect { session ->
+                if (session != null) {
+                    uiState = AuthUiState.SignedIn(session.userId, session.email)
+                } else if (uiState is AuthUiState.SignedIn) {
+                    uiState = if (sessionManager.consumeEndedByServer()) AuthUiState.Error(R.string.error_session_expired) else AuthUiState.SignedOut
                 }
             }
         }
     }
 
     fun authenticate(register: Boolean, name: String, email: String, password: String) {
-        if (email.isBlank() || password.length < 8 || (register && name.isBlank())) {
-            uiState = AuthUiState.Error("Lengkapi data dengan benar. Password minimal 8 karakter.")
+        // BE hanya mewajibkan 8 karakter saat mendaftar; saat masuk cukup tidak kosong.
+        if (!register && (email.isBlank() || password.isBlank())) {
+            uiState = AuthUiState.Error(R.string.error_login_incomplete)
             return
         }
-
+        if (register && (email.isBlank() || name.isBlank() || password.length < MIN_PASSWORD_LENGTH)) {
+            uiState = AuthUiState.Error(R.string.error_invalid_input)
+            return
+        }
         viewModelScope.launch {
             uiState = AuthUiState.Submitting
-            uiState = try {
-                val response = withContext(Dispatchers.IO) {
-                    if (register) api.register(name.trim(), email.trim(), password)
-                    else api.login(email.trim(), password)
+            try {
+                withContext(Dispatchers.IO) {
+                    val session = if (register) authApi.register(name.trim(), email.trim(), password) else authApi.login(email.trim(), password)
+                    sessionManager.signIn(session)
                 }
-                val session = AuthSession(response.userId, response.accessToken, response.refreshToken, response.email, response.name)
-                store.write(session)
-                withContext(Dispatchers.IO) { runCatching { fcmRegistration.refresh(session.accessToken) } }
-                AuthUiState.SignedIn(session)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                AuthUiState.Error(error.message ?: "Tidak dapat terhubung ke server.")
+                uiState = AuthUiState.Error(error.userMessageRes())
             }
         }
     }
 
-    fun dismissError() {
-        if (uiState is AuthUiState.Error) uiState = AuthUiState.SignedOut
-    }
-
     fun logout() {
-        val session = (uiState as? AuthUiState.SignedIn)?.session ?: return
+        val refreshToken = sessionManager.session.value?.refreshToken ?: return
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { runCatching { fcmRegistration.disable(session.accessToken) } }
-            withContext(Dispatchers.IO) { runCatching { api.logout(session.refreshToken) } }
-            store.clear()
-            uiState = AuthUiState.SignedOut
+            withContext(Dispatchers.IO) {
+                try {
+                    fcmRegistration.unregisterDevice()
+                    authApi.logout(refreshToken)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    // Pembersihan di server bersifat best-effort: logout lokal harus selalu berhasil, refresh token kedaluwarsa sendiri.
+                } finally {
+                    sessionManager.signOut()
+                }
+            }
         }
     }
 
+    fun deleteAccount(password: String) {
+        val email = (uiState as? AuthUiState.SignedIn)?.email ?: return
+        viewModelScope.launch {
+            deleteState = DeleteAccountState.Deleting
+            try {
+                withContext(Dispatchers.IO) {
+                    authApi.deleteAccount(email, password)
+                    try {
+                        fcmRegistration.clearLocal()
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        // Akun sudah terhapus di BE; token FCM di perangkat tidak lagi berguna dan tidak boleh menghalangi keluar.
+                    } finally {
+                        sessionManager.signOut()
+                    }
+                }
+                deleteState = DeleteAccountState.Idle
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                deleteState = DeleteAccountState.Error(error.userMessageRes())
+            }
+        }
+    }
+
+    fun resetDeleteState() {
+        deleteState = DeleteAccountState.Idle
+    }
+
+    private companion object {
+        const val MIN_PASSWORD_LENGTH = 8
+    }
 }

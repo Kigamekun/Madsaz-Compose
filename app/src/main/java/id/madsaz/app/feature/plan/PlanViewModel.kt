@@ -1,174 +1,150 @@
 package id.madsaz.app.feature.plan
 
 import android.app.Activity
-import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingFlowParams
-import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.Purchase
+import id.madsaz.app.R
+import id.madsaz.app.data.billing.BillingEvent
+import id.madsaz.app.data.billing.PlayBilling
 import id.madsaz.app.data.remote.PlanApi
+import id.madsaz.app.data.remote.PlanCatalog
 import id.madsaz.app.data.remote.PlanStatus
-import java.security.MessageDigest
+import id.madsaz.app.ui.userMessageRes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+
+enum class PlanInterval { MONTHLY, YEARLY }
+
+/** Harga dari Google Play: [formatted] untuk ditampilkan, [micros] untuk membandingkan paket. */
+data class PlanPrice(val formatted: String, val micros: Long)
 
 data class PlanUiState(
+    /** null selama paket belum berhasil dimuat; layar tidak boleh menebak Free/Plus dari null. */
     val status: PlanStatus? = null,
-    val prices: Map<String, String> = emptyMap(),
+    val prices: Map<PlanInterval, PlanPrice> = emptyMap(),
     val loading: Boolean = true,
     val purchasing: Boolean = false,
     val purchaseEnabled: Boolean = false,
-    val error: String? = null,
-)
+    /** Id produk dari BE, dipakai untuk tautan kelola langganan di Google Play. */
+    val productId: String? = null,
+    @StringRes val errorRes: Int? = null,
+) {
+    /** Persen hemat paket tahunan terhadap 12 bulan paket bulanan, dihitung dari harga Play; null bila tidak lebih murah. */
+    val yearlySavingsPercent: Int?
+        get() {
+            val monthly = prices[PlanInterval.MONTHLY]?.micros ?: return null
+            val yearly = prices[PlanInterval.YEARLY]?.micros ?: return null
+            return ((1.0 - yearly.toDouble() / (monthly * 12)) * 100).toInt().takeIf { it > 0 }
+        }
+}
 
 class PlanViewModel(
-    context: Context,
-    private val accessToken: String,
+    private val api: PlanApi,
+    private val billing: PlayBilling,
     private val userId: String,
-    private val api: PlanApi = PlanApi(),
 ) : ViewModel() {
     var uiState by mutableStateOf(PlanUiState())
         private set
 
-    private var productId = "madsaz_plus"
-    private var monthlyBasePlanId = "monthly"
-    private var yearlyBasePlanId = "yearly"
-    private var catalogLoaded = false
+    private var catalog: PlanCatalog? = null
     private var product: ProductDetails? = null
-    private val billingClient = BillingClient.newBuilder(context.applicationContext)
-        .setListener { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                purchases.orEmpty().filter { productId in it.products }.forEach(::verifyPurchase)
-            } else if (result.responseCode != BillingClient.BillingResponseCode.USER_CANCELED) {
-                uiState = uiState.copy(purchasing = false, error = result.debugMessage.ifBlank { "Pembayaran gagal." })
-            } else {
-                uiState = uiState.copy(purchasing = false)
-            }
-        }
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-        .build()
 
     init {
+        viewModelScope.launch { billing.events.collect(::onBillingEvent) }
         refresh()
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                    if (catalogLoaded) {
-                        loadProducts()
-                        restorePurchases()
-                    }
-                } else {
-                    uiState = uiState.copy(error = "Google Play Billing belum tersedia di perangkat ini.")
-                }
-            }
-
-            override fun onBillingServiceDisconnected() {
-                uiState = uiState.copy(error = "Koneksi Google Play terputus. Buka kembali halaman paket.")
-            }
-        })
     }
 
     fun refresh() {
         viewModelScope.launch {
-            uiState = uiState.copy(loading = true, error = null)
+            uiState = uiState.copy(loading = true, errorRes = null)
             try {
-                val (catalog, status) = withContext(Dispatchers.IO) { api.catalog(accessToken) to api.status(accessToken) }
-                productId = catalog.productId
-                monthlyBasePlanId = catalog.monthlyBasePlanId
-                yearlyBasePlanId = catalog.yearlyBasePlanId
-                catalogLoaded = true
-                uiState = uiState.copy(status = status, purchaseEnabled = catalog.purchaseEnabled, loading = false)
-                if (billingClient.isReady) {
-                    loadProducts()
-                    restorePurchases()
+                val (loadedCatalog, status) = coroutineScope {
+                    val catalogRequest = async { billing.loadCatalog() }
+                    val statusRequest = async(Dispatchers.IO) { api.status() }
+                    catalogRequest.await() to statusRequest.await()
                 }
+                catalog = loadedCatalog
+                uiState = uiState.copy(status = status, purchaseEnabled = loadedCatalog.purchaseEnabled, productId = loadedCatalog.productId, loading = false)
+                loadPrices(loadedCatalog)
+                // Pembelian yang sudah dimiliki akun Google tetapi belum diketahui BE (mis. aplikasi ditutup sebelum verifikasi).
+                billing.sync(userId)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                uiState = uiState.copy(loading = false, error = error.message ?: "Paket gagal dimuat.")
+                uiState = uiState.copy(loading = false, errorRes = error.userMessageRes())
             }
         }
     }
 
-    fun purchase(activity: Activity, basePlanId: String) {
-        if (!uiState.purchaseEnabled) return
-        val details = product ?: return
-        val configuredBasePlanId = if (basePlanId == "monthly") monthlyBasePlanId else yearlyBasePlanId
-        val offer = details.subscriptionOfferDetails?.firstOrNull {
-            it.basePlanId == configuredBasePlanId && it.offerId == null
-        } ?: return
-        val params = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(listOf(
-                BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(details)
-                    .setOfferToken(offer.offerToken)
-                    .build(),
-            ))
-            .setObfuscatedAccountId(MessageDigest.getInstance("SHA-256")
-                .digest(userId.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 0xff) })
-            .build()
-        uiState = uiState.copy(purchasing = true, error = null)
-        val result = billingClient.launchBillingFlow(activity, params)
-        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-            uiState = uiState.copy(purchasing = false, error = result.debugMessage.ifBlank { "Pembayaran tidak dapat dibuka." })
+    fun purchase(activity: Activity, interval: PlanInterval) {
+        val loadedCatalog = catalog
+        val details = product
+        val basePlanId = when (interval) {
+            PlanInterval.MONTHLY -> loadedCatalog?.monthlyBasePlanId
+            PlanInterval.YEARLY -> loadedCatalog?.yearlyBasePlanId
         }
-    }
-
-    private fun loadProducts() {
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(listOf(QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(productId).setProductType(BillingClient.ProductType.SUBS).build()))
-            .build()
-        billingClient.queryProductDetailsAsync(params) { result, response ->
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                uiState = uiState.copy(error = "Harga paket belum dapat dimuat dari Google Play.")
-                return@queryProductDetailsAsync
-            }
-            product = response.productDetailsList.firstOrNull()
-            val prices = product?.subscriptionOfferDetails.orEmpty()
-                .filter { it.offerId == null }
-                .associate { offer ->
-                    (if (offer.basePlanId == monthlyBasePlanId) "monthly" else if (offer.basePlanId == yearlyBasePlanId) "yearly" else offer.basePlanId) to
-                        (offer.pricingPhases.pricingPhaseList.lastOrNull()?.formattedPrice ?: "")
-                }
-            uiState = uiState.copy(prices = prices)
-        }
-    }
-
-    private fun restorePurchases() {
-        billingClient.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS).build()) { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                purchases.filter { productId in it.products }.forEach(::verifyPurchase)
-            }
-        }
-    }
-
-    private fun verifyPurchase(purchase: Purchase) {
-        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
-            uiState = uiState.copy(purchasing = false, error = "Pembayaran masih menunggu konfirmasi Google Play.")
+        val offer = details?.subscriptionOfferDetails?.firstOrNull { it.basePlanId == basePlanId && it.offerId == null }
+        if (!uiState.purchaseEnabled || details == null || offer == null) {
+            uiState = uiState.copy(errorRes = R.string.error_plan_unavailable)
             return
         }
+        uiState = uiState.copy(purchasing = true, errorRes = null)
+        // Peluncuran yang ditolak, dibatalkan, atau sudah dimiliki dilaporkan lewat billing.events.
+        val result = billing.launchPurchase(activity, details, offer.offerToken, userId)
+        if (result.responseCode != BillingClient.BillingResponseCode.OK && result.responseCode != BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            uiState = uiState.copy(purchasing = false, errorRes = R.string.error_billing_failed)
+        } else if (result.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            restore()
+        }
+    }
+
+    private suspend fun loadPrices(loadedCatalog: PlanCatalog) {
+        val details = billing.subscriptionProduct(loadedCatalog.productId)
+        product = details
+        val prices = buildMap {
+            details?.subscriptionOfferDetails.orEmpty().filter { it.offerId == null }.forEach { offer ->
+                val interval = when (offer.basePlanId) {
+                    loadedCatalog.monthlyBasePlanId -> PlanInterval.MONTHLY
+                    loadedCatalog.yearlyBasePlanId -> PlanInterval.YEARLY
+                    else -> return@forEach
+                }
+                // Penawaran tanpa fase harga tidak bisa ditampilkan; dibiarkan tanpa harga sehingga tombol beli nonaktif.
+                offer.pricingPhases.pricingPhaseList.lastOrNull()?.let { put(interval, PlanPrice(it.formattedPrice, it.priceAmountMicros)) }
+            }
+        }
+        uiState = uiState.copy(prices = prices)
+    }
+
+    private fun restore() {
         viewModelScope.launch {
             try {
-                val status = withContext(Dispatchers.IO) { api.verify(accessToken, purchase.purchaseToken) }
-                uiState = uiState.copy(status = status, purchasing = false, error = null)
+                billing.sync(userId, force = true)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                uiState = uiState.copy(purchasing = false, error = error.message ?: "Pembelian belum dapat diverifikasi.")
+                uiState = uiState.copy(purchasing = false, errorRes = error.userMessageRes())
             }
         }
     }
 
-    override fun onCleared() {
-        billingClient.endConnection()
+    private fun onBillingEvent(event: BillingEvent) {
+        when (event) {
+            BillingEvent.Verified -> {
+                uiState = uiState.copy(purchasing = false)
+                refresh()
+            }
+            BillingEvent.Pending -> uiState = uiState.copy(purchasing = false, errorRes = R.string.error_billing_pending)
+            BillingEvent.Canceled -> uiState = uiState.copy(purchasing = false)
+            is BillingEvent.Failed -> uiState = uiState.copy(purchasing = false, errorRes = event.cause?.userMessageRes() ?: R.string.error_billing_failed)
+        }
     }
 }

@@ -37,7 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import id.madsaz.app.feature.result.ResultScreen
+import id.madsaz.app.feature.result.RecordingStatusScreen
 import id.madsaz.app.model.RecordingUiState
 import java.io.File
 
@@ -45,9 +45,7 @@ import java.io.File
 @Composable
 fun RecordingRoute(
     viewModel: RecordingViewModel,
-    accessToken: String,
     onBack: () -> Unit,
-    onFeedback: (String) -> Unit,
     onRecordingSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -107,7 +105,7 @@ fun RecordingRoute(
     }
 
     val state = viewModel.uiState
-    val completedId = (state as? RecordingUiState.Completed)?.recording?.id
+    val completedId = (state as? RecordingUiState.Completed)?.recordingId
     LaunchedEffect(completedId) {
         if (completedId != null) onRecordingSaved(completedId)
     }
@@ -144,10 +142,8 @@ fun RecordingRoute(
             },
             onStart = {
                 if (permissionsGranted && activeRecording == null) {
-                    val outputFile = runCatching { viewModel.createOutputFile() }.getOrNull()
-                    if (outputFile == null) {
-                        viewModel.onCameraError()
-                    } else {
+                    val outputFile = viewModel.createOutputFile()
+                    if (outputFile != null) {
                         currentFile = outputFile
                         try {
                             activeRecording = cameraController.startRecording(
@@ -202,15 +198,14 @@ fun RecordingRoute(
         RecordingUiState.Analyzing,
         is RecordingUiState.Completed,
         is RecordingUiState.Error,
-        -> ResultScreen(
+        -> RecordingStatusScreen(
             state = state,
-            accessToken = accessToken,
-            onRecordAgain = {
+            onRetry = {
                 if (viewModel.hasPendingUpload) viewModel.retryUpload()
                 else viewModel.reset(permissionsGranted)
             },
+            onDiscard = if (viewModel.hasPendingUpload) ({ viewModel.discardPending(permissionsGranted) }) else null,
             onBack = onBack,
-            onFeedback = onFeedback,
             modifier = modifier,
         )
     }
@@ -262,4 +257,4 @@ private fun VideoRecordEvent.Finalize.isUsableResult(): Boolean =
         error == VideoRecordEvent.Finalize.ERROR_DURATION_LIMIT_REACHED
 
 private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
-private const val MAX_DURATION_MILLIS = 30_000L
+private const val MAX_DURATION_MILLIS = MAX_RECORDING_SECONDS * 1_000L

@@ -16,7 +16,6 @@ private fun HomeEmptyPreview() {
             selected = MainDestination.HOME,
             onHome = {},
             onHistory = {},
-            onProfile = {},
             onRecord = {},
         ) { padding ->
             HomeScreen(
@@ -41,7 +40,6 @@ private fun HomeWithResultPreview() {
             selected = MainDestination.HOME,
             onHome = {},
             onHistory = {},
-            onProfile = {},
             onRecord = {},
         ) { padding ->
             HomeScreen(

@@ -1,5 +1,7 @@
 package id.madsaz.app
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +19,15 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        notificationDestination = intent.getStringExtra(EXTRA_NOTIFICATION_DESTINATION)
+        // FCM menampilkan push background tanpa memanggil service, jadi kanal harus sudah ada sebelum pesan tiba.
+        getSystemService(NotificationManager::class.java).createNotificationChannel(
+            NotificationChannel(
+                getString(R.string.notification_channel_plan_id),
+                getString(R.string.notification_channel_plan_name),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+        notificationDestination = intent.getStringExtra(EXTRA_DESTINATION)
         setContent {
             MadsazTheme {
                 MadsazApp(
@@ -31,10 +41,11 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        notificationDestination = intent.getStringExtra(EXTRA_NOTIFICATION_DESTINATION)
+        notificationDestination = intent.getStringExtra(EXTRA_DESTINATION)
     }
 
     companion object {
-        const val EXTRA_NOTIFICATION_DESTINATION = "notification_destination"
+        // Sama dengan kunci `data.destination` dari BE: FCM menyalin data push background menjadi extra dengan nama itu.
+        const val EXTRA_DESTINATION = "destination"
     }
 }

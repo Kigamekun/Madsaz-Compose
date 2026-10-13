@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,12 +49,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.statusBarsPadding
 import id.madsaz.app.R
-import id.madsaz.app.model.CryCategory
 import id.madsaz.app.model.RecordingItem
+import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.feature.crycues.CryCuesSheet
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatDuration
+import id.madsaz.app.ui.components.formatTime
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.BrandBlue
@@ -77,10 +79,10 @@ fun HomeScreen(
 ) {
     var showCryCues by remember { mutableStateOf(false) }
     val openCryCues = { showCryCues = true }
-    CompactContainer(modifier = modifier.padding(contentPadding)) {
+    CompactContainer(modifier = modifier) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(AppBackground),
-            contentPadding = PaddingValues(bottom = 110.dp),
+            modifier = Modifier.fillMaxSize().background(AppBackground).testTag("home_screen"),
+            contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             item {
@@ -95,7 +97,7 @@ fun HomeScreen(
             item { LearningDestinations(openCryCues) }
             item {
                 RecentRecordings(
-                    recordings = recentRecordings.ifEmpty { listOfNotNull(latestRecording) },
+                    recordings = recentRecordings,
                     loading = historyLoading,
                     error = historyError,
                     onSeeAll = onHistory,
@@ -113,8 +115,8 @@ private fun LearningDestinations(onCryCues: () -> Unit) {
         Modifier.fillMaxWidth().background(Color.White).padding(start = 16.dp, end = 16.dp, top = 12.dp),
     ) {
         LearningCard(
-            title = "Cry Cues",
-            description = "Understand your baby's cues",
+            title = stringResource(R.string.home_cry_cues_title),
+            description = stringResource(R.string.home_cry_cues_description),
             icon = Icons.Rounded.ChildCare,
             background = Color(0xFFF3F8FC),
             iconBackground = Color(0xFFE7F5FA),
@@ -206,7 +208,7 @@ private fun HomeHero(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = latestRecording?.category ?: latestRecording?.status?.replaceFirstChar(Char::uppercase) ?: "—",
+                    text = latestRecording?.let { it.category ?: stringResource(it.status.labelRes) } ?: "—",
                     modifier = Modifier.offset(x = 18.dp, y = 39.dp),
                     color = Color.White,
                     fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
@@ -215,14 +217,21 @@ private fun HomeHero(
                     lineHeight = 40.sp,
                 )
                 Text(
-                    text = latestRecording?.let { if (it.category == null) "Waiting for analysis" else "Analysis result" }
-                        ?: stringResource(R.string.home_latest_empty),
+                    text = latestRecording?.let {
+                        stringResource(
+                            when (it.status) {
+                                RecordingStatus.PROCESSING -> R.string.home_status_waiting
+                                RecordingStatus.FAILED -> R.string.home_status_failed
+                                RecordingStatus.COMPLETED -> R.string.home_status_result
+                            },
+                        )
+                    } ?: stringResource(R.string.home_latest_empty),
                     modifier = Modifier.offset(x = 18.dp, y = 89.dp),
                     color = Color.White.copy(alpha = 0.88f),
                     fontSize = 12.sp,
                 )
                 Text(
-                    text = latestRecording?.let { formatHomeRecordedAt(it.recordedAtEpochMillis) } ?: "",
+                    text = latestRecording?.let { formatTime(it.recordedAtEpochMillis) } ?: "",
                     modifier = Modifier.align(Alignment.TopEnd).offset(x = (-18).dp, y = 14.dp),
                     color = Color.White.copy(alpha = 0.88f),
                     fontSize = 11.sp,
@@ -258,14 +267,14 @@ private fun RecentRecordings(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Recent recordings",
+                stringResource(R.string.home_recent_title),
                 color = Ink,
                 fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "See all  ›",
+                stringResource(R.string.home_see_all),
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable(onClick = onSeeAll)
@@ -342,20 +351,20 @@ private fun ActivityContent(recording: RecordingItem) {
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                recording.category ?: recording.status.replaceFirstChar(Char::uppercase),
+                recording.category ?: stringResource(recording.status.labelRes),
                 color = Ink,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )
             Text(
-                "Recorded at ${formatHomeRecordedAt(recording.recordedAtEpochMillis)}",
+                stringResource(R.string.home_recorded_at, formatTime(recording.recordedAtEpochMillis)),
                 color = MutedInk,
                 fontSize = 11.sp,
                 maxLines = 1,
             )
             Text(
-                "Duration ${formatDuration(recording.durationMillis)}",
+                stringResource(R.string.home_duration, formatDuration(recording.durationMillis)),
                 color = BrandBlueDark,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
@@ -364,5 +373,3 @@ private fun ActivityContent(recording: RecordingItem) {
     }
 }
 
-private fun formatHomeRecordedAt(epochMillis: Long): String =
-    java.text.SimpleDateFormat("h:mm a", java.util.Locale.ENGLISH).format(java.util.Date(epochMillis))

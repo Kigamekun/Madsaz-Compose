@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,13 +41,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.madsaz.app.R
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.LightStatusBarIcons
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.Border
@@ -67,21 +72,21 @@ fun AuthScreen(
     var password by remember { mutableStateOf("") }
     val submitting = state is AuthUiState.Submitting
 
+    LightStatusBarIcons()
     CompactContainer {
-        Box(Modifier.fillMaxSize().background(AuthBrand)) {
+        Box(Modifier.fillMaxSize().background(AuthBrand).imePadding()) {
             Column(
                 modifier = Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 118.dp, end = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
-                Text("madsaz", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.auth_brand), color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    if (register) "A calmer way to begin" else "A calmer way to listen",
+                    stringResource(if (register) R.string.auth_headline_register else R.string.auth_headline_login),
                     color = Color.White,
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Text(
-                    if (register) "Create an account to keep your baby's latest cues."
-                    else "Pick up where you left off with Pandu's latest cues.",
+                    stringResource(if (register) R.string.auth_sub_register else R.string.auth_sub_login),
                     color = Color.White.copy(alpha = 0.88f),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -99,14 +104,14 @@ fun AuthScreen(
                     .padding(top = if (register) 31.dp else 32.dp, bottom = 16.dp),
             ) {
                 Text(
-                    if (register) "Register" else "Log in",
+                    stringResource(if (register) R.string.auth_register_title else R.string.auth_login_title),
                     color = Ink,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    "Your recordings stay private to your account.",
+                    stringResource(R.string.auth_privacy_note),
                     modifier = Modifier.padding(top = 5.dp),
                     color = MutedInk,
                     style = MaterialTheme.typography.bodySmall,
@@ -114,16 +119,16 @@ fun AuthScreen(
                 Spacer(Modifier.height(18.dp))
 
                 if (register) {
-                    AuthField(name, { name = it }, "Name")
+                    AuthField(name, { name = it }, stringResource(R.string.auth_field_name), tag = "auth_name")
                     Spacer(Modifier.height(10.dp))
                 }
-                AuthField(email, { email = it }, "Email address", KeyboardType.Email)
+                AuthField(email, { email = it }, stringResource(R.string.auth_field_email), KeyboardType.Email, tag = "auth_email")
                 Spacer(Modifier.height(10.dp))
-                AuthField(password, { password = it }, "Password", KeyboardType.Password, secret = true)
+                AuthField(password, { password = it }, stringResource(R.string.auth_field_password), KeyboardType.Password, secret = true, tag = "auth_password")
 
                 if (state is AuthUiState.Error) {
                     Text(
-                        state.message,
+                        stringResource(state.messageRes),
                         modifier = Modifier.padding(top = 10.dp),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
@@ -135,7 +140,7 @@ fun AuthScreen(
                         onClick = onForgotPassword,
                         modifier = Modifier.align(Alignment.End).height(44.dp),
                     ) {
-                        Text("Forgot password?", color = BrandBlueDark, style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.auth_forgot), color = BrandBlueDark, style = MaterialTheme.typography.labelMedium)
                     }
                 } else {
                     Spacer(Modifier.height(26.dp))
@@ -144,12 +149,12 @@ fun AuthScreen(
                 Button(
                     onClick = { onSubmit(register, name, email, password) },
                     enabled = !submitting,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(52.dp).testTag("auth_submit"),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) {
                     if (submitting) CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
-                    else Text(if (register) "Create account" else "Log in", color = Color.White)
+                    else Text(stringResource(if (register) R.string.auth_submit_register else R.string.auth_submit_login), color = Color.White)
                 }
 
                 Row(
@@ -158,14 +163,14 @@ fun AuthScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        if (register) "Already have an account?" else "New to Madsaz?",
+                        stringResource(if (register) R.string.auth_prompt_have_account else R.string.auth_prompt_new),
                         color = MutedInk,
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Spacer(Modifier.width(4.dp))
-                    TextButton(onClick = { register = !register }, enabled = !submitting) {
+                    TextButton(onClick = { register = !register }, enabled = !submitting, modifier = Modifier.testTag("auth_toggle")) {
                         Text(
-                            if (register) "Log in" else "Create an account",
+                            stringResource(if (register) R.string.auth_login_title else R.string.auth_switch_to_register),
                             color = BrandBlueDark,
                             style = MaterialTheme.typography.labelMedium,
                         )
@@ -183,6 +188,7 @@ private fun AuthField(
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     secret: Boolean = false,
+    tag: String,
 ) {
     var visible by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
@@ -204,7 +210,7 @@ private fun AuthField(
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+                    modifier = Modifier.fillMaxWidth().testTag(tag).onFocusChanged { focused = it.isFocused },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                     textStyle = MaterialTheme.typography.bodySmall.copy(color = Ink),
@@ -216,7 +222,7 @@ private fun AuthField(
                 IconButton(onClick = { visible = !visible }, modifier = Modifier.size(42.dp)) {
                     Icon(
                         imageVector = if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = if (visible) "Hide password" else "Show password",
+                        contentDescription = stringResource(if (visible) R.string.auth_hide_password else R.string.auth_show_password),
                         tint = MutedInk,
                         modifier = Modifier.size(19.dp),
                     )

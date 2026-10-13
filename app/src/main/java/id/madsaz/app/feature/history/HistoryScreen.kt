@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.history
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -45,16 +48,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
-import id.madsaz.app.model.CryCategory
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.MadsazHeader
+import id.madsaz.app.ui.components.formatDateTime
 import id.madsaz.app.ui.components.formatDuration
-import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueSoft
-import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
 @Composable
@@ -64,23 +65,34 @@ fun HistoryScreen(
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     onDelete: (RecordingItem) -> Unit,
+    onNoticeShown: () -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
     var pendingDelete by remember { mutableStateOf<RecordingItem?>(null) }
 
-    CompactContainer(modifier = modifier.padding(contentPadding)) {
+    CompactContainer(modifier = modifier) {
         when (state) {
             HistoryUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp, color = BrandBlue)
             }
             is HistoryUiState.Error -> ErrorState(state.messageRes, onRetry)
-            is HistoryUiState.Content -> HistoryContent(
-                recordings = state.recordings,
-                onProfile = onProfile,
-                onOpenRecording = onOpenRecording,
-                onDelete = { pendingDelete = it },
-            )
+            is HistoryUiState.Content -> {
+                val context = LocalContext.current
+                LaunchedEffect(state.noticeRes) {
+                    state.noticeRes?.let {
+                        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                        onNoticeShown()
+                    }
+                }
+                HistoryContent(
+                    recordings = state.recordings,
+                    bottomPadding = contentPadding.calculateBottomPadding(),
+                    onProfile = onProfile,
+                    onOpenRecording = onOpenRecording,
+                    onDelete = { pendingDelete = it },
+                )
+            }
         }
     }
 
@@ -105,13 +117,14 @@ fun HistoryScreen(
 @Composable
 private fun HistoryContent(
     recordings: List<RecordingItem>,
+    bottomPadding: androidx.compose.ui.unit.Dp,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     onDelete: (RecordingItem) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 0.dp, end = 0.dp, top = 0.dp, bottom = 110.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item { MadsazHeader(onProfile = onProfile) }
@@ -123,17 +136,17 @@ private fun HistoryContent(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "Recording history",
+                        stringResource(R.string.history_title),
                         color = Color(0xFF0B2A2D),
                         fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Text("Semua rekaman", color = MutedInk, fontSize = 10.sp)
+                    Text(stringResource(R.string.history_subtitle), color = MutedInk, fontSize = 10.sp)
                 }
                 Surface(shape = CircleShape, color = Color(0xFFF4F9FD)) {
                     Text(
-                        "${recordings.size} recordings",
+                        pluralStringResource(R.plurals.history_count, recordings.size, recordings.size),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         color = Color(0xFF0B2A2D),
                         fontSize = 9.sp,
@@ -189,9 +202,9 @@ private fun HistoryRecordingRow(
             }
         }
         Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(recording.category ?: recording.status.replaceFirstChar { it.uppercase() }, color = Color(0xFF0B2A2D), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(recording.category ?: stringResource(recording.status.labelRes), color = Color(0xFF0B2A2D), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                "${formatHistoryTime(recording.recordedAtEpochMillis)} · ${formatDuration(recording.durationMillis)}",
+                "${formatDateTime(recording.recordedAtEpochMillis)} · ${formatDuration(recording.durationMillis)}",
                 color = Color(0xFF465E68),
                 fontSize = 9.sp,
             )
@@ -203,7 +216,7 @@ private fun HistoryRecordingRow(
             color = BrandBlueSoft,
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = "Open recording", tint = BrandBlue, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(R.string.history_open_recording), tint = BrandBlue, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -233,6 +246,3 @@ private fun ErrorState(messageRes: Int, onRetry: () -> Unit) {
         }
     }
 }
-
-private fun formatHistoryTime(epochMillis: Long): String =
-    java.text.SimpleDateFormat("d MMM, HH:mm", java.util.Locale.ENGLISH).format(java.util.Date(epochMillis))

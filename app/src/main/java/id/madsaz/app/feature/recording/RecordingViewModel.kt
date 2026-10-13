@@ -7,26 +7,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.madsaz.app.R
 import id.madsaz.app.data.local.RecordingStore
+import id.madsaz.app.data.remote.ApiException
 import id.madsaz.app.data.remote.RecordingApi
 import id.madsaz.app.model.RecordingUiState
+import id.madsaz.app.ui.userMessageRes
 import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+const val MAX_RECORDING_SECONDS = 30
+
 class RecordingViewModel(
     private val store: RecordingStore,
-    private val accessToken: String,
-    private val api: RecordingApi = RecordingApi(),
+    private val api: RecordingApi,
 ) : ViewModel() {
     var uiState: RecordingUiState by mutableStateOf(RecordingUiState.PermissionRequired)
         private set
 
     private var uploadJob: Job? = null
     private var pendingFile: File? = store.pendingUpload()
-    private var serverId: String? = null
     val hasPendingUpload: Boolean get() = pendingFile != null
 
     init {
@@ -39,13 +42,19 @@ class RecordingViewModel(
         }
     }
 
-    fun createOutputFile(): File = store.createOutputFile()
+    /** null bila file rekaman tidak bisa dibuat; state sudah menjadi Error dengan pesan penyimpanan. */
+    fun createOutputFile(): File? = try {
+        store.createOutputFile()
+    } catch (_: IOException) {
+        uiState = RecordingUiState.Error(R.string.recording_save_error)
+        null
+    }
 
     fun onRecordingStarted() { uiState = RecordingUiState.Recording(0) }
 
     fun onRecordingProgress(recordedDurationNanos: Long) {
         val current = uiState as? RecordingUiState.Recording ?: return
-        val seconds = (recordedDurationNanos / 1_000_000_000L).toInt().coerceAtMost(30)
+        val seconds = (recordedDurationNanos / 1_000_000_000L).toInt().coerceAtMost(MAX_RECORDING_SECONDS)
         if (seconds != current.elapsedSeconds) uiState = RecordingUiState.Recording(seconds)
     }
 
@@ -56,12 +65,12 @@ class RecordingViewModel(
     fun onRecordingFinalized(file: File) {
         try {
             store.markReady(file)
-            pendingFile = file
-            serverId = null
-            retryUpload()
-        } catch (_: Exception) {
+        } catch (_: IOException) {
             uiState = RecordingUiState.Error(R.string.recording_save_error)
+            return
         }
+        pendingFile = file
+        retryUpload()
     }
 
     fun retryUpload() {
@@ -70,16 +79,27 @@ class RecordingViewModel(
         uploadJob = viewModelScope.launch {
             uiState = RecordingUiState.Analyzing
             uiState = try {
-                val recording = withContext(Dispatchers.IO) {
-                    val id = serverId ?: api.upload(accessToken, file, store.durationSeconds(file)).also { serverId = it }
-                    api.get(accessToken, id).also { if (file.exists()) store.deleteUploaded(file) }
+                val recordingId = withContext(Dispatchers.IO) { api.upload(file, store.durationSeconds(file)) }
+                try {
+                    withContext(Dispatchers.IO) { store.delete(file) }
+                    pendingFile = null
+                } catch (_: IOException) {
+                    // Video sudah di server. Salinan lokal dibersihkan pada percobaan berikutnya (BE menjawab already_uploaded).
                 }
-                pendingFile = null
-                RecordingUiState.Completed(recording)
+                RecordingUiState.Completed(recordingId)
             } catch (error: CancellationException) {
                 throw error
-            } catch (_: Exception) {
-                RecordingUiState.Error(R.string.recording_upload_error)
+            } catch (error: ApiException) {
+                if (error.code == FREE_LIMIT_REACHED) {
+                    // Mengulang tidak akan berhasil dan BE sudah membuang videonya; jangan biarkan file menghalangi rekaman baru.
+                    withContext(Dispatchers.IO) { store.delete(file) }
+                    pendingFile = null
+                    RecordingUiState.Error(error.userMessageRes(), canRetry = false)
+                } else {
+                    RecordingUiState.Error(error.userMessageRes())
+                }
+            } catch (error: Exception) {
+                RecordingUiState.Error(error.userMessageRes())
             }
         }
     }
@@ -87,18 +107,29 @@ class RecordingViewModel(
     fun onRecordingFailed(file: File) {
         uploadJob?.cancel()
         viewModelScope.launch {
-            try {
-                store.deletePartial(file)
-            } finally {
-                uiState = RecordingUiState.Error(R.string.recording_save_error)
-            }
+            withContext(Dispatchers.IO) { store.deletePartial(file) }
+            uiState = RecordingUiState.Error(R.string.recording_save_error)
         }
     }
 
     fun onCameraError() { uiState = RecordingUiState.Error(R.string.recording_camera_error) }
 
+    /** Membuang rekaman yang belum terkirim agar pengguna bisa merekam ulang. */
+    fun discardPending(permissionsGranted: Boolean) {
+        uploadJob?.cancel()
+        viewModelScope.launch {
+            pendingFile?.let { withContext(Dispatchers.IO) { store.delete(it) } }
+            pendingFile = null
+            reset(permissionsGranted)
+        }
+    }
+
     fun reset(permissionsGranted: Boolean) {
         uploadJob?.cancel()
         uiState = if (permissionsGranted) RecordingUiState.Ready else RecordingUiState.PermissionRequired
+    }
+
+    private companion object {
+        const val FREE_LIMIT_REACHED = "free_limit_reached"
     }
 }

@@ -17,41 +17,47 @@ data class AuthSession(
     val accessToken: String,
     val refreshToken: String,
     val email: String,
-    val name: String?,
 )
 
-class AuthStore(context: Context) {
+/** Penyimpanan sesi; dipisah dari Android agar logika refresh di SessionManager bisa diuji di JVM. */
+interface SessionStorage {
+    fun read(): AuthSession?
+    fun write(session: AuthSession)
+    fun clear()
+}
+
+/** Sesi terenkripsi AES-GCM dengan kunci AndroidKeyStore. [write] dan [clear] sinkron (commit): refresh token lama sudah dicabut BE. */
+class AuthStore(context: Context) : SessionStorage {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    fun read(): AuthSession? {
+    override fun read(): AuthSession? {
         val encrypted = preferences.getString(SESSION_KEY, null) ?: return null
         return try {
             val json = JSONObject(decrypt(encrypted))
             AuthSession(
-                userId = json.optString("userId"),
+                userId = json.getString("userId"),
                 accessToken = json.getString("accessToken"),
                 refreshToken = json.getString("refreshToken"),
                 email = json.getString("email"),
-                name = json.optString("name").ifBlank { null },
             )
         } catch (_: Exception) {
+            // Tak terbaca (kunci hilang, data rusak): sesi tidak bisa dipulihkan, jadi keluar.
             clear()
             null
         }
     }
 
-    fun write(session: AuthSession) {
+    override fun write(session: AuthSession) {
         val json = JSONObject()
             .put("userId", session.userId)
             .put("accessToken", session.accessToken)
             .put("refreshToken", session.refreshToken)
             .put("email", session.email)
-            .put("name", session.name.orEmpty())
-        preferences.edit().putString(SESSION_KEY, encrypt(json.toString())).apply()
+        check(preferences.edit().putString(SESSION_KEY, encrypt(json.toString())).commit()) { "Gagal menyimpan sesi" }
     }
 
-    fun clear() {
-        preferences.edit().remove(SESSION_KEY).apply()
+    override fun clear() {
+        preferences.edit().remove(SESSION_KEY).commit()
     }
 
     private fun encrypt(value: String): String {

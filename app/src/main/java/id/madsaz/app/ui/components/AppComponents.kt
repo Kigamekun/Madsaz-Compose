@@ -22,21 +22,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
-import id.madsaz.app.model.CryCategory
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
-import id.madsaz.app.ui.theme.BrandBlueSoft
-import id.madsaz.app.ui.theme.BrandCoralSoft
 import id.madsaz.app.ui.theme.Cream
-import id.madsaz.app.ui.theme.MutedInk
-import java.text.DateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 @Composable
@@ -51,30 +53,6 @@ fun CompactContainer(
         Box(Modifier.widthIn(max = 420.dp).fillMaxSize()) {
             content()
         }
-    }
-}
-
-@Composable
-fun CategoryBadge(category: CryCategory, modifier: Modifier = Modifier) {
-    val containerColor = when (category) {
-        CryCategory.NEH -> Cream
-        CryCategory.OWH -> BrandBlueSoft
-        CryCategory.EH -> Color(0xFFE6F3EC)
-        CryCategory.EAIRH -> Color(0xFFEDE6FA)
-        CryCategory.HEH -> BrandCoralSoft
-    }
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        color = containerColor,
-        contentColor = BrandBlue,
-    ) {
-        Text(
-            text = category.code,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }
 
@@ -94,6 +72,7 @@ fun BabyMark(modifier: Modifier = Modifier) {
 
 @Composable
 fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier) {
+    val profileDescription = stringResource(R.string.header_profile_description)
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -111,36 +90,43 @@ fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier) {
         }
         Column(Modifier.padding(start = 10.dp).weight(1f)) {
             Text(
-                "Madsaz",
+                stringResource(R.string.app_name),
                 color = Color(0xFF0B2A2D),
                 fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 19.sp,
             )
-            Text("Cry patterns", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, lineHeight = 13.sp)
+            Text(stringResource(R.string.header_tagline), color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, lineHeight = 13.sp)
         }
         Surface(
-            modifier = Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onProfile),
+            modifier = Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onProfile).testTag("header_profile")
+                .semantics { contentDescription = profileDescription },
             shape = androidx.compose.foundation.shape.CircleShape,
             color = Color.White,
             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDEEAF2)),
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text("P", color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.header_profile_initial), color = Color(0xFF0B2A2D), fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             }
         }
     }
 }
+
+fun formatTime(epochMillis: Long): String =
+    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(epochMillis))
+
+fun formatDate(epochMillis: Long): String =
+    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(epochMillis))
+
+fun formatDateTime(epochMillis: Long): String =
+    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(epochMillis))
 
 fun formatDuration(durationMillis: Long?): String {
     if (durationMillis == null) return "–"
     val totalSeconds = durationMillis / 1_000
     return String.format(Locale.getDefault(), "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 }
-
-fun formatRecordedAt(epochMillis: Long): String =
-    DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(epochMillis))
 
 @Composable
 fun formatStorageSize(bytes: Long): String = Formatter.formatShortFileSize(LocalContext.current, bytes)

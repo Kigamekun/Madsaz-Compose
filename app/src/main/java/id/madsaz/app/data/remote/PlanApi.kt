@@ -1,77 +1,42 @@
 package id.madsaz.app.data.remote
 
-import id.madsaz.app.BuildConfig
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import java.time.Instant
 
-data class PlanStatus(
-    val code: String,
-    val used: Int,
-    val limit: Int?,
-    val remaining: Int?,
-    val status: String,
-    val interval: String?,
-    val expiresAt: String?,
-    val autoRenewing: Boolean,
-)
+/** Pemakaian paket bulan ini dari GET /plan: paket Free punya batas dan sisa, paket Plus punya masa aktif dan status perpanjangan. */
+sealed interface PlanStatus {
+    val used: Int
 
+    data class Free(override val used: Int, val limit: Int, val remaining: Int) : PlanStatus
+    data class Plus(override val used: Int, val expiresAt: Instant, val autoRenewing: Boolean) : PlanStatus
+}
+
+/** Id produk Google Play dari BE; app tidak menebak id sendiri. */
 data class PlanCatalog(val productId: String, val monthlyBasePlanId: String, val yearlyBasePlanId: String, val purchaseEnabled: Boolean)
 
-class PlanApi {
-    fun catalog(accessToken: String): PlanCatalog {
-        val plus = request("GET", "/payments/plans", accessToken).getJSONObject("plus")
+class PlanApi(private val client: ApiClient) {
+    fun catalog(): PlanCatalog {
+        val plus = client.requestJson("GET", "/payments/plans").obj("data").obj("plus")
         return PlanCatalog(
-            productId = plus.getString("product_id"),
-            monthlyBasePlanId = plus.getString("monthly_base_plan_id"),
-            yearlyBasePlanId = plus.getString("yearly_base_plan_id"),
-            purchaseEnabled = plus.optBoolean("purchase_enabled"),
+            productId = plus.string("product_id"),
+            monthlyBasePlanId = plus.string("monthly_base_plan_id"),
+            yearlyBasePlanId = plus.string("yearly_base_plan_id"),
+            purchaseEnabled = plus.boolean("purchase_enabled"),
         )
     }
 
-    fun status(accessToken: String): PlanStatus {
-        val subscription = request("GET", "/payments/subscription", accessToken)
-        val plan = request("GET", "/plan", accessToken)
-        return PlanStatus(
-            code = subscription.getString("plan_code"),
-            used = plan.getInt("used"),
-            limit = if (plan.isNull("limit")) null else plan.getInt("limit"),
-            remaining = if (plan.isNull("remaining")) null else plan.getInt("remaining"),
-            status = subscription.getString("status"),
-            interval = subscription.optString("interval").ifBlank { null },
-            expiresAt = subscription.optString("expires_at").ifBlank { null },
-            autoRenewing = subscription.optBoolean("auto_renewing"),
-        )
+    fun status(): PlanStatus {
+        val plan = client.requestJson("GET", "/plan").obj("data")
+        val used = plan.int("used")
+        return when (val code = plan.string("code")) {
+            "plus" -> PlanStatus.Plus(used, Instant.parse(plan.string("expires_at")), plan.boolean("auto_renewing"))
+            "free" -> PlanStatus.Free(used, limit = plan.int("limit"), remaining = plan.int("remaining"))
+            else -> throw ContractException("Unknown plan code '$code'")
+        }
     }
 
-    fun verify(accessToken: String, purchaseToken: String): PlanStatus {
-        request("POST", "/payments/google-play/verify", accessToken, JSONObject().put("purchaseToken", purchaseToken))
-        return status(accessToken)
-    }
-
-    private fun request(method: String, path: String, token: String, body: JSONObject? = null): JSONObject {
-        val connection = (URL(BuildConfig.API_BASE_URL.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
-            requestMethod = method
-            connectTimeout = 10_000
-            readTimeout = 20_000
-            setRequestProperty("Authorization", "Bearer $token")
-            setRequestProperty("Accept", "application/json")
-            if (body != null) {
-                doOutput = true
-                setRequestProperty("Content-Type", "application/json")
-            }
-        }
-        try {
-            if (body != null) connection.outputStream.use { it.write(body.toString().toByteArray()) }
-            val response = (if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream)
-                ?.bufferedReader()?.use { it.readText() }.orEmpty()
-            if (connection.responseCode !in 200..299) {
-                val message = runCatching { JSONObject(response).optString("error") }.getOrNull()
-                throw IllegalStateException(message?.ifBlank { null } ?: "Server error (${connection.responseCode})")
-            }
-            return JSONObject(response).getJSONObject("data")
-        } finally {
-            connection.disconnect()
-        }
+    /** BE memverifikasi token pembelian ke Google Play dan mengaktifkan Plus. Ambil [status] lagi sesudahnya. */
+    fun verify(purchaseToken: String) {
+        client.requestJson("POST", "/payments/google-play/verify", JSONObject().put("purchaseToken", purchaseToken))
     }
 }

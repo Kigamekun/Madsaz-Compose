@@ -1,7 +1,8 @@
 package id.madsaz.app.ui.preview
 
-import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.CryScore
+import id.madsaz.app.model.RecordingItem
+import id.madsaz.app.model.RecordingStatus
 
 object PreviewData {
     val latestRecording = RecordingItem(
@@ -9,9 +10,8 @@ object PreviewData {
         recordedAtEpochMillis = 1_789_351_200_000L,
         durationMillis = 12_400L,
         sizeBytes = 8_400_000L,
-        status = "completed",
+        status = RecordingStatus.COMPLETED,
         category = "Neh",
-        confidence = 0.68,
         solution = "Periksa tanda lapar dan tawarkan ASI atau susu sesuai kebutuhan bayi.",
         source = "mock",
         scores = listOf(
@@ -30,20 +30,22 @@ object PreviewData {
             recordedAtEpochMillis = 1_789_263_000_000L,
             durationMillis = 18_100L,
             sizeBytes = 11_700_000L,
-            status = "completed",
+            status = RecordingStatus.COMPLETED,
             category = "Owh",
-            confidence = null,
             solution = null,
+            source = null,
+            scores = emptyList(),
         ),
         RecordingItem(
             id = "f33d1075-5369-80d1-2a58-44b86b500c23",
             recordedAtEpochMillis = 1_789_175_700_000L,
             durationMillis = 9_700L,
             sizeBytes = 6_200_000L,
-            status = "completed",
+            status = RecordingStatus.COMPLETED,
             category = "Heh",
-            confidence = null,
             solution = null,
+            source = null,
+            scores = emptyList(),
         ),
     )
 }

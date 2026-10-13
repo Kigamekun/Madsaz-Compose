@@ -10,40 +10,39 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.annotation.StringRes
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,18 +52,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.text.format.DateUtils
+import java.text.NumberFormat
 import java.time.LocalDate
 import androidx.compose.material3.ModalBottomSheet
 import id.madsaz.app.R
 import id.madsaz.app.data.remote.BabyProfile
+import id.madsaz.app.feature.auth.DeleteAccountState
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.LightStatusBarIcons
 import id.madsaz.app.ui.components.formatStorageSize
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -85,22 +91,30 @@ fun ProfileScreen(
     storageBytes: Long?,
     lastRecordingAt: Long?,
     onRefresh: () -> Unit,
-    onUpdateBaby: (String, String?, Double?) -> Unit,
+    onUpdateBaby: (String, LocalDate?, Double?) -> Unit,
+    onDismissProfileError: () -> Unit,
     onLogout: () -> Unit,
+    deleteState: DeleteAccountState,
+    onDeleteAccount: (String) -> Unit,
+    onDismissDeleteAccount: () -> Unit,
     onPlan: () -> Unit,
     onNotifications: () -> Unit,
+    contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
+    LightStatusBarIcons()
     var editing by remember { mutableStateOf(false) }
+    var confirmingDelete by remember { mutableStateOf(false) }
     val babyProfileSubtitle = if (babyState is ProfileUiState.Content) {
-        "Update ${babyState.baby.name}'s details"
+        stringResource(R.string.profile_baby_row_subtitle, babyState.baby.name)
     } else {
-        "Update baby's details"
+        stringResource(R.string.profile_baby_row_subtitle_generic)
     }
 
     Scaffold(
         modifier = modifier,
         containerColor = ProfileHeaderBlue,
+        contentWindowInsets = WindowInsets.statusBars,
     ) { padding ->
         CompactContainer(Modifier.padding(padding)) {
             Box(Modifier.fillMaxSize().background(ProfileHeaderBlue)) {
@@ -111,7 +125,7 @@ fun ProfileScreen(
                 ) { }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 47.dp, bottom = 130.dp),
+                    contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 47.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
                     item {
@@ -122,28 +136,39 @@ fun ProfileScreen(
                                 lastRecordingAt = lastRecordingAt,
                                 onEdit = { editing = true },
                             )
-                            is ProfileUiState.Error -> ProfileErrorCard(babyState.message, onRefresh)
+                            is ProfileUiState.Error -> ProfileErrorCard(stringResource(babyState.messageRes), onRefresh)
                         }
                     }
                     item { Spacer(Modifier.height(18.dp)) }
                     item {
-                        Text("Account", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.profile_account), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     }
                     item { Spacer(Modifier.height(22.dp)) }
-                    item { ProfileActionRow("B", "Baby profile", babyProfileSubtitle, RowBlue) { if (babyState is ProfileUiState.Content) editing = true } }
+                    item { ProfileActionRow(stringResource(R.string.profile_badge_baby), stringResource(R.string.profile_baby_row_title), babyProfileSubtitle, RowBlue, onClick = { if (babyState is ProfileUiState.Content) editing = true }) }
                     item { Spacer(Modifier.height(8.dp)) }
-                    item { ProfileActionRow("M", "Madsaz Plus", "Manage your plan", Color.White, onPlan) }
+                    item { ProfileActionRow(stringResource(R.string.profile_badge_plus), stringResource(R.string.plan_plus_brand), stringResource(R.string.profile_plus_subtitle), Color.White, onPlan) }
                     item { Spacer(Modifier.height(8.dp)) }
-                    item { ProfileActionRow("N", "Notifications", "Gentle reminders", Color.White, onNotifications) }
+                    item { ProfileActionRow(stringResource(R.string.profile_badge_notifications), stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), Color.White, onNotifications) }
                     item { Spacer(Modifier.height(8.dp)) }
-                    item { ProfileComingSoonRow("P", "Privacy & data", "Control your recordings") }
+                    item { ProfileComingSoonRow(stringResource(R.string.profile_badge_privacy), stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle)) }
                     item { Spacer(Modifier.height(8.dp)) }
-                    item { ProfileComingSoonRow("S", "Share feedback", "Help us improve") }
+                    item { ProfileComingSoonRow(stringResource(R.string.profile_badge_feedback), stringResource(R.string.profile_feedback_title), stringResource(R.string.profile_feedback_subtitle)) }
                     item { Spacer(Modifier.height(8.dp)) }
-                    item { ProfileActionRow("L", "Log out", "See you soon", LogoutPink, onLogout) }
+                    item { ProfileActionRow(stringResource(R.string.profile_badge_logout), stringResource(R.string.profile_logout_title), stringResource(R.string.profile_logout_subtitle), LogoutPink, onClick = onLogout, tag = "profile_logout") }
+                    item { Spacer(Modifier.height(8.dp)) }
+                    item {
+                        ProfileActionRow(
+                            stringResource(R.string.profile_badge_delete),
+                            stringResource(R.string.profile_delete_title),
+                            stringResource(R.string.profile_delete_subtitle),
+                            LogoutPink,
+                            onClick = { confirmingDelete = true },
+                            tag = "profile_delete",
+                        )
+                    }
                     item { Spacer(Modifier.height(24.dp)) }
                     item {
-                        val usage = if (recordingCount != null && storageBytes != null) "${recordingCount} recordings · ${formatStorageSize(storageBytes)}" else null
+                        val usage = if (recordingCount != null && storageBytes != null) pluralStringResource(R.plurals.profile_usage, recordingCount, recordingCount, formatStorageSize(storageBytes)) else null
                         if (usage != null) Text(usage, color = MutedInk, fontSize = 11.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                 }
@@ -152,11 +177,77 @@ fun ProfileScreen(
     }
 
     if (editing && babyState is ProfileUiState.Content) {
-        BabyEditSheet(baby = babyState.baby, onDismiss = { editing = false }) { name, date, weight ->
+        // Sheet tetap terbuka (dengan isian pengguna) sampai simpan berhasil; kegagalan tampil di dalam sheet.
+        var submitted by remember { mutableStateOf(false) }
+        LaunchedEffect(babyState.saving, babyState.errorRes) {
+            if (submitted && !babyState.saving) {
+                submitted = false
+                if (babyState.errorRes == null) editing = false
+            }
+        }
+        BabyEditSheet(
+            baby = babyState.baby,
+            saving = babyState.saving,
+            errorRes = babyState.errorRes,
+            onDismiss = {
+                onDismissProfileError()
+                editing = false
+            },
+        ) { name, date, weight ->
+            submitted = true
             onUpdateBaby(name, date, weight)
-            editing = false
         }
     }
+
+    if (confirmingDelete) {
+        DeleteAccountDialog(
+            state = deleteState,
+            onConfirm = onDeleteAccount,
+            onDismiss = {
+                onDismissDeleteAccount()
+                confirmingDelete = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun DeleteAccountDialog(state: DeleteAccountState, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var password by remember { mutableStateOf("") }
+    val deleting = state is DeleteAccountState.Deleting
+    AlertDialog(
+        onDismissRequest = { if (!deleting) onDismiss() },
+        title = { Text(stringResource(R.string.profile_delete_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.profile_delete_warning))
+                Text(stringResource(R.string.profile_delete_subscription_note), color = MutedInk)
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text(stringResource(R.string.profile_delete_password)) },
+                    singleLine = true,
+                    enabled = !deleting,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    isError = state is DeleteAccountState.Error,
+                    modifier = Modifier.fillMaxWidth().testTag("delete_password"),
+                )
+                if (state is DeleteAccountState.Error) {
+                    Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(password) }, enabled = !deleting && password.isNotEmpty(), modifier = Modifier.testTag("delete_confirm")) {
+                if (deleting) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                else Text(stringResource(R.string.profile_delete_confirm), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !deleting) { Text(stringResource(R.string.common_cancel)) }
+        },
+    )
 }
 
 @Composable
@@ -167,8 +258,8 @@ private fun BabyHeader(baby: BabyProfile, lastRecordingAt: Long?, onEdit: () -> 
                 Modifier.align(Alignment.TopStart).fillMaxWidth().padding(start = 20.dp, end = 18.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Your profile", Modifier.weight(1f), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("Edit", Modifier.clip(CircleShape).clickable(onClick = onEdit).padding(horizontal = 8.dp, vertical = 6.dp), color = BrandBlue, fontSize = 13.sp)
+                Text(stringResource(R.string.profile_your_profile), Modifier.weight(1f), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.profile_edit), Modifier.clip(CircleShape).clickable(onClick = onEdit).padding(horizontal = 8.dp, vertical = 6.dp), color = BrandBlue, fontSize = 13.sp)
             }
             Row(
                 Modifier.align(Alignment.BottomStart).padding(start = 18.dp, end = 16.dp, bottom = 26.dp),
@@ -181,7 +272,7 @@ private fun BabyHeader(baby: BabyProfile, lastRecordingAt: Long?, onEdit: () -> 
                     Text(baby.name, color = Ink, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                     Text(babySummary(baby), color = MutedInk, fontSize = 13.sp)
                     Text(
-                        lastRecordingAt?.let(::profileRecordingTime) ?: "Not analyzed yet",
+                        lastRecordingAt?.let { stringResource(R.string.profile_last_analyzed, relativeDay(it)) } ?: stringResource(R.string.profile_not_analyzed),
                         color = BrandBlueDark,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(top = 5.dp),
@@ -192,33 +283,29 @@ private fun BabyHeader(baby: BabyProfile, lastRecordingAt: Long?, onEdit: () -> 
     }
 }
 
-private fun profileRecordingTime(epochMillis: Long): String {
-    val days = java.time.Duration.between(java.time.Instant.ofEpochMilli(epochMillis), java.time.Instant.now()).toDays()
-    return when {
-        days < 1 -> "Last analyzed today"
-        days == 1L -> "Last analyzed yesterday"
-        else -> "Last analyzed $days days ago"
-    }
-}
+// Teks relatif ("Hari ini", "Kemarin", "3 hari lalu") dari sistem, sudah mengikuti bahasa dan aturan jamaknya.
+private fun relativeDay(epochMillis: Long): String =
+    DateUtils.getRelativeTimeSpanString(epochMillis, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS).toString()
 
+@Composable
 private fun babySummary(baby: BabyProfile): String {
-    val age = baby.birthDate?.let { date ->
-        runCatching {
-            val months = java.time.Period.between(java.time.LocalDate.parse(date), java.time.LocalDate.now()).toTotalMonths()
-            "$months months"
-        }.getOrNull()
+    val age = baby.birthDate?.let {
+        val months = java.time.Period.between(it, LocalDate.now()).toTotalMonths().toInt()
+        pluralStringResource(R.plurals.profile_age_months, months, months)
     }
-    val weight = baby.weightKg?.let { "${it} kg" }
-    return listOfNotNull(age, weight).joinToString(" · ").ifBlank { "Baby profile" }
+    val weight = baby.weightKg?.let {
+        stringResource(R.string.profile_weight_kg, NumberFormat.getInstance().apply { maximumFractionDigits = 2 }.format(it))
+    }
+    return listOfNotNull(age, weight).joinToString(" · ").ifBlank { stringResource(R.string.profile_baby_row_title) }
 }
 
 @Composable
-private fun ProfileActionRow(badge: String, title: String, subtitle: String, color: Color, onClick: () -> Unit) {
+private fun ProfileActionRow(badge: String, title: String, subtitle: String, color: Color, onClick: () -> Unit, tag: String? = null) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(46.dp),
+        modifier = Modifier.fillMaxWidth().height(46.dp).then(if (tag != null) Modifier.testTag(tag) else Modifier),
         shape = RoundedCornerShape(16.dp),
         color = color,
         border = androidx.compose.foundation.BorderStroke(1.dp, if (isPressed) BrandBlue else Color(0xFFDEEAF2)),
@@ -272,42 +359,69 @@ private fun ProfileErrorCard(message: String, onRefresh: () -> Unit) {
     Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
         Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(message, color = MaterialTheme.colorScheme.error)
-            Button(onClick = onRefresh, colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)) { Text("Coba lagi") }
+            Button(onClick = onRefresh, colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)) { Text(stringResource(R.string.common_retry)) }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BabyEditSheet(baby: BabyProfile, onDismiss: () -> Unit, onSave: (String, String?, Double?) -> Unit) {
+private fun BabyEditSheet(
+    baby: BabyProfile,
+    saving: Boolean,
+    @StringRes errorRes: Int?,
+    onDismiss: () -> Unit,
+    onSave: (String, LocalDate?, Double?) -> Unit,
+) {
     var name by remember { mutableStateOf(baby.name) }
-    var birthDate by remember { mutableStateOf(baby.birthDate.orEmpty()) }
+    var birthDate by remember { mutableStateOf(baby.birthDate) }
     var weight by remember { mutableStateOf(baby.weightKg?.toString().orEmpty()) }
+    var weightInvalid by remember { mutableStateOf(false) }
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = ProfileSurface) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Baby profile", color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text("Update your baby's details", color = MutedInk, fontSize = 13.sp)
-            ProfileInput(name, { name = it }, "Baby name")
-            Text("Birth date (dd/mm/yyyy)", color = Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.profile_baby_row_title), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.profile_sheet_subtitle), color = MutedInk, fontSize = 13.sp)
+            ProfileInput(name, { name = it }, stringResource(R.string.profile_field_baby_name))
+            Text(stringResource(R.string.profile_field_birth_date), color = Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             BirthDatePicker(birthDate) { birthDate = it }
-            ProfileInput(weight, { weight = it }, "Weight (kg)", KeyboardType.Decimal)
+            ProfileInput(weight, { weight = it; weightInvalid = false }, stringResource(R.string.profile_field_weight), KeyboardType.Decimal, isError = weightInvalid)
+            val message = if (weightInvalid) R.string.error_weight_invalid else errorRes
+            if (message != null) {
+                Text(stringResource(message), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
             Button(
-                onClick = { onSave(name, birthDate.ifBlank { null }, weight.toDoubleOrNull()) },
+                onClick = {
+                    // Isian berat adalah input form: koma desimal diterima, isian yang bukan angka ditolak (bukan dianggap kosong).
+                    val parsed = weight.trim().replace(',', '.')
+                    val weightKg = if (parsed.isEmpty()) null else parsed.toDoubleOrNull()
+                    if (parsed.isNotEmpty() && weightKg == null) weightInvalid = true else onSave(name, birthDate, weightKg)
+                },
+                enabled = !saving && name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4EA0C3)),
-            ) { Text("Save changes", fontWeight = FontWeight.Bold) }
+            ) {
+                if (saving) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
+                else Text(stringResource(R.string.profile_save), fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
 @Composable
-private fun ProfileInput(value: String, onValueChange: (String) -> Unit, label: String, type: KeyboardType = KeyboardType.Text) {
+private fun ProfileInput(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    type: KeyboardType = KeyboardType.Text,
+    isError: Boolean = false,
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = true,
+        isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = type),
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -315,25 +429,14 @@ private fun ProfileInput(value: String, onValueChange: (String) -> Unit, label: 
     )
 }
 
-private data class DateParts(val day: Int, val month: Int, val year: Int)
-
-private fun parseDateParts(value: String): DateParts {
-    return runCatching {
-        val date = LocalDate.parse(value)
-        DateParts(date.dayOfMonth, date.monthValue, date.year)
-    }.getOrElse {
-        val today = LocalDate.now()
-        DateParts(today.dayOfMonth, today.monthValue, today.year)
-    }
-}
-
+/** Posisi awal tiga kolom tanggal. Hanya tampilan: tanggal baru tersimpan setelah pengguna mengubahnya. */
 @Composable
-private fun BirthDatePicker(value: String, onDateChange: (String) -> Unit) {
-    val initial = remember(value) { parseDateParts(value) }
-    var day by remember(value) { mutableStateOf(initial.day) }
-    var month by remember(value) { mutableStateOf(initial.month) }
+private fun BirthDatePicker(value: LocalDate?, onDateChange: (LocalDate) -> Unit) {
+    val today = remember { LocalDate.now() }
+    val initial = value ?: today
+    var day by remember(value) { mutableStateOf(initial.dayOfMonth) }
+    var month by remember(value) { mutableStateOf(initial.monthValue) }
     var year by remember(value) { mutableStateOf(initial.year) }
-    val today = LocalDate.now()
     val maxYear = today.year
     val minYear = maxYear - 20
     val maxMonth = if (year == today.year) today.monthValue else 12
@@ -348,7 +451,7 @@ private fun BirthDatePicker(value: String, onDateChange: (String) -> Unit) {
         day = safeDay
         month = safeMonth
         year = nextYear
-        onDateChange("%04d-%02d-%02d".format(nextYear, safeMonth, safeDay))
+        onDateChange(LocalDate.of(nextYear, safeMonth, safeDay))
     }
 
     Row(
@@ -356,9 +459,9 @@ private fun BirthDatePicker(value: String, onDateChange: (String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DateValueSelector(day, 1, maxDay, "hari", Modifier.weight(0.8f), { emitDate(nextDay = it) }) { it.toString().padStart(2, '0') }
-        DateValueSelector(month, 1, maxMonth, "bulan", Modifier.weight(0.8f), { emitDate(nextMonth = it) }) { it.toString().padStart(2, '0') }
-        DateValueSelector(year, minYear, maxYear, "tahun", Modifier.weight(1.4f), { emitDate(nextYear = it) }) { it.toString() }
+        DateValueSelector(day, 1, maxDay, stringResource(R.string.date_unit_day), Modifier.weight(0.8f), { emitDate(nextDay = it) }) { it.toString().padStart(2, '0') }
+        DateValueSelector(month, 1, maxMonth, stringResource(R.string.date_unit_month), Modifier.weight(0.8f), { emitDate(nextMonth = it) }) { it.toString().padStart(2, '0') }
+        DateValueSelector(year, minYear, maxYear, stringResource(R.string.date_unit_year), Modifier.weight(1.4f), { emitDate(nextYear = it) }) { it.toString() }
     }
 }
 
@@ -392,10 +495,10 @@ private fun DateValueSelector(
             Text(label(value), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.size(24.dp).clickable(enabled = value < max) { onValueChange(value + 1) }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.KeyboardArrowUp, "Tambah $unit", tint = BrandBlue, modifier = Modifier.size(19.dp))
+                    Icon(Icons.Rounded.KeyboardArrowUp, stringResource(R.string.date_increase, unit), tint = BrandBlue, modifier = Modifier.size(19.dp))
                 }
                 Box(Modifier.size(24.dp).clickable(enabled = value > min) { onValueChange(value - 1) }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, "Kurangi $unit", tint = BrandBlue, modifier = Modifier.size(19.dp))
+                    Icon(Icons.Rounded.KeyboardArrowDown, stringResource(R.string.date_decrease, unit), tint = BrandBlue, modifier = Modifier.size(19.dp))
                 }
             }
         }

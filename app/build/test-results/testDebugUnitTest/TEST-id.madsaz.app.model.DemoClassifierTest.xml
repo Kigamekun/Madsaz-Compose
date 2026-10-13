@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="id.madsaz.app.model.DemoClassifierTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-17T19:15:17.355Z" hostname="Reksas-MacBook-Pro.local" time="0.02">
-  <properties/>
-  <testcase name="classificationIsDeterministicAndAlwaysKnown" classname="id.madsaz.app.model.DemoClassifierTest" time="0.018"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

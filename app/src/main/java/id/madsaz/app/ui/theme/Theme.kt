@@ -1,6 +1,5 @@
 package id.madsaz.app.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -32,11 +31,11 @@ val Border = Color(0xFFDEEAF2)
 val Success = Color(0xFF2E6E54)
 val SuccessSoft = Color(0xFFE7F5FA)
 
-private val Fredoka = variableFont(R.font.fredoka, 600f)
-private val FredokaBold = variableFont(R.font.fredoka, 700f)
-private val Quicksand = variableFont(R.font.quicksand, 400f)
-private val QuicksandSemiBold = variableFont(R.font.quicksand, 600f)
-private val QuicksandBold = variableFont(R.font.quicksand, 700f)
+private val Fredoka = variableFont(R.font.fredoka, 600)
+private val FredokaBold = variableFont(R.font.fredoka, 700)
+private val Quicksand = variableFont(R.font.quicksand, 400)
+private val QuicksandSemiBold = variableFont(R.font.quicksand, 600)
+private val QuicksandBold = variableFont(R.font.quicksand, 700)
 
 private val MadsazColors = lightColorScheme(
     primary = BrandBlue,
@@ -141,18 +140,14 @@ fun MadsazTheme(content: @Composable () -> Unit) {
 }
 
 @OptIn(ExperimentalTextApi::class)
-private fun variableFont(resourceId: Int, weight: Float): FontFamily =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        FontFamily(
-            Font(
-                resourceId,
-                weight = FontWeight(weight.toInt()),
-                variationSettings = FontVariation.Settings(
-                    FontVariation.weight(weight.toInt()),
-                    FontVariation.width(100f),
-                ),
+private fun variableFont(resourceId: Int, weight: Int): FontFamily =
+    FontFamily(
+        Font(
+            resourceId,
+            weight = FontWeight(weight),
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(weight),
+                FontVariation.width(100f),
             ),
-        )
-    } else {
-        FontFamily.SansSerif
-    }
+        ),
+    )

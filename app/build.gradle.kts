@@ -11,38 +11,62 @@ android {
 
     defaultConfig {
         applicationId = "id.madsaz.app"
-        minSdk = 24
+        minSdk = 33
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val secretsFile = rootProject.file("secrets.properties")
-        val secrets = Properties().apply {
-            check(secretsFile.exists()) { "Missing secrets.properties" }
-            secretsFile.inputStream().use { load(it) }
+        // URL API: -PmadsazApiBaseUrl=... (uji lokal/CI) mengalahkan secrets.properties.
+        val apiBaseUrl = providers.gradleProperty("madsazApiBaseUrl").orNull ?: run {
+            val secretsFile = rootProject.file("secrets.properties")
+            check(secretsFile.exists()) { "Missing secrets.properties (atau beri -PmadsazApiBaseUrl)" }
+            Properties().apply { secretsFile.inputStream().use { load(it) } }
+                .getProperty("madsazApiBaseUrl")?.takeIf { it.isNotBlank() }
+                ?: error("Missing madsazApiBaseUrl in secrets.properties")
         }
-        val apiBaseUrl = secrets.getProperty("madsazApiBaseUrl")
-            ?.takeIf { it.isNotBlank() }
-            ?: error("Missing madsazApiBaseUrl in secrets.properties")
+        // Rilis memakai cleartext=false; URL LAN http dari secrets.properties baru gagal saat runtime, jadi gagalkan build rilis lebih awal.
+        val releaseRequested = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+        check(!releaseRequested || (apiBaseUrl.startsWith("https://") && apiBaseUrl.trimEnd('/').endsWith("/api/v1"))) {
+            "Build rilis butuh madsazApiBaseUrl berformat https://<host>/api/v1"
+        }
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+    }
+
+    // Upload key Play App Signing. Tanpa keystore.properties, build rilis tetap tak bertanda tangan.
+    val keystoreFile = rootProject.file("keystore.properties")
+    if (keystoreFile.exists()) {
+        val keystore = Properties().apply { keystoreFile.inputStream().use { load(it) } }
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(requireNotNull(keystore.getProperty("storeFile")) { "storeFile kosong di keystore.properties" })
+                storePassword = requireNotNull(keystore.getProperty("storePassword")) { "storePassword kosong di keystore.properties" }
+                keyAlias = requireNotNull(keystore.getProperty("keyAlias")) { "keyAlias kosong di keystore.properties" }
+                keyPassword = requireNotNull(keystore.getProperty("keyPassword")) { "keyPassword kosong di keystore.properties" }
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            optimization {
+                enable = true
+            }
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
+    }
+
+    // Bahasa yang dikirim: Indonesia (default values/), Inggris, Arab. LocaleConfig dibuat otomatis dari folder values-*;
+    // res/resources.properties menyebut bahasa default. Pengguna memilih lewat Pengaturan > Bahasa aplikasi (Android 13+).
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("id", "en", "ar")
     }
 
     buildFeatures {
@@ -57,7 +81,6 @@ if (file("google-services.json").exists()) {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation("com.android.billingclient:billing:9.1.0")
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-messaging")
@@ -72,11 +95,16 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.video)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.splashscreen)
     testImplementation(libs.junit)
+    // org.json di android.jar hanyalah stub untuk unit test JVM; ApiClient memakai implementasi asli ini saat diuji.
+    testImplementation(libs.org.json)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

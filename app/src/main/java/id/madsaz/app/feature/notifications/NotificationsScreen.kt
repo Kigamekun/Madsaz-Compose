@@ -7,19 +7,17 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,55 +38,38 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import id.madsaz.app.notifications.FcmRegistration
 import id.madsaz.app.BuildConfig
+import id.madsaz.app.R
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
-import kotlinx.coroutines.Dispatchers
+import id.madsaz.app.ui.userMessageRes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
+fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
-    val registration = remember(context) { FcmRegistration(context.applicationContext) }
     val scope = rememberCoroutineScope()
-    var enabled by remember { mutableStateOf(registration.enabled()) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
+    val state = viewModel.uiState
     var permissionSettingsRequired by remember { mutableStateOf(false) }
-    val configured = registration.configured()
-
-    fun enable() {
-        scope.launch {
-            busy = true
-            error = null
-            try {
-                withContext(Dispatchers.IO) { registration.enable(accessToken) }
-                enabled = true
-            } catch (exception: Exception) {
-                error = exception.message ?: "Pengingat gagal diaktifkan."
-            } finally {
-                busy = false
-            }
-        }
-    }
+    var tokenError by remember { mutableStateOf<Int?>(null) }
 
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             permissionSettingsRequired = false
-            enable()
+            viewModel.enable()
         } else {
-            error = "Izinkan notifikasi agar pengingat dapat ditampilkan."
-            permissionSettingsRequired = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            viewModel.showError(R.string.notifications_permission_denied)
+            permissionSettingsRequired =
                 (context as? Activity)?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) == false
         }
     }
@@ -97,8 +78,8 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
         containerColor = AppBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Notifications", color = Ink, fontWeight = FontWeight.Bold) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.ArrowBack, "Back", tint = Ink) } },
+                title = { Text(stringResource(R.string.notifications_title), color = Ink, fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppBackground),
             )
         },
@@ -109,36 +90,42 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item { Text("Pengingat paket", color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                item { Text("Kami mengingatkan saat paket Plus yang tidak diperpanjang otomatis mendekati akhir masa aktifnya.", color = MutedInk) }
+                item { Text(stringResource(R.string.notifications_heading), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+                item { Text(stringResource(R.string.notifications_body), color = MutedInk) }
                 item {
                     Text(
-                        when {
-                            !configured -> "Firebase belum dikonfigurasi pada APK ini."
-                            enabled -> "Pengingat aktif di perangkat ini."
-                            else -> "Pengingat belum aktif di perangkat ini."
-                        },
+                        stringResource(
+                            when {
+                                !viewModel.configured -> R.string.notifications_status_unconfigured
+                                state.enabled -> R.string.notifications_status_on
+                                else -> R.string.notifications_status_off
+                            },
+                        ),
                         color = Ink,
                     )
                 }
-                if (BuildConfig.DEBUG && configured) item {
+                if (BuildConfig.DEBUG && viewModel.configured) item {
                     OutlinedButton(
                         onClick = {
                             scope.launch {
                                 try {
-                                    val token = withContext(Dispatchers.IO) { registration.token() }
+                                    val token = viewModel.token()
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     clipboard.setPrimaryClip(ClipData.newPlainText("FCM token", token))
-                                    error = null
-                                } catch (exception: Exception) {
-                                    error = exception.message ?: "Token FCM tidak tersedia."
+                                    tokenError = null
+                                } catch (error: CancellationException) {
+                                    throw error
+                                } catch (error: Exception) {
+                                    tokenError = error.userMessageRes()
                                 }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("Salin token uji FCM") }
                 }
-                if (error != null) item { Text(error.orEmpty(), color = MaterialTheme.colorScheme.error) }
+                (state.errorRes ?: tokenError)?.let { message ->
+                    item { Text(stringResource(message), color = MaterialTheme.colorScheme.error) }
+                }
                 if (permissionSettingsRequired) item {
                     OutlinedButton(
                         onClick = {
@@ -148,37 +135,24 @@ fun NotificationsScreen(accessToken: String, onBack: () -> Unit) {
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Buka pengaturan notifikasi") }
+                    ) { Text(stringResource(R.string.notifications_open_settings)) }
                 }
                 item {
-                    if (busy) CircularProgressIndicator()
-                    else if (enabled) OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                busy = true
-                                try {
-                                    withContext(Dispatchers.IO) { registration.disable(accessToken) }
-                                    enabled = false
-                                } catch (exception: Exception) {
-                                    error = exception.message ?: "Pengingat gagal dimatikan."
-                                } finally {
-                                    enabled = registration.enabled()
-                                    busy = false
-                                }
-                            }
-                        },
+                    if (state.busy) CircularProgressIndicator()
+                    else if (state.enabled) OutlinedButton(
+                        onClick = viewModel::disable,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Matikan pengingat") }
+                    ) { Text(stringResource(R.string.notifications_disable)) }
                     else Button(
                         onClick = {
-                            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                                 permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else enable()
+                            } else viewModel.enable()
                         },
-                        enabled = configured,
+                        enabled = viewModel.configured,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-                    ) { Text("Aktifkan pengingat") }
+                    ) { Text(stringResource(R.string.notifications_enable)) }
                 }
             }
         }

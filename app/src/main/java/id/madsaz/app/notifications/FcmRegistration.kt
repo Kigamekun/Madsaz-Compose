@@ -6,7 +6,12 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import id.madsaz.app.data.remote.NotificationApi
 
-class FcmRegistration(private val context: Context, private val api: NotificationApi = NotificationApi()) {
+/**
+ * Pendaftaran token FCM ke BE. `enabled` adalah pilihan perangkat (izin diberikan dan pengingat menyala);
+ * pendaftarannya sendiri per akun. Semua metode memblokir: panggil dari Dispatchers.IO.
+ */
+class FcmRegistration(context: Context, private val api: NotificationApi) {
+    private val appContext = context
     private val preferences = context.getSharedPreferences("madsaz_notifications", Context.MODE_PRIVATE)
 
     fun enabled(): Boolean = preferences.getBoolean("enabled", false)
@@ -17,39 +22,47 @@ class FcmRegistration(private val context: Context, private val api: Notificatio
         preferences.edit().putBoolean("permission_prompted", true).apply()
     }
 
-    fun completeFirstLaunchPermissionRequest(granted: Boolean) {
-        preferences.edit()
-            .putBoolean("permission_prompted", true)
-            .putBoolean("enabled", granted)
-            .apply()
-    }
-
-    fun configured(): Boolean = FirebaseApp.getApps(context).isNotEmpty()
+    /** Build tanpa google-services.json tidak punya Firebase; jangan menghabiskan permintaan izin pada build seperti itu. */
+    fun configured(): Boolean = FirebaseApp.getApps(appContext).isNotEmpty()
 
     fun token(): String = Tasks.await(FirebaseMessaging.getInstance().token)
 
-    fun enable(accessToken: String) {
-        if (!configured()) throw IllegalStateException("Firebase belum dikonfigurasi.")
-        val token = token()
-        api.register(accessToken, token)
+    /** Hasil dialog izin notifikasi pertama. Bila diberikan, perangkat langsung didaftarkan. */
+    fun onPermissionResult(granted: Boolean) {
+        preferences.edit().putBoolean("permission_prompted", true).apply()
+        if (granted) enable() else preferences.edit().putBoolean("enabled", false).apply()
+    }
+
+    fun enable() {
+        check(configured()) { "Firebase belum dikonfigurasi" }
+        api.register(token())
         preferences.edit().putBoolean("enabled", true).apply()
     }
 
-    fun refresh(accessToken: String) {
-        if (!enabled() || !configured()) return
-        api.register(accessToken, token())
+    /** Mendaftarkan ulang token untuk akun yang sedang masuk (token berputar, atau akun berganti di perangkat ini). */
+    fun refresh() {
+        if (enabled() && configured()) api.register(token())
     }
 
-    fun disable(accessToken: String) {
-        val wasEnabled = enabled()
+    /** Pengguna mematikan pengingat. */
+    fun disable() {
         preferences.edit().putBoolean("enabled", false).apply()
-        if (wasEnabled && configured()) {
-            val token = token()
-            try {
-                api.unregister(accessToken, token)
-            } finally {
-                Tasks.await(FirebaseMessaging.getInstance().deleteToken())
-            }
+        unregisterDevice()
+    }
+
+    /** Dipanggil saat logout: akun ini berhenti menerima push, pilihan perangkat (`enabled`) tetap. */
+    fun unregisterDevice() {
+        if (!configured()) return
+        val token = token()
+        try {
+            api.unregister(token)
+        } finally {
+            Tasks.await(FirebaseMessaging.getInstance().deleteToken())
         }
+    }
+
+    /** Akun dihapus: token sudah tidak ada di BE, cukup lepaskan token di perangkat. */
+    fun clearLocal() {
+        if (configured()) Tasks.await(FirebaseMessaging.getInstance().deleteToken())
     }
 }
