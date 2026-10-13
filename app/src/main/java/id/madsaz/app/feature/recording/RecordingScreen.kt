@@ -2,6 +2,7 @@ package id.madsaz.app.feature.recording
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,22 +35,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import id.madsaz.app.R
 import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.components.BabyMark
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.tr
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
 private val CameraPanel = Color(0xFFE6F0FC)
+private val SpectrumPink = Color(0xCCE7A3AB)
+private val SpectrumPurple = Color(0xE66E68D9)
 
 @Composable
 fun RecordingScreen(
@@ -61,7 +72,8 @@ fun RecordingScreen(
     onSwitchCamera: () -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    cameraPreview: @Composable () -> Unit,
+    audioLevels: List<Float> = emptyList(),
+    cameraPreview: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BackHandler(enabled = state == RecordingUiState.PermissionRequired || state == RecordingUiState.Ready) {
@@ -82,6 +94,7 @@ fun RecordingScreen(
             onSwitchCamera = onSwitchCamera,
             onStart = onStart,
             onStop = onStop,
+            audioLevels = audioLevels,
             elapsedSeconds = (state as? RecordingUiState.Recording)?.elapsedSeconds,
             cameraPreview = cameraPreview,
             modifier = modifier,
@@ -142,10 +155,12 @@ private fun ListenCameraContent(
     onSwitchCamera: () -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
+    audioLevels: List<Float>,
     elapsedSeconds: Int?,
-    cameraPreview: @Composable () -> Unit,
+    cameraPreview: @Composable (Modifier) -> Unit,
     modifier: Modifier,
 ) {
+    val hazeState = rememberHazeState()
     Box(modifier.fillMaxSize().background(CameraPanel)) {
         Column(Modifier.fillMaxSize()) {
             Box(
@@ -155,7 +170,7 @@ private fun ListenCameraContent(
                     .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)),
             ) {
                 // This slot is the CameraX PreviewView supplied by RecordingRoute.
-                cameraPreview()
+                cameraPreview(Modifier.fillMaxSize().hazeSource(state = hazeState))
                 Surface(
                     onClick = onBack,
                     modifier = Modifier.align(Alignment.TopStart).offset(x = 14.dp, y = 20.dp).size(40.dp),
@@ -203,6 +218,36 @@ private fun ListenCameraContent(
                     fontSize = 19.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
+                Surface(
+                    modifier = Modifier.align(Alignment.BottomCenter).offset(y = (-18).dp).padding(bottom = 14.dp).width(317.dp)
+                        .clip(CircleShape)
+                        .hazeBlur(
+                            input = HazeInput.Sources(hazeState),
+                            style = HazeBlurStyle { blurRadius(10.dp) },
+                        ),
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.24f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f)),
+                ) {
+                    Canvas(Modifier.padding(horizontal = 14.dp, vertical = 8.dp).fillMaxWidth().height(36.dp)) {
+                        val levels = if (elapsedSeconds == null) emptyList() else audioLevels.takeLast(46)
+                        val levelOffset = 46 - levels.size
+                        val step = size.width / 46
+                        repeat(46) { index ->
+                            val amplitude = levels.getOrNull(index - levelOffset)?.coerceIn(0f, 1f) ?: 0f
+                            val normalized = ((amplitude - 0.02f) / 0.28f).coerceIn(0f, 1f)
+                            val height = 2.dp.toPx() + 32.dp.toPx() * kotlin.math.sqrt(normalized)
+                            val x = step * (index + 0.5f)
+                            drawLine(
+                                if (index % 3 == 0) SpectrumPink else SpectrumPurple,
+                                androidx.compose.ui.geometry.Offset(x, (size.height - height) / 2),
+                                androidx.compose.ui.geometry.Offset(x, (size.height + height) / 2),
+                                strokeWidth = 2.8.dp.toPx(),
+                                cap = StrokeCap.Round,
+                            )
+                        }
+                    }
+                }
                 Surface(
                     modifier = Modifier.align(Alignment.TopEnd).offset(x = (-14).dp, y = 20.dp),
                     shape = CircleShape,

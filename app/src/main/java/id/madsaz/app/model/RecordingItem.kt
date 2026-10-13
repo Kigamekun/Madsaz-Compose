@@ -13,4 +13,6 @@ data class RecordingItem(
     val solution: String?,
     val source: String? = null,
     val scores: List<CryScore> = emptyList(),
+    val videoWidth: Int? = null,
+    val videoHeight: Int? = null,
 )

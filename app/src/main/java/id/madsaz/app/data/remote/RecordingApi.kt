@@ -3,6 +3,7 @@ package id.madsaz.app.data.remote
 import id.madsaz.app.BuildConfig
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.CryScore
+import android.media.MediaMetadataRetriever
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -11,6 +12,7 @@ import org.json.JSONObject
 
 class RecordingApi {
     fun upload(accessToken: String, file: File, durationSeconds: Int?): String {
+        val dimensions = videoDimensions(file)
         val recordingId = file.nameWithoutExtension
         val request = JSONObject().put("recording_id", recordingId).put("size_bytes", file.length())
         val uploadData = requestJson("/records/upload-url", accessToken, "POST", request).getJSONObject("data")
@@ -32,6 +34,7 @@ class RecordingApi {
         }
         val complete = JSONObject()
         if (durationSeconds != null) complete.put("duration_seconds", durationSeconds)
+        dimensions?.let { (width, height) -> complete.put("video_width", width).put("video_height", height) }
         requestJson("/records/$recordingId/complete", accessToken, "POST", complete)
         return recordingId
     }
@@ -70,15 +73,6 @@ class RecordingApi {
         }
     }
 
-    fun delete(accessToken: String, recordingId: String) {
-        val connection = connection("/records/$recordingId", accessToken).apply { requestMethod = "DELETE" }
-        try {
-            if (connection.responseCode !in 200..299) response(connection)
-        } finally {
-            connection.disconnect()
-        }
-    }
-
     fun presignedVideoUrl(accessToken: String, recordingId: String): String {
         val connection = connection("/records/$recordingId/video-url", accessToken)
         try {
@@ -107,7 +101,26 @@ class RecordingApi {
                 }
             }
         }.orEmpty(),
+        videoWidth = if (json.isNull("video_width")) null else json.getInt("video_width"),
+        videoHeight = if (json.isNull("video_height")) null else json.getInt("video_height"),
     )
+
+    private fun videoDimensions(file: File): Pair<Int, Int>? = runCatching {
+        MediaMetadataRetriever().let { retriever ->
+            try {
+                retriever.setDataSource(file.absolutePath)
+                val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: return null
+                val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: return null
+                if (retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() in listOf(90, 270)) {
+                    height to width
+                } else {
+                    width to height
+                }
+            } finally {
+                retriever.release()
+            }
+        }
+    }.getOrNull()
 
     fun sendFeedback(accessToken: String, recordingId: String, rating: Int, improvement: String, comment: String) {
         val connection = connection("/feedback", accessToken).apply {

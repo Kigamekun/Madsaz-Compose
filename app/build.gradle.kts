@@ -78,5 +78,7 @@ dependencies {
     implementation(libs.androidx.camera.video)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.splashscreen)
+    implementation("dev.chrisbanes.haze:haze:2.0.0")
+    implementation("dev.chrisbanes.haze:haze-blur:2.0.0")
     testImplementation(libs.junit)
 }

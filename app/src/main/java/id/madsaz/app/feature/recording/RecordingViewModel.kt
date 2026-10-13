@@ -10,6 +10,7 @@ import id.madsaz.app.data.local.RecordingStore
 import id.madsaz.app.data.remote.RecordingApi
 import id.madsaz.app.model.RecordingUiState
 import java.io.File
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -78,8 +79,9 @@ class RecordingViewModel(
                 RecordingUiState.Completed(recording)
             } catch (error: CancellationException) {
                 throw error
-            } catch (_: Exception) {
-                RecordingUiState.Error(R.string.recording_upload_error)
+            } catch (error: Exception) {
+                Log.e("MadsazUpload", "Recording upload failed", error)
+                RecordingUiState.Error(R.string.recording_upload_error, error.message)
             }
         }
     }

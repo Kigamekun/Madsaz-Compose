@@ -44,11 +44,11 @@ private fun PreviewRecording(state: RecordingUiState) {
             onSwitchCamera = {},
             onStart = {},
             onStop = {},
-            cameraPreview = {
+            cameraPreview = { previewModifier ->
                 Image(
                     painter = painterResource(R.drawable.madsaz_camera_preview),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = previewModifier,
                     contentScale = ContentScale.FillBounds,
                 )
             },

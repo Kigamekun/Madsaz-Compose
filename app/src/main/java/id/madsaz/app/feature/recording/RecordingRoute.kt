@@ -57,6 +57,7 @@ fun RecordingRoute(
     var permissionPreviouslyRequested by rememberSaveable { mutableStateOf(false) }
     var activeRecording by remember { mutableStateOf<Recording?>(null) }
     var currentFile by remember { mutableStateOf<File?>(null) }
+    var audioLevels by remember { mutableStateOf(emptyList<Float>()) }
 
     val packageManager = context.packageManager
     val hasBackCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
@@ -144,6 +145,7 @@ fun RecordingRoute(
             },
             onStart = {
                 if (permissionsGranted && activeRecording == null) {
+                    audioLevels = emptyList()
                     val outputFile = runCatching { viewModel.createOutputFile() }.getOrNull()
                     if (outputFile == null) {
                         viewModel.onCameraError()
@@ -161,6 +163,8 @@ fun RecordingRoute(
                                     is VideoRecordEvent.Start -> viewModel.onRecordingStarted()
                                     is VideoRecordEvent.Status -> {
                                         viewModel.onRecordingProgress(event.recordingStats.recordedDurationNanos)
+                                        val amplitude = event.recordingStats.audioStats.audioAmplitude.toFloat()
+                                        audioLevels = (audioLevels + amplitude).takeLast(48)
                                     }
                                     is VideoRecordEvent.Finalize -> {
                                         activeRecording = null
@@ -189,11 +193,12 @@ fun RecordingRoute(
                 }
             },
             onStop = ::stopRecording,
-            cameraPreview = {
+            audioLevels = audioLevels,
+            cameraPreview = { previewModifier ->
                 CameraPreview(
                     controller = cameraController,
                     onError = viewModel::onCameraError,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = previewModifier,
                 )
             },
             modifier = modifier,
@@ -236,6 +241,7 @@ private fun CameraPreview(
     AndroidView(
         factory = { context ->
             PreviewView(context).apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 scaleType = PreviewView.ScaleType.FILL_CENTER
                 this.controller = controller
             }

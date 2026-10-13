@@ -9,5 +9,5 @@ sealed interface RecordingUiState {
     data object Saving : RecordingUiState
     data object Analyzing : RecordingUiState
     data class Completed(val recording: RecordingItem) : RecordingUiState
-    data class Error(@StringRes val messageRes: Int) : RecordingUiState
+    data class Error(@StringRes val messageRes: Int, val detail: String? = null) : RecordingUiState
 }
