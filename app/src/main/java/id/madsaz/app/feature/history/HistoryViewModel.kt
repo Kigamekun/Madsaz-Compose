@@ -48,16 +48,4 @@ class HistoryViewModel(
         }
     }
 
-    fun delete(recording: RecordingItem) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) { api.delete(accessToken, recording.id) }
-                refresh()
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                uiState = HistoryUiState.Error(R.string.history_load_error)
-            }
-        }
-    }
 }

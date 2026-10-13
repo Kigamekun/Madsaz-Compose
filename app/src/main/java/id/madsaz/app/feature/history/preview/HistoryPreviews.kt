@@ -25,7 +25,6 @@ private fun EmptyHistoryPreview() {
                 onRetry = {},
                 onProfile = {},
                 onOpenRecording = {},
-                onDelete = {},
                 contentPadding = padding,
             )
         }
@@ -48,7 +47,6 @@ private fun FilledHistoryPreview() {
                 onRetry = {},
                 onProfile = {},
                 onOpenRecording = {},
-                onDelete = {},
                 contentPadding = padding,
             )
         }

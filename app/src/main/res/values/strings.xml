@@ -9,7 +9,6 @@
     <string name="common_back">Kembali</string>
     <string name="common_retry">Coba lagi</string>
     <string name="common_cancel">Batal</string>
-    <string name="common_delete">Hapus</string>
 <string name="home_recent_empty_title">Belum ada rekaman</string>
 <string name="home_recent_error_title">Riwayat belum dapat dibaca</string>
 <string name="home_hero_description">Kamar bayi Madsaz</string>
@@ -17,11 +16,9 @@
     <string name="home_latest_empty">No result yet</string>
 <string name="history_empty_title">Riwayat masih kosong</string>
     <string name="history_empty_body">Mulai rekaman pertama untuk melihat hasil analisis di sini.</string>
-    <string name="history_delete_recording">Hapus rekaman</string>
-    <string name="history_delete_confirmation">Video %1$s akan dihapus permanen dari server beserta hasil dan feedbacknya.</string>
     <string name="history_load_error">Riwayat tidak dapat dibaca.</string>
     <string name="history_missing_title">Rekaman tidak ditemukan</string>
-    <string name="history_missing_body">Rekaman mungkin sudah dihapus dari server.</string>
+    <string name="history_missing_body">Rekaman mungkin sudah tidak tersedia.</string>
 
     <string name="guide_title">Panduan merekam</string>
     <string name="guide_intro_title">Tiga hal kecil sebelum mulai</string>
@@ -53,8 +50,8 @@
 
     <string name="analysis_saving_title">Menyimpan rekaman</string>
     <string name="analysis_saving_body">Jangan tutup halaman ini sebentar.</string>
-    <string name="analysis_running_title">Mengunggah rekaman</string>
-    <string name="analysis_running_body">Video sedang dikirim ke server.</string>
+    <string name="analysis_running_title">Mengunggah video</string>
+    <string name="analysis_running_body">Harap menunggu.</string>
 <string name="analysis_disclaimer">Hasil ini bukan diagnosis medis. Hubungi tenaga kesehatan jika Anda mengkhawatirkan kondisi bayi.</string>
 <string name="result_baby_description">Crying baby</string>
 <string name="category_neh_meaning">Bayi mungkin merasa lapar</string>

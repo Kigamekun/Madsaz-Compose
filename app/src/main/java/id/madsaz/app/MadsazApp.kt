@@ -24,6 +24,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +32,9 @@ import androidx.compose.ui.res.stringResource
 import android.widget.Toast
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +47,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import id.madsaz.app.data.local.RecordingStore
 import id.madsaz.app.data.local.AuthStore
+import id.madsaz.app.data.local.AppLanguage
+import id.madsaz.app.data.remote.PlanApi
 import id.madsaz.app.feature.auth.AuthScreen
 import id.madsaz.app.feature.auth.AuthUiState
 import id.madsaz.app.feature.auth.AuthViewModel
@@ -56,6 +62,9 @@ import id.madsaz.app.feature.feedback.FeedbackScreen
 import id.madsaz.app.feature.home.HomeScreen
 import id.madsaz.app.feature.profile.ProfileScreen
 import id.madsaz.app.feature.profile.ProfileViewModel
+import id.madsaz.app.feature.profile.ProfileUiState
+import id.madsaz.app.feature.profile.PrivacyScreen
+import id.madsaz.app.feature.profile.LanguageScreen
 import id.madsaz.app.feature.plan.PlanScreen
 import id.madsaz.app.feature.plan.PlanViewModel
 import id.madsaz.app.feature.notifications.NotificationsScreen
@@ -80,6 +89,8 @@ private object Routes {
     const val PROFILE = "profile"
     const val PLAN = "plan"
     const val NOTIFICATIONS = "notifications"
+    const val PRIVACY = "privacy"
+    const val LANGUAGE = "language"
     const val RECORDING = "recording"
     const val RESULT = "result/{recordingId}?log={log}"
     const val FEEDBACK = "feedback/{recordingId}"
@@ -126,6 +137,7 @@ fun MadsazApp(
         notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
     fun navigateMain(route: String) {
+        if (navController.currentDestination?.route == route) return
         if (route == Routes.HOME && navController.popBackStack(Routes.HOME, false)) return
         navController.navigate(route) {
             popUpTo(Routes.HOME) { saveState = route != Routes.HOME }
@@ -153,8 +165,29 @@ fun MadsazApp(
     }
     val historyState = historyViewModel.uiState
 
-    val profileViewModel: ProfileViewModel = viewModel {
+    val profileViewModel: ProfileViewModel = viewModel(key = authState.session.userId) {
         ProfileViewModel(authState.session.accessToken)
+    }
+    val accountProfile = (profileViewModel.uiState as? ProfileUiState.Content)?.account
+    val scope = rememberCoroutineScope()
+    val openRecorder: () -> Unit = {
+        scope.launch {
+            try {
+                val plan = withContext(Dispatchers.IO) { PlanApi().status(authState.session.accessToken) }
+                if (plan.remaining == 0) {
+                    navController.navigate(Routes.PLAN) { launchSingleTop = true }
+                } else {
+                    navController.navigate(Routes.RECORDING) { launchSingleTop = true }
+                }
+            } catch (_: Exception) {
+                val message = if (AppLanguage.selected(context) == "id") {
+                    "Kuota belum dapat diperiksa. Periksa koneksi lalu coba lagi."
+                } else {
+                    "Couldn't check your plan. Check your connection and try again."
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
@@ -165,18 +198,20 @@ fun MadsazApp(
                 onHome = { navigateMain(Routes.HOME) },
                 onHistory = { navigateMain(Routes.HISTORY) },
                 onProfile = { navigateMain(Routes.PROFILE) },
-                onRecord = { navController.navigate(Routes.RECORDING) },
+                onRecord = openRecorder,
             ) { padding ->
                 HomeScreen(
                     latestRecording = content?.recordings?.firstOrNull(),
                     recentRecordings = content?.recordings?.take(3).orEmpty(),
                     historyLoading = historyState is HistoryUiState.Loading,
                     historyError = historyState is HistoryUiState.Error,
-                    onRecord = { navController.navigate(Routes.RECORDING) },
+                    onRecord = openRecorder,
                     onHistory = { navigateMain(Routes.HISTORY) },
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     contentPadding = padding,
+                    avatarUrl = accountProfile?.avatarUrl,
+                    accountName = accountProfile?.name,
                 )
             }
         }
@@ -186,15 +221,16 @@ fun MadsazApp(
                 onHome = { navigateMain(Routes.HOME) },
                 onHistory = { navigateMain(Routes.HISTORY) },
                 onProfile = { navigateMain(Routes.PROFILE) },
-                onRecord = { navController.navigate(Routes.RECORDING) },
+                onRecord = openRecorder,
             ) { padding ->
                 HistoryScreen(
                     state = historyState,
                     onRetry = { historyViewModel.refresh() },
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
-                    onDelete = historyViewModel::delete,
                     contentPadding = padding,
+                    avatarUrl = accountProfile?.avatarUrl,
+                    accountName = accountProfile?.name,
                 )
             }
         }
@@ -223,18 +259,20 @@ fun MadsazApp(
                 onHome = { navigateMain(Routes.HOME) },
                 onHistory = { navigateMain(Routes.HISTORY) },
                 onProfile = { navigateMain(Routes.PROFILE) },
-                onRecord = { navController.navigate(Routes.RECORDING) },
+                onRecord = openRecorder,
             ) { padding ->
                 ProfileScreen(
-                    babyState = profileViewModel.uiState,
+                    state = profileViewModel.uiState,
                     recordingCount = content?.recordings?.size,
                     storageBytes = content?.totalBytes,
-                    lastRecordingAt = content?.recordings?.firstOrNull()?.recordedAtEpochMillis,
                     onRefresh = profileViewModel::refresh,
-                    onUpdateBaby = profileViewModel::update,
+                    onUpdateName = profileViewModel::updateName,
+                    onUploadAvatar = profileViewModel::uploadAvatar,
                     onLogout = authViewModel::logout,
                     onPlan = { navController.navigate(Routes.PLAN) },
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
+                    onPrivacy = { navController.navigate(Routes.PRIVACY) },
+                    onLanguage = { navController.navigate(Routes.LANGUAGE) },
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -256,6 +294,8 @@ fun MadsazApp(
                 onBack = { navController.popBackStack() },
             )
         }
+        composable(Routes.PRIVACY) { PrivacyScreen(onBack = { navController.popBackStack() }) }
+        composable(Routes.LANGUAGE) { LanguageScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.RECORDING) {
             val recordingViewModel: RecordingViewModel = viewModel(key = authState.session.accessToken) {
                 RecordingViewModel(store, authState.session.accessToken)

@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import id.madsaz.app.feature.profile.ProfileScreen
 import id.madsaz.app.feature.profile.ProfileUiState
-import id.madsaz.app.data.remote.BabyProfile
+import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.ui.components.MadsazScaffold
 import id.madsaz.app.ui.components.MainDestination
 import id.madsaz.app.ui.theme.MadsazTheme
@@ -23,15 +23,17 @@ private fun ProfilePreview() {
             onRecord = {},
         ) { padding ->
             ProfileScreen(
-                babyState = ProfileUiState.Content(BabyProfile("preview", "Pandu", "2025-02-01", 6.8)),
+                state = ProfileUiState.Content(AccountProfile("preview", "Pandu", "pandu@example.com", null)),
                 recordingCount = 3,
                 storageBytes = 26_300_000L,
-                lastRecordingAt = null,
                 onRefresh = {},
-                onUpdateBaby = { _, _, _ -> },
+                onUpdateName = {},
+                onUploadAvatar = {},
                 onLogout = {},
                 onPlan = {},
                 onNotifications = {},
+                onPrivacy = {},
+                onLanguage = {},
                 modifier = Modifier.padding(padding),
             )
         }
