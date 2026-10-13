@@ -7,7 +7,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -56,6 +56,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import id.madsaz.app.R
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.tr
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -102,14 +103,13 @@ fun PlanScreen(
                 onExplorePlus = { showSubscription = true },
                 onContinue = onBack,
                 onRetry = onRetry,
-                onBack = onBack,
             )
         }
     }
 }
 
 @Composable
-private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onContinue: () -> Unit, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onContinue: () -> Unit, onRetry: () -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
@@ -117,10 +117,7 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
     ) {
         item {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Ink)
-                }
-                Text("Your plan", color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                Text(tr("Your plan", "Paket Anda"), color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
             }
         }
@@ -128,18 +125,18 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
             Surface(shape = RoundedCornerShape(24.dp), color = BrandBlue) {
                 Box(Modifier.fillMaxWidth().height(174.dp)) {
                     Column(Modifier.offset(x = 20.dp, y = 16.dp)) {
-                        Text("Free plan", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text("Monthly analyses", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                        Text(tr("Free plan", "Paket gratis"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(tr("Monthly analyses", "Analisis bulanan"), color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                         if (state.status != null) {
                             Text(
-                                "${state.status.used} of 5 used",
+                                tr("${state.status.used} of 5 used", "${state.status.used} dari 5 digunakan"),
                                 color = Color.White,
                                 fontSize = 23.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(top = 6.dp),
                             )
                             Text(
-                                "${state.status.remaining} recordings left this month",
+                                tr("${state.status.remaining} recordings left this month", "Sisa ${state.status.remaining} rekaman bulan ini"),
                                 color = Color.White.copy(alpha = 0.9f),
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(top = 4.dp),
@@ -158,7 +155,7 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
                             color = Color.White,
                         ) {
                             Text(
-                                "${state.status.remaining} recordings left",
+                                tr("${state.status.remaining} recordings left", "Sisa ${state.status.remaining} rekaman"),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp),
                                 color = BrandBlueDark,
                                 fontSize = 10.sp,
@@ -180,7 +177,7 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
         }
         item {
             Text(
-                "Included in Free",
+                tr("Included in Free", "Termasuk paket gratis"),
                 modifier = Modifier.padding(top = 30.dp, bottom = 16.dp),
                 color = Color(0xFF0B2A2D),
                 fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
@@ -191,9 +188,9 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
         items(3) { index ->
             FreeBenefit(
                 when (index) {
-                    0 -> "5 cry analyses each month"
-                    1 -> "Basic cue interpretation"
-                    else -> "Recent recordings saved"
+                    0 -> tr("5 cry analyses each month", "5 analisis tangisan setiap bulan")
+                    1 -> tr("Basic cue interpretation", "Interpretasi dasar petunjuk tangisan")
+                    else -> tr("Recent recordings saved", "Rekaman terbaru tersimpan")
                 },
             )
             if (index < 2) Spacer(Modifier.height(16.dp))
@@ -204,19 +201,27 @@ private fun FreePlanContent(state: PlanUiState, onExplorePlus: () -> Unit, onCon
                 modifier = Modifier.fillMaxWidth().padding(top = 38.dp).height(52.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-            ) { Text("Explore Madsaz Plus", fontWeight = FontWeight.SemiBold) }
+            ) { Text(tr("Explore Madsaz Plus", "Jelajahi Madsaz Plus"), fontWeight = FontWeight.SemiBold) }
         }
         item {
+            Surface(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = Color.Transparent,
+            ) {
+                Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        tr("Continue with free plan", "Lanjut dengan paket gratis"),
+                        color = BrandBlueDark,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
             Text(
-                "Continue with free plan",
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onContinue).padding(top = 24.dp, bottom = 12.dp),
-                color = BrandBlueDark,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
-            Text(
-                "Your limit resets on the first day of each month.",
+                tr("Your limit resets on the first day of each month.", "Batas penggunaan direset pada awal setiap bulan."),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
                 color = MutedInk,
                 fontSize = 10.sp,
@@ -265,42 +270,64 @@ private fun SubscriptionContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(AppBackground),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 28.dp),
+        contentPadding = PaddingValues(bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item {
-            Box(Modifier.fillMaxWidth().height(324.dp)) {
-                Image(
-                    painter = painterResource(R.drawable.madsaz_home_photo),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().height(252.dp),
-                    contentScale = ContentScale.Crop,
-                )
-                Surface(
-                    modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 8.dp, top = 8.dp),
-                    shape = CircleShape, color = Color.White,
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Ink)
+            Column {
+                Box(Modifier.fillMaxWidth().height(324.dp)) {
+                    Image(
+                        painter = painterResource(R.drawable.madsaz_home_photo),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().height(252.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Box(
+                        Modifier.align(Alignment.TopStart).padding(top = 140.dp).fillMaxWidth().height(116.dp)
+                            .background(Brush.verticalGradient(listOf(
+                                Color.Transparent,
+                                Color(0x14F8F9FF),
+                                AppBackground,
+                                AppBackground,
+                            ))),
+                    )
+                    Surface(
+                        modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 8.dp, top = 8.dp),
+                        shape = CircleShape, color = Color.White,
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Ink)
+                        }
                     }
-                }
-                Box(
-                    Modifier.align(Alignment.BottomStart).fillMaxWidth().height(116.dp)
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, AppBackground))),
-                )
-                Surface(
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = 166.dp).fillMaxWidth().height(158.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = BrandBlue,
-                ) {
-                    Box(Modifier.fillMaxSize()) {
-                        Column(Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp)) {
-                            Text("Madsaz Plus", color = Color.White, fontSize = 12.sp)
-                            Text("More calm, more context.", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                            listOf("Unlimited recordings", "Full history & insights", "Learn every cue").forEach { item ->
-                                Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 166.dp).padding(horizontal = 20.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = BrandBlue,
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 12.dp)) {
+                            Text("Madsaz Plus", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                tr("More calm, more context.", "Lebih tenang, lebih memahami."),
+                                color = Color.White,
+                                fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(top = 5.dp),
+                            )
+                            listOf(
+                                tr("Unlimited recordings", "Rekaman tanpa batas"),
+                                tr("Full history & insights", "Riwayat dan wawasan lengkap"),
+                                tr("Learn every cue", "Pahami setiap petunjuk"),
+                            ).forEach { benefit ->
+                                Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Box(Modifier.size(9.dp).background(Color.White, CircleShape))
-                                    Text(item, color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
+                                    Text(
+                                        benefit,
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(start = 10.dp),
+                                    )
                                 }
                             }
                         }
@@ -310,8 +337,8 @@ private fun SubscriptionContent(
         }
         item {
             Text(
-                "Choose your plan",
-                modifier = Modifier.padding(top = 20.dp, bottom = 16.dp),
+                tr("Choose your plan", "Pilih paket"),
+                modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 16.dp),
                 color = Color(0xFF0B2A2D),
                 fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                 fontSize = 19.sp,
@@ -319,30 +346,30 @@ private fun SubscriptionContent(
             )
         }
         item {
-            PlanOption(
-                title = "Yearly",
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
+                title = tr("Yearly", "Tahunan"),
                 price = state.prices["yearly"],
-                helper = "Best value",
-                badge = "SAVE 30%",
+                helper = tr("Best value", "Paling hemat"),
                 selected = selectedPlan == "yearly",
                 onClick = { onSelectPlan("yearly") },
-            )
+                badge = tr("SAVE 30%", "HEMAT 30%"),
+            ) }
         }
         item { Spacer(Modifier.height(14.dp)) }
         item {
-            PlanOption(
-                title = "Monthly",
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
+                title = tr("Monthly", "Bulanan"),
                 price = state.prices["monthly"],
-                helper = "Flexible",
+                helper = tr("Flexible", "Fleksibel"),
                 selected = selectedPlan == "monthly",
                 onClick = { onSelectPlan("monthly") },
-            )
+            ) }
         }
         if (state.error != null) {
             item {
-                Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(state.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = onRetry) { Text("Try again") }
+                    OutlinedButton(onClick = onRetry) { Text(tr("Try again", "Coba lagi")) }
                 }
             }
         }
@@ -350,26 +377,26 @@ private fun SubscriptionContent(
             if (isPlus) {
                 Button(
                     onClick = onManage,
-                    modifier = Modifier.fillMaxWidth().padding(top = 28.dp).height(52.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-                ) { Text("Manage subscription in Google Play") }
+                ) { Text(tr("Manage subscription in Google Play", "Kelola langganan di Google Play")) }
             } else {
                 Button(
                     onClick = onPurchase,
                     enabled = state.purchaseEnabled && selectedPrice != null && !state.purchasing,
-                    modifier = Modifier.fillMaxWidth().padding(top = 28.dp).height(52.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) {
                     if (state.purchasing) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                    else Text("Start Madsaz Plus")
+                    else Text(tr("Start Madsaz Plus", "Mulai Madsaz Plus"))
                 }
             }
         }
         item {
             Text(
-                "Cancel anytime. Your free plan stays available.",
+                tr("Cancel anytime. Your free plan stays available.", "Batalkan kapan saja. Paket gratis tetap tersedia."),
                 modifier = Modifier.fillMaxWidth().padding(top = 28.dp, bottom = 20.dp),
                 color = MutedInk,
                 fontSize = 10.sp,
@@ -402,8 +429,8 @@ private fun PlanOption(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(title, color = if (selected) Color.White else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text(price ?: "Price unavailable", color = if (selected) Color.White else Ink,
-                    fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
+                Text(price ?: tr("Price available in Google Play", "Harga tersedia di Google Play"), color = if (selected) Color.White else Ink,
+                    fontSize = if (price == null) 12.sp else 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 6.dp))
             }
             Column(horizontalAlignment = Alignment.End) {
