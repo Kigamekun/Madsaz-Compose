@@ -5,11 +5,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import id.madsaz.app.feature.auth.DeleteAccountState
 import id.madsaz.app.feature.profile.ProfileScreen
 import id.madsaz.app.feature.profile.ProfileUiState
-import id.madsaz.app.data.remote.BabyProfile
+import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.ui.components.MadsazScaffold
 import id.madsaz.app.ui.components.MainDestination
 import id.madsaz.app.ui.theme.MadsazTheme
-import java.time.LocalDate
 
 @Preview(name = "Profil", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
@@ -22,12 +21,12 @@ private fun ProfilePreview() {
             onRecord = {},
         ) { padding ->
             ProfileScreen(
-                babyState = ProfileUiState.Content(BabyProfile("Pandu", LocalDate.of(2025, 2, 1), 6.8)),
+                state = ProfileUiState.Content(AccountProfile("preview", "Pandu", "pandu@example.com", null)),
                 recordingCount = 3,
                 storageBytes = 26_300_000L,
-                lastRecordingAt = null,
                 onRefresh = {},
-                onUpdateBaby = { _, _, _ -> },
+                onUpdateName = {},
+                onUploadAvatar = {},
                 onDismissProfileError = {},
                 onLogout = {},
                 deleteState = DeleteAccountState.Idle,
@@ -35,6 +34,8 @@ private fun ProfilePreview() {
                 onDismissDeleteAccount = {},
                 onPlan = {},
                 onNotifications = {},
+                onPrivacy = {},
+                onLanguage = {},
                 contentPadding = padding,
             )
         }

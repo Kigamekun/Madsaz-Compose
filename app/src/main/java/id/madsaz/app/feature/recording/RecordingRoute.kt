@@ -32,7 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -55,6 +55,7 @@ fun RecordingRoute(
     var permissionPreviouslyRequested by rememberSaveable { mutableStateOf(false) }
     var activeRecording by remember { mutableStateOf<Recording?>(null) }
     var currentFile by remember { mutableStateOf<File?>(null) }
+    var audioLevels by remember { mutableStateOf(emptyList<Float>()) }
 
     val packageManager = context.packageManager
     val hasBackCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
@@ -142,6 +143,7 @@ fun RecordingRoute(
             },
             onStart = {
                 if (permissionsGranted && activeRecording == null) {
+                    audioLevels = emptyList()
                     val outputFile = viewModel.createOutputFile()
                     if (outputFile != null) {
                         currentFile = outputFile
@@ -157,6 +159,8 @@ fun RecordingRoute(
                                     is VideoRecordEvent.Start -> viewModel.onRecordingStarted()
                                     is VideoRecordEvent.Status -> {
                                         viewModel.onRecordingProgress(event.recordingStats.recordedDurationNanos)
+                                        val amplitude = event.recordingStats.audioStats.audioAmplitude.toFloat()
+                                        audioLevels = (audioLevels + amplitude).takeLast(48)
                                     }
                                     is VideoRecordEvent.Finalize -> {
                                         activeRecording = null
@@ -185,11 +189,12 @@ fun RecordingRoute(
                 }
             },
             onStop = ::stopRecording,
-            cameraPreview = {
+            audioLevels = audioLevels,
+            cameraPreview = { previewModifier ->
                 CameraPreview(
                     controller = cameraController,
                     onError = viewModel::onCameraError,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = previewModifier,
                 )
             },
             modifier = modifier,
@@ -231,6 +236,7 @@ private fun CameraPreview(
     AndroidView(
         factory = { context ->
             PreviewView(context).apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 scaleType = PreviewView.ScaleType.FILL_CENTER
                 this.controller = controller
             }

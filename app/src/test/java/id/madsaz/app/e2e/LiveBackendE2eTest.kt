@@ -24,7 +24,6 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -64,7 +63,7 @@ class LiveBackendE2eTest {
         storage = MemoryStorage()
         sessionManager = SessionManager(storage, authApi)
         val api = ApiClient(baseUrl, sessionManager)
-        recordings = RecordingApi(api)
+        recordings = RecordingApi(api, videoDimensions = { VIDEO_SIZE })
         plans = PlanApi(api)
         profiles = ProfileApi(api)
         email = "android+${UUID.randomUUID()}@example.test"
@@ -91,16 +90,20 @@ class LiveBackendE2eTest {
         registerAndSignIn()
 
         assertEquals(PlanStatus.Free(used = 0, limit = 5, remaining = 5), plans.status())
-        assertEquals("Bayi Uji", profiles.getBabyProfile().name)
+        assertEquals("Bayi Uji", profiles.get().name)
 
-        val updated = profiles.updateBabyProfile("Pandu", LocalDate.of(2026, 1, 31), 7.5)
-        assertEquals("Pandu", updated.name)
-        assertEquals(LocalDate.of(2026, 1, 31), updated.birthDate)
-        assertEquals(7.5, updated.weightKg ?: 0.0, 0.0)
+        assertEquals("Pandu", profiles.updateName("Pandu").name)
 
-        val cleared = profiles.updateBabyProfile("Pandu", null, null)
-        assertNull(cleared.birthDate)
-        assertNull(cleared.weightKg)
+        // Unggah avatar: upload-url -> PUT ke penyimpanan -> profil menyertakan URL pra-tanda-tangan yang bisa dibaca.
+        val photo = ByteArray(2048) { it.toByte() }
+        val withAvatar = profiles.uploadAvatar(photo)
+        val connection = URL(requireNotNull(withAvatar.avatarUrl)).openConnection() as HttpURLConnection
+        try {
+            assertEquals(200, connection.responseCode)
+            assertTrue(photo.contentEquals(connection.inputStream.readBytes()))
+        } finally {
+            connection.disconnect()
+        }
     }
 
     @Test
@@ -138,6 +141,8 @@ class LiveBackendE2eTest {
         val id = recordings.upload(first, durationSeconds = 5)
         val result = waitForResult(id)
         assertEquals(RecordingStatus.COMPLETED, result.status)
+        assertEquals(VIDEO_SIZE.first, result.videoWidth)
+        assertEquals(VIDEO_SIZE.second, result.videoHeight)
         assertEquals(5, result.scores.size)
         assertTrue(result.sizeBytes > 0)
         assertEquals(PlanStatus.Free(used = 1, limit = 5, remaining = 4), plans.status())
@@ -153,11 +158,6 @@ class LiveBackendE2eTest {
         val blocked = assertThrows(ApiException::class.java) { recordings.upload(video("sixth"), durationSeconds = 3) }
         assertEquals(403, blocked.status)
         assertEquals("free_limit_reached", blocked.code)
-
-        // Menghapus rekaman mengembalikan kuota.
-        recordings.delete(id)
-        assertEquals(4, recordings.list().size)
-        assertEquals(4, plans.status().used)
     }
 
     @Test
@@ -217,5 +217,10 @@ class LiveBackendE2eTest {
         registerAndSignIn()
         assertEquals("email_taken", assertThrows(ApiException::class.java) { authApi.register("Bayi Lain", email, password) }.code)
         assertEquals("invalid_input", assertThrows(ApiException::class.java) { authApi.register("", "bukan-email", "1") }.code)
+    }
+
+    private companion object {
+        /** Ukuran video palsu untuk file uji: BE menyimpannya dan mengembalikannya di hasil. */
+        val VIDEO_SIZE = 1080 to 1920
     }
 }

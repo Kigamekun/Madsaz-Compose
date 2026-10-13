@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -32,6 +34,7 @@ import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.formatDateTime
 import id.madsaz.app.ui.components.formatDuration
+import id.madsaz.app.ui.components.formatPercent
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
@@ -109,7 +112,7 @@ private fun CompletedContent(
 ) {
     var showLog by remember(recording.id, startInLog) { mutableStateOf(startInLog) }
     if (showLog || recording.scores.isEmpty()) {
-        RecordingLog(recording, loadVideoUrl, onBack, onRefresh, onFeedback, startInLog) { showLog = false }
+        RecordingLog(recording, loadVideoUrl, onBack, onRefresh, startInLog) { showLog = false }
     } else {
         PatternResult(recording) { onFeedback(recording.id) }
     }
@@ -142,7 +145,7 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
                         Text("${leading.code} - ${leading.label}", color = Ink, fontSize = 16.sp)
                     }
                     Surface(shape = RoundedCornerShape(18.dp), color = BrandBlue) {
-                        Text("${(leading.confidence * 100).toInt()}%", Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = Color.White, fontSize = 12.sp)
+                        Text(formatPercent(leading.confidence), Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = Color.White, fontSize = 12.sp)
                     }
                 }
             }
@@ -182,14 +185,28 @@ private fun PatternResult(recording: RecordingItem, onFeedback: () -> Unit) {
 
 @Composable
 private fun ScoreBar(score: CryScore, leading: Boolean) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("${score.code} - ${score.label}", color = if (leading) Ink else MutedInk, fontSize = 11.sp)
-            Text("${(score.confidence * 100).toInt()}%", color = if (leading) BrandBlue else MutedInk, fontSize = 11.sp)
-        }
-        Box(Modifier.fillMaxWidth().height(7.dp).background(Color(0xFFE8EEF1), RoundedCornerShape(4.dp))) {
-            Box(Modifier.fillMaxWidth(score.confidence.toFloat().coerceIn(0f, 1f)).height(7.dp)
-                .background(if (leading) BrandBlue else Color(0xFFA9C7D5), RoundedCornerShape(4.dp)))
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = if (leading) Color(0xFFEAF6FC) else Color.White,
+        border = BorderStroke(1.dp, if (leading) Color(0xFFEAF6FC) else Color(0xFFE6EEF3)),
+    ) {
+        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(Modifier.size(36.dp), shape = CircleShape, color = Color(0xFFD6EAF5)) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(score.code.take(1).uppercase(), color = BrandBlue, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("${score.code} - ${score.label}", color = if (leading) Ink else MutedInk, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Text(formatPercent(score.confidence), color = if (leading) BrandBlue else MutedInk, fontSize = 11.sp)
+                }
+                Box(Modifier.fillMaxWidth().height(7.dp).background(Color(0xFFE2EBF0), RoundedCornerShape(4.dp))) {
+                    Box(Modifier.fillMaxWidth(score.confidence.toFloat().coerceIn(0f, 1f)).height(7.dp)
+                        .background(if (leading) BrandBlue else Color(0xFFA9C7D5), RoundedCornerShape(4.dp)))
+                }
+            }
         }
     }
 }
@@ -200,7 +217,6 @@ private fun RecordingLog(
     loadVideoUrl: suspend () -> String,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onFeedback: (String) -> Unit,
     startInLog: Boolean,
     onResult: () -> Unit,
 ) {
@@ -241,45 +257,76 @@ private fun RecordingLog(
             }
         }
     }
-    Column(
-        Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        OutlinedButton(onClick = if (startInLog || recording.scores.isEmpty()) onBack else onResult) { Text(stringResource(R.string.common_back)) }
-        Text(stringResource(R.string.result_log_title), style = MaterialTheme.typography.headlineMedium, color = Ink)
-        Text(
-            "${formatDateTime(recording.recordedAtEpochMillis)}  ·  ${formatDuration(recording.durationMillis)}",
-            color = MutedInk,
-        )
-        if (recording.scores.isNotEmpty()) {
-            Text("${recording.scores.first().code} - ${recording.scores.first().label}", style = MaterialTheme.typography.titleMedium, color = Ink)
-        } else {
-            Text(stringResource(if (recording.status == RecordingStatus.FAILED) R.string.result_log_failed else R.string.result_log_pending), color = Ink)
-        }
-        Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFF1F7FA)) {
-            Box(Modifier.fillMaxWidth().height(260.dp), contentAlignment = Alignment.Center) {
-                AndroidView(factory = { player }, modifier = Modifier.fillMaxSize())
-                if (loadingVideo) {
-                    CircularProgressIndicator(color = BrandBlue)
-                } else if (!playing && !playbackError) {
-                    Button(onClick = { playRecording() }) { Text(stringResource(R.string.result_play)) }
+    // Rasio kotak video dari ukuran tampilan yang disimpan BE; video potret tidak membuat kotak lebih tinggi dari persegi.
+    val videoRatio = recording.videoWidth?.let { width -> recording.videoHeight?.let { height -> width.toFloat() / height } } ?: DEFAULT_VIDEO_RATIO
+    Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
+        Column(
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(stringResource(R.string.result_log_title), style = MaterialTheme.typography.headlineMedium, color = Ink)
+            Text(
+                "${formatDateTime(recording.recordedAtEpochMillis)}  ·  ${formatDuration(recording.durationMillis)}",
+                color = MutedInk,
+            )
+            Surface(
+                modifier = Modifier.fillMaxWidth().aspectRatio(videoRatio.coerceIn(1f, 2.5f)),
+                shape = RoundedCornerShape(22.dp),
+                color = Color(0xFFEAF5FB),
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    AndroidView(factory = { player }, modifier = Modifier.fillMaxSize())
+                    if (loadingVideo) {
+                        CircularProgressIndicator(color = BrandBlue)
+                    } else if (!playing && !playbackError) {
+                        Button(onClick = { playRecording() }) { Text(stringResource(R.string.result_play)) }
+                    }
                 }
             }
+            if (playbackError) {
+                Text(stringResource(R.string.result_play_error), color = MaterialTheme.colorScheme.error)
+                OutlinedButton(onClick = { playRecording() }) { Text(stringResource(R.string.common_retry)) }
+            }
+            if (recording.status == RecordingStatus.PROCESSING) {
+                OutlinedButton(onClick = onRefresh) { Text(stringResource(R.string.result_refresh)) }
+            }
+            if (recording.scores.isNotEmpty()) {
+                Text(stringResource(R.string.result_analysis_title), style = MaterialTheme.typography.titleLarge, color = Ink, fontWeight = FontWeight.Bold)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color(0xFFE2EDF3)),
+                ) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        recording.scores.forEachIndexed { index, score -> ScoreBar(score, index == 0) }
+                    }
+                }
+                recording.solution?.let { solution ->
+                    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = Color(0xFFEAF5FB)) {
+                        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.result_advice_title), style = MaterialTheme.typography.titleMedium, color = Ink, fontWeight = FontWeight.Bold)
+                            Text(solution, color = MutedInk)
+                        }
+                    }
+                }
+            } else {
+                Text(stringResource(if (recording.status == RecordingStatus.FAILED) R.string.result_log_failed else R.string.result_log_pending), color = Ink)
+            }
+            if (recording.source == "mock") {
+                Text(stringResource(R.string.result_mock_note), color = MutedInk, fontSize = 10.sp)
+            }
+            Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
         }
-        if (playbackError) {
-            Text(stringResource(R.string.result_play_error), color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = { playRecording() }) { Text(stringResource(R.string.common_retry)) }
-        }
-        if (recording.status == RecordingStatus.PROCESSING) {
-            OutlinedButton(onClick = onRefresh) { Text(stringResource(R.string.result_refresh)) }
-        }
-        if (recording.source == "mock") {
-            Text(stringResource(R.string.result_mock_note), color = MutedInk, fontSize = 10.sp)
-        }
-        Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
-        Button(onClick = { onFeedback(recording.id) }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text(stringResource(R.string.result_feedback)) }
+        Button(
+            onClick = if (startInLog || recording.scores.isEmpty()) onBack else onResult,
+            modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 12.dp).height(54.dp),
+            shape = RoundedCornerShape(50),
+        ) { Text(stringResource(R.string.common_back)) }
     }
 }
+
+private const val DEFAULT_VIDEO_RATIO = 16f / 9f
 
 @Composable
 private fun ErrorContent(message: String, canRetry: Boolean, onRetry: () -> Unit, onDiscard: (() -> Unit)?, onBack: () -> Unit) {

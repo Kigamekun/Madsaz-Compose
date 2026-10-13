@@ -12,14 +12,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,14 +37,21 @@ import id.madsaz.app.feature.notifications.NotificationsScreen
 import id.madsaz.app.feature.notifications.NotificationsViewModel
 import id.madsaz.app.feature.plan.PlanScreen
 import id.madsaz.app.feature.plan.PlanViewModel
+import id.madsaz.app.feature.profile.LanguageScreen
+import id.madsaz.app.feature.profile.PrivacyScreen
+import id.madsaz.app.feature.profile.PrivacyViewModel
 import id.madsaz.app.feature.profile.ProfileScreen
+import id.madsaz.app.feature.profile.ProfileUiState
 import id.madsaz.app.feature.profile.ProfileViewModel
 import id.madsaz.app.feature.recording.RecordingRoute
 import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.result.ResultScreen
 import id.madsaz.app.feature.result.ResultViewModel
+import id.madsaz.app.data.local.AppLanguage
+import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.components.MadsazScaffold
 import id.madsaz.app.ui.components.MainDestination
+import id.madsaz.app.ui.userMessageRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,6 +68,8 @@ private object Routes {
     const val PROFILE = "profile"
     const val PLAN = "plan"
     const val NOTIFICATIONS = "notifications"
+    const val PRIVACY = "privacy"
+    const val LANGUAGE = "language"
     const val RECORDING = "recording"
     const val RESULT = "result/{recordingId}?log={log}"
     const val FEEDBACK = "feedback/{recordingId}"
@@ -120,6 +128,21 @@ private fun SignedInApp(
     DisposableEffect(sessionOwner) { onDispose { sessionOwner.viewModelStore.clear() } }
     val historyViewModel: HistoryViewModel = viewModel(sessionOwner) { HistoryViewModel(container.recordingApi) }
     val profileViewModel: ProfileViewModel = viewModel(sessionOwner) { ProfileViewModel(container.profileApi) }
+    val accountProfile = (profileViewModel.uiState as? ProfileUiState.Content)?.account
+    // Kuota Free habis: arahkan ke layar Paket alih-alih membiarkan pengguna merekam lalu ditolak BE setelah mengunggah.
+    val openRecorder: () -> Unit = {
+        scope.launch {
+            try {
+                val plan = withContext(Dispatchers.IO) { container.planApi.status() }
+                val quotaExhausted = plan is PlanStatus.Free && plan.remaining == 0
+                navController.navigate(if (quotaExhausted) Routes.PLAN else Routes.RECORDING) { launchSingleTop = true }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Toast.makeText(context, error.userMessageRes(), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     val fcm = container.fcmRegistration
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -146,6 +169,7 @@ private fun SignedInApp(
     }
 
     fun navigateMain(route: String) {
+        if (navController.currentDestination?.route == route) return
         if (route == Routes.HOME && navController.popBackStack(Routes.HOME, false)) return
         navController.navigate(route) {
             popUpTo(Routes.HOME) { saveState = route != Routes.HOME }
@@ -159,43 +183,46 @@ private fun SignedInApp(
             val historyState = historyViewModel.uiState
             val content = historyState as? HistoryUiState.Content
             val recent = remember(content) { content?.recordings.orEmpty().take(3) }
-            MainDestinationScaffold(MainDestination.HOME, navController, ::navigateMain) { padding ->
+            MainDestinationScaffold(MainDestination.HOME, ::navigateMain, openRecorder) { padding ->
                 HomeScreen(
                     latestRecording = recent.firstOrNull(),
                     recentRecordings = recent,
                     historyLoading = historyState is HistoryUiState.Loading,
                     historyError = historyState is HistoryUiState.Error,
-                    onRecord = { navController.navigate(Routes.RECORDING) },
+                    onRecord = openRecorder,
                     onHistory = { navigateMain(Routes.HISTORY) },
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     contentPadding = padding,
+                    avatarUrl = accountProfile?.avatarUrl,
+                    accountName = accountProfile?.name,
                 )
             }
         }
         composable(Routes.HISTORY) {
-            MainDestinationScaffold(MainDestination.HISTORY, navController, ::navigateMain) { padding ->
+            MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder) { padding ->
                 HistoryScreen(
                     state = historyViewModel.uiState,
                     onRetry = historyViewModel::refresh,
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
-                    onDelete = historyViewModel::delete,
                     onNoticeShown = historyViewModel::dismissNotice,
                     contentPadding = padding,
+                    avatarUrl = accountProfile?.avatarUrl,
+                    accountName = accountProfile?.name,
                 )
             }
         }
         composable(Routes.PROFILE) {
             val content = historyViewModel.uiState as? HistoryUiState.Content
-            MainDestinationScaffold(MainDestination.PROFILE, navController, ::navigateMain) { padding ->
+            MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder) { padding ->
                 ProfileScreen(
-                    babyState = profileViewModel.uiState,
+                    state = profileViewModel.uiState,
                     recordingCount = content?.recordings?.size,
                     storageBytes = content?.totalBytes,
-                    lastRecordingAt = content?.recordings?.firstOrNull()?.recordedAtEpochMillis,
                     onRefresh = profileViewModel::refresh,
-                    onUpdateBaby = profileViewModel::update,
+                    onUpdateName = profileViewModel::updateName,
+                    onUploadAvatar = profileViewModel::uploadAvatar,
                     onDismissProfileError = profileViewModel::dismissError,
                     onLogout = authViewModel::logout,
                     deleteState = authViewModel.deleteState,
@@ -203,6 +230,8 @@ private fun SignedInApp(
                     onDismissDeleteAccount = authViewModel::resetDeleteState,
                     onPlan = { navController.navigate(Routes.PLAN) },
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
+                    onPrivacy = { navController.navigate(Routes.PRIVACY) },
+                    onLanguage = { navController.navigate(Routes.LANGUAGE) },
                     contentPadding = padding,
                 )
             }
@@ -222,6 +251,13 @@ private fun SignedInApp(
             val notificationsViewModel: NotificationsViewModel = viewModel { NotificationsViewModel(fcm) }
             NotificationsScreen(notificationsViewModel, onBack = { navController.popBackStack() })
         }
+        composable(Routes.PRIVACY) {
+            // BE punya teks kebijakan Indonesia dan Inggris; bahasa lain (mis. Arab) memakai teks Inggris.
+            val policyLanguage = if (AppLanguage.current(context) == "id") "id" else "en"
+            val privacyViewModel: PrivacyViewModel = viewModel { PrivacyViewModel(container.policyApi, policyLanguage) }
+            PrivacyScreen(privacyViewModel.uiState, onRetry = privacyViewModel::load, onBack = { navController.popBackStack() })
+        }
+        composable(Routes.LANGUAGE) { LanguageScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.RECORDING) {
             val recordingViewModel: RecordingViewModel = viewModel {
                 RecordingViewModel(container.recordingStore(auth.userId), container.recordingApi)
@@ -280,15 +316,15 @@ private fun SignedInApp(
 @Composable
 private fun MainDestinationScaffold(
     selected: MainDestination,
-    navController: NavHostController,
     navigateMain: (String) -> Unit,
+    onRecord: () -> Unit,
     content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
     MadsazScaffold(
         selected = selected,
         onHome = { navigateMain(Routes.HOME) },
         onHistory = { navigateMain(Routes.HISTORY) },
-        onRecord = { navController.navigate(Routes.RECORDING) },
+        onRecord = onRecord,
         content = content,
     )
 }

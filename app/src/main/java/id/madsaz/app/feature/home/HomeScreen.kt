@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChildCare
-import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,9 +53,8 @@ import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.feature.crycues.CryCuesSheet
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.MadsazHeader
-import id.madsaz.app.ui.components.formatDuration
+import id.madsaz.app.ui.components.formatPercent
 import id.madsaz.app.ui.components.formatTime
-import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -76,12 +74,14 @@ fun HomeScreen(
     onOpenRecording: (RecordingItem) -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    avatarUrl: String? = null,
+    accountName: String? = null,
 ) {
     var showCryCues by remember { mutableStateOf(false) }
     val openCryCues = { showCryCues = true }
     CompactContainer(modifier = modifier) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(AppBackground).testTag("home_screen"),
+            modifier = Modifier.fillMaxSize().background(Color.White).testTag("home_screen"),
             contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
@@ -92,6 +92,8 @@ fun HomeScreen(
                     onCryCues = openCryCues,
                     onProfile = onProfile,
                     onOpenRecording = onOpenRecording,
+                    avatarUrl = avatarUrl,
+                    accountName = accountName,
                 )
             }
             item { LearningDestinations(openCryCues) }
@@ -111,21 +113,17 @@ fun HomeScreen(
 
 @Composable
 private fun LearningDestinations(onCryCues: () -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().background(Color.White).padding(start = 16.dp, end = 16.dp, top = 12.dp),
-    ) {
-        LearningCard(
-            title = stringResource(R.string.home_cry_cues_title),
-            description = stringResource(R.string.home_cry_cues_description),
-            icon = Icons.Rounded.ChildCare,
-            background = Color(0xFFF3F8FC),
-            iconBackground = Color(0xFFE7F5FA),
-            accent = BrandBlueDark,
-            borderColor = Color(0xFFD8E9F2),
-            onClick = onCryCues,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
+    LearningCard(
+        title = stringResource(R.string.home_cry_cues_title),
+        description = stringResource(R.string.home_cry_cues_description),
+        icon = Icons.Rounded.ChildCare,
+        background = Color(0xFFF3F8FC),
+        iconBackground = Color(0xFFE7F5FA),
+        accent = BrandBlueDark,
+        borderColor = Color(0xFFD8E9F2),
+        onClick = onCryCues,
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp),
+    )
 }
 
 @Composable
@@ -140,17 +138,9 @@ private fun LearningCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 76.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = background,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    Surface(onClick = onClick, modifier = modifier.heightIn(min = 76.dp), shape = RoundedCornerShape(22.dp),
+        color = background, border = BorderStroke(1.dp, borderColor)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(shape = RoundedCornerShape(12.dp), color = iconBackground) {
                 Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.padding(9.dp).size(22.dp))
             }
@@ -171,25 +161,27 @@ private fun HomeHero(
     onCryCues: () -> Unit,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
+    avatarUrl: String?,
+    accountName: String?,
 ) {
-    Box(Modifier.fillMaxWidth().height(330.dp).background(Color(0xFFE6F4FB))) {
+    val latestScore = latestRecording?.scores?.firstOrNull()
+    Box(Modifier.fillMaxWidth().height(330.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
-            painter = painterResource(R.drawable.madsaz_home_photo),
+            painter = painterResource(R.drawable.madsaz_home_nursery),
             contentDescription = stringResource(R.string.home_hero_description),
-            modifier = Modifier.fillMaxWidth().height(342.dp).align(Alignment.TopCenter).offset(y = (-74).dp),
+            modifier = Modifier.fillMaxWidth().height(342.dp).align(Alignment.TopCenter).offset(y = (-36).dp)
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
             contentScale = ContentScale.Crop,
         )
         Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .height(62.dp)
-                .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
-                .background(Color.White),
+            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().height(62.dp)
+                .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)),
         )
         MadsazHeader(
             onProfile = onProfile,
             modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 6.dp),
+            avatarUrl = avatarUrl,
+            name = accountName,
         )
         Surface(
             onClick = {
@@ -217,15 +209,17 @@ private fun HomeHero(
                     lineHeight = 40.sp,
                 )
                 Text(
-                    text = latestRecording?.let {
-                        stringResource(
-                            when (it.status) {
+                    text = when {
+                        latestRecording == null -> stringResource(R.string.home_latest_empty)
+                        latestScore != null -> stringResource(R.string.home_result_with_confidence, latestScore.label, formatPercent(latestScore.confidence))
+                        else -> stringResource(
+                            when (latestRecording.status) {
                                 RecordingStatus.PROCESSING -> R.string.home_status_waiting
                                 RecordingStatus.FAILED -> R.string.home_status_failed
                                 RecordingStatus.COMPLETED -> R.string.home_status_result
                             },
                         )
-                    } ?: stringResource(R.string.home_latest_empty),
+                    },
                     modifier = Modifier.offset(x = 18.dp, y = 89.dp),
                     color = Color.White.copy(alpha = 0.88f),
                     fontSize = 12.sp,
@@ -307,23 +301,23 @@ private fun RecentRecordings(
                 Box(
                     Modifier.padding(top = 12.dp, start = 20.dp, end = 16.dp)
                         .fillMaxWidth()
-                        .height((recordings.take(3).size * 114 - 10).dp),
+                        .height((recordings.take(3).size * 98 - 10).dp),
                 ) {
                     Box(
-                        Modifier.padding(start = 5.dp, top = 50.dp, bottom = 50.dp)
+                        Modifier.padding(start = 5.dp, top = 43.dp, bottom = 43.dp)
                             .width(2.dp).fillMaxSize()
                             .background(Color(0xFFD5EAF3)),
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         recordings.take(3).forEach { recording ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.width(12.dp).height(104.dp), contentAlignment = Alignment.Center) {
+                                Box(Modifier.width(12.dp).height(88.dp), contentAlignment = Alignment.Center) {
                                     Box(Modifier.size(12.dp).background(BrandBlue, CircleShape))
                                 }
                                 Spacer(Modifier.width(4.dp))
                                 Surface(
                                     onClick = { onOpenRecording(recording) },
-                                    modifier = Modifier.weight(1f).height(104.dp),
+                                    modifier = Modifier.weight(1f).height(88.dp),
                                     shape = RoundedCornerShape(20.dp),
                                     color = Color.White,
                                     border = BorderStroke(1.dp, Border),
@@ -341,34 +335,46 @@ private fun RecentRecordings(
 
 @Composable
 private fun ActivityContent(recording: RecordingItem) {
+    val score = recording.scores.firstOrNull()
+    val code = recording.category?.substringBefore(" - ") ?: score?.code
+    val confidence = score?.confidence
     Row(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(Modifier.size(54.dp), RoundedCornerShape(12.dp), BrandBlueSoft) {
-            Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.padding(15.dp), tint = BrandBlue)
+        Surface(Modifier.size(44.dp), CircleShape, BrandBlueSoft) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    code ?: "•",
+                    color = BrandBlueDark,
+                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold),
+                )
+            }
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                recording.category ?: stringResource(recording.status.labelRes),
+                if (code != null && score != null) "$code - ${score.label}" else code ?: stringResource(recording.status.labelRes),
                 color = Ink,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
             )
             Text(
                 stringResource(R.string.home_recorded_at, formatTime(recording.recordedAtEpochMillis)),
                 color = MutedInk,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 14.sp),
                 maxLines = 1,
             )
-            Text(
-                stringResource(R.string.home_duration, formatDuration(recording.durationMillis)),
-                color = BrandBlueDark,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-            )
+            if (confidence != null) {
+                Surface(shape = CircleShape, color = BrandBlueSoft) {
+                    Text(
+                        stringResource(R.string.home_confidence_chip, formatPercent(confidence)),
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                        color = BrandBlueDark,
+                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 9.sp, lineHeight = 12.sp),
+                    )
+                }
+            }
         }
     }
 }

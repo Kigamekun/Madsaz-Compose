@@ -10,7 +10,6 @@
     <string name="common_back">Kembali</string>
     <string name="common_retry">Coba lagi</string>
     <string name="common_cancel">Batal</string>
-    <string name="common_delete">Hapus</string>
     <string name="common_close">Tutup</string>
 
     <!-- Navigasi dan header -->
@@ -57,7 +56,6 @@
     <string name="home_recent_empty_title">Belum ada rekaman</string>
     <string name="home_recent_error_title">Riwayat belum dapat dibaca</string>
     <string name="home_recorded_at">Direkam pukul %1$s</string>
-    <string name="home_duration">Durasi %1$s</string>
 
     <!-- Riwayat -->
     <string name="history_title">Riwayat rekaman</string>
@@ -67,8 +65,6 @@
     </plurals>
     <string name="history_empty_title">Riwayat masih kosong</string>
     <string name="history_empty_body">Mulai rekaman pertama untuk melihat hasil analisis di sini.</string>
-    <string name="history_delete_recording">Hapus rekaman</string>
-    <string name="history_delete_confirmation">Video %1$s akan dihapus permanen dari server beserta hasil dan feedbacknya.</string>
     <string name="history_open_recording">Buka rekaman</string>
     <string name="status_processing">Diproses</string>
     <string name="status_completed">Selesai</string>
@@ -96,8 +92,8 @@
     <!-- Hasil analisis -->
     <string name="analysis_saving_title">Menyimpan rekaman</string>
     <string name="analysis_saving_body">Jangan tutup halaman ini sebentar.</string>
-    <string name="analysis_running_title">Mengunggah rekaman</string>
-    <string name="analysis_running_body">Video sedang dikirim ke server.</string>
+    <string name="analysis_running_title">Mengunggah video</string>
+    <string name="analysis_running_body">Harap menunggu.</string>
     <string name="analysis_disclaimer">Hasil ini bukan diagnosis medis. Hubungi tenaga kesehatan jika Anda mengkhawatirkan kondisi bayi.</string>
     <string name="result_loading_title">Memuat hasil</string>
     <string name="result_loading_body">Sebentar ya.</string>
@@ -111,7 +107,7 @@
     <string name="result_what_to_try">Yang bisa dicoba</string>
     <string name="result_mock_note">Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.</string>
     <string name="result_feedback">Masukan</string>
-    <string name="result_log_title">Log rekaman</string>
+    <string name="result_log_title">Riwayat rekaman</string>
     <string name="result_log_failed">Analisis gagal. Video tetap tersimpan.</string>
     <string name="result_log_pending">Video tersimpan. Analisis belum tersedia.</string>
     <string name="result_play">Putar rekaman</string>
@@ -149,7 +145,7 @@
     <string name="plan_best_value">Paling hemat</string>
     <string name="plan_flexible">Fleksibel</string>
     <string name="plan_save_badge">HEMAT %1$s</string>
-    <string name="plan_price_unavailable">Harga tidak tersedia</string>
+    <string name="plan_price_unavailable">Harga tersedia di Google Play</string>
     <string name="plan_manage">Kelola langganan di Google Play</string>
     <string name="plan_plus_active">Madsaz Plus aktif</string>
     <string name="plan_plus_renews">Diperpanjang otomatis pada %1$s</string>
@@ -158,23 +154,16 @@
     <string name="plan_cancel_anytime">Batalkan kapan saja. Paket gratis Anda tetap tersedia.</string>
 
     <!-- Profil -->
-    <string name="profile_badge_baby">P</string>
     <string name="profile_badge_plus" translatable="false">M</string>
     <string name="profile_badge_notifications">N</string>
     <string name="profile_badge_privacy">P</string>
-    <string name="profile_badge_feedback">B</string>
     <string name="profile_badge_logout">K</string>
     <string name="profile_badge_delete">H</string>
     <string name="profile_account">Akun</string>
-    <string name="profile_baby_row_title">Profil bayi</string>
-    <string name="profile_baby_row_subtitle">Perbarui data %1$s</string>
-    <string name="profile_baby_row_subtitle_generic">Perbarui data bayi</string>
     <string name="profile_plus_subtitle">Kelola paket Anda</string>
     <string name="profile_notifications_subtitle">Pengingat lembut</string>
-    <string name="profile_privacy_title">Privasi dan data</string>
-    <string name="profile_privacy_subtitle">Atur rekaman Anda</string>
-    <string name="profile_feedback_title">Beri masukan</string>
-    <string name="profile_feedback_subtitle">Bantu kami berkembang</string>
+    <string name="profile_privacy_title">Kebijakan privasi</string>
+    <string name="profile_privacy_subtitle">Cara data digunakan</string>
     <string name="profile_logout_title">Keluar</string>
     <string name="profile_logout_subtitle">Sampai jumpa</string>
     <string name="profile_delete_title">Hapus akun</string>
@@ -188,22 +177,7 @@
     </plurals>
     <string name="profile_your_profile">Profil Anda</string>
     <string name="profile_edit">Ubah</string>
-    <string name="profile_not_analyzed">Belum dianalisis</string>
-    <string name="profile_last_analyzed">Terakhir dianalisis: %1$s</string>
-    <plurals name="profile_age_months">
-        <item quantity="other">%d bulan</item>
-    </plurals>
-    <string name="profile_weight_kg">%1$s kg</string>
-    <string name="profile_sheet_subtitle">Perbarui data bayi Anda</string>
-    <string name="profile_field_baby_name">Nama bayi</string>
-    <string name="profile_field_birth_date">Tanggal lahir (hh/bb/tttt)</string>
-    <string name="profile_field_weight">Berat (kg)</string>
     <string name="profile_save">Simpan perubahan</string>
-    <string name="date_unit_day">hari</string>
-    <string name="date_unit_month">bulan</string>
-    <string name="date_unit_year">tahun</string>
-    <string name="date_increase">Tambah %1$s</string>
-    <string name="date_decrease">Kurangi %1$s</string>
 
     <!-- Masukan -->
     <string name="feedback_eyebrow">Bantu bentuk Madsaz</string>
@@ -218,21 +192,15 @@
     <string name="feedback_topic_usability">Kemudahan</string>
     <string name="feedback_topic_other">Lainnya</string>
     <string name="feedback_note_prompt">Ceritakan apa yang bisa membuat Madsaz lebih baik</string>
-    <string name="feedback_note_hint">Tulis catatan Anda di sini...</string>
+    <string name="feedback_note_hint">Tulis catatan Anda di sini…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Kirim masukan</string>
-    <string name="feedback_sending">Mengirim...</string>
+    <string name="feedback_sending">Mengirim…</string>
 
     <!-- Notifikasi -->
     <string name="notifications_title">Notifikasi</string>
-    <string name="notifications_heading">Pengingat paket</string>
-    <string name="notifications_body">Kami mengingatkan saat paket Plus yang tidak diperpanjang otomatis mendekati akhir masa aktifnya.</string>
     <string name="notifications_status_unconfigured">Firebase belum dikonfigurasi pada APK ini.</string>
-    <string name="notifications_status_on">Pengingat aktif di perangkat ini.</string>
-    <string name="notifications_status_off">Pengingat belum aktif di perangkat ini.</string>
     <string name="notifications_open_settings">Buka pengaturan notifikasi</string>
-    <string name="notifications_disable">Matikan pengingat</string>
-    <string name="notifications_enable">Aktifkan pengingat</string>
     <string name="notifications_permission_denied">Izinkan notifikasi agar pengingat dapat ditampilkan.</string>
 
     <!-- Petunjuk tangisan -->
@@ -310,6 +278,29 @@
     <string name="error_billing_failed">Pembayaran gagal.</string>
     <string name="error_billing_server">Pembayaran belum dapat diproses saat ini. Coba lagi nanti.</string>
     <string name="error_purchase_other_account">Langganan ini terhubung ke akun Madsaz lain.</string>
-    <string name="error_name_required">Nama bayi wajib diisi.</string>
-    <string name="error_weight_invalid">Berat harus berupa angka, mis. 7,5.</string>
+    <string name="history_today">Hari ini</string>
+    <string name="history_yesterday">Kemarin</string>
+    <string name="history_processing">Sedang diproses</string>
+    <string name="history_analysis_unavailable">Hasil analisis belum tersedia</string>
+    <string name="home_result_with_confidence">%1$s · %2$s keyakinan</string>
+    <string name="home_confidence_chip">%1$s keyakinan</string>
+    <string name="error_name_invalid">Nama harus berisi 1–80 karakter.</string>
+    <string name="profile_badge_account">A</string>
+    <string name="profile_badge_language">B</string>
+    <string name="profile_account_row_title">Profil akun</string>
+    <string name="profile_account_row_subtitle">Nama, email, dan foto</string>
+    <string name="profile_language_title">Bahasa</string>
+    <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
+    <string name="profile_change_photo">Ganti foto</string>
+    <string name="profile_tap_photo">Ketuk foto untuk mengganti</string>
+    <string name="profile_field_name">Nama</string>
+    <string name="profile_field_email">Email</string>
+    <string name="profile_photo_unreadable">Foto tidak dapat dibaca.</string>
+    <string name="profile_photo_too_large">Foto terlalu besar.</string>
+    <string name="language_title">Bahasa</string>
+    <string name="privacy_version">Versi %1$s</string>
+    <string name="privacy_draft_notice">Kebijakan ini masih berupa draf.</string>
+    <string name="notifications_plan_reminders">Pengingat paket</string>
+    <string name="result_analysis_title">Hasil analisis</string>
+    <string name="result_advice_title">Saran</string>
 </resources>

@@ -1,5 +1,6 @@
 package id.madsaz.app
 
+import android.Manifest
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assume.assumeTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +29,12 @@ class AuthFlowTest {
     val compose = createAndroidComposeRule<MainActivity>()
 
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+
+    // Build ini berisi google-services.json, jadi setelah masuk app meminta izin notifikasi; dialog sistem itu akan menutupi UI yang diuji.
+    @Before
+    fun grantNotificationPermission() {
+        InstrumentationRegistry.getInstrumentation().uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     private fun AndroidComposeTestRule<*, *>.waitForTag(tag: String, timeoutMs: Long = 20_000) =
         waitUntil(timeoutMs) { onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }

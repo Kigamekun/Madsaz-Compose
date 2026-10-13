@@ -9,6 +9,7 @@ import id.madsaz.app.data.remote.ApiClient
 import id.madsaz.app.data.remote.AuthApi
 import id.madsaz.app.data.remote.NotificationApi
 import id.madsaz.app.data.remote.PlanApi
+import id.madsaz.app.data.remote.PolicyApi
 import id.madsaz.app.data.remote.ProfileApi
 import id.madsaz.app.data.remote.RecordingApi
 import id.madsaz.app.data.remote.SessionManager
@@ -28,6 +29,7 @@ class AppContainer(context: Context) {
     val recordingApi = RecordingApi(api)
     val planApi = PlanApi(api)
     val profileApi = ProfileApi(api)
+    val policyApi = PolicyApi(api)
     /** Satu BillingClient untuk seluruh aplikasi; baru dibuat saat pengguna yang masuk membutuhkannya. */
     val billing by lazy { PlayBilling(appContext, planApi) }
     val fcmRegistration = FcmRegistration(appContext, NotificationApi(api))

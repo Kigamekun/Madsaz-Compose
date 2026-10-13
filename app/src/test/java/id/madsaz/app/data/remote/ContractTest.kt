@@ -8,7 +8,6 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
-import java.time.LocalDate
 
 /** Parser mengikuti kontrak BE secara ketat: bentuk yang menyimpang gagal keras, tidak ditebak. */
 class ContractTest {
@@ -17,7 +16,7 @@ class ContractTest {
     @After
     fun tearDown() = server.close()
 
-    private fun recordings() = RecordingApi(ApiClient(server.baseUrl))
+    private fun recordings() = RecordingApi(ApiClient(server.baseUrl), videoDimensions = { null })
 
     private fun recordingJson(
         status: String = "completed",
@@ -101,30 +100,28 @@ class ContractTest {
     }
 
     @Test
-    fun `baby profile keeps null birth date and weight and parses the date once`() {
+    fun `account profile keeps a missing avatar as null and rejects a missing field`() {
         val api = ProfileApi(ApiClient(server.baseUrl))
-        server.on("GET", "/profile/baby") { Response(200, """{"data":{"id":"b","name":"Pandu","birthDate":"2026-01-31","weightKg":6.8}}""") }
-        assertEquals(LocalDate.of(2026, 1, 31), api.getBabyProfile().birthDate)
-        assertEquals(6.8, api.getBabyProfile().weightKg ?: 0.0, 0.0)
+        server.on("GET", "/profile") {
+            Response(200, """{"data":{"id":"u","email":"a@b.test","name":"Pandu","role":"user","avatarUrl":"https://storage.test/a.jpg"}}""")
+        }
+        assertEquals(AccountProfile("u", "Pandu", "a@b.test", "https://storage.test/a.jpg"), api.get())
 
-        server.on("GET", "/profile/baby") { Response(200, """{"data":{"id":"b","name":"Pandu","birthDate":null,"weightKg":null}}""") }
-        val empty = api.getBabyProfile()
-        assertNull(empty.birthDate)
-        assertNull(empty.weightKg)
+        server.on("GET", "/profile") { Response(200, """{"data":{"id":"u","email":"a@b.test","name":"Pandu","role":"user","avatarUrl":null}}""") }
+        assertNull(api.get().avatarUrl)
 
-        server.on("GET", "/profile/baby") { Response(200, """{"data":{"id":"b","name":"Pandu","birthDate":"31/01/2026","weightKg":null}}""") }
-        assertThrows(java.time.format.DateTimeParseException::class.java) { api.getBabyProfile() }
+        server.on("GET", "/profile") { Response(200, """{"data":{"id":"u","name":"Pandu","role":"user","avatarUrl":null}}""") }
+        assertThrows(ContractException::class.java) { api.get() }
     }
 
     @Test
-    fun `updating the profile sends explicit nulls because PUT replaces the whole profile`() {
+    fun `updating the name sends only the name`() {
         val api = ProfileApi(ApiClient(server.baseUrl))
-        server.on("PUT", "/profile/baby") { Response(200, """{"data":{"id":"b","name":"Pandu","birthDate":null,"weightKg":null}}""") }
+        server.on("PUT", "/profile") { Response(200, """{"data":{"id":"u","email":"a@b.test","name":"Budi","role":"user","avatarUrl":null}}""") }
 
-        api.updateBabyProfile("Pandu", birthDate = null, weightKg = null)
+        assertEquals("Budi", api.updateName("Budi").name)
 
-        val body = server.requests.single().body
-        assertTrue(body, body.contains(""""birthDate":null""") && body.contains(""""weightKg":null"""))
+        assertEquals("""{"name":"Budi"}""", server.requests.single().body)
     }
 
     @Test

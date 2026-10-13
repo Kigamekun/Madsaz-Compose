@@ -12,21 +12,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -36,9 +36,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +49,6 @@ import id.madsaz.app.BuildConfig
 import id.madsaz.app.R
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.AppBackground
-import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 import id.madsaz.app.ui.userMessageRes
@@ -74,6 +75,16 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
         }
     }
 
+    fun setEnabled(checked: Boolean) {
+        if (!checked) {
+            viewModel.disable()
+        } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.enable()
+        }
+    }
+
     Scaffold(
         containerColor = AppBackground,
         topBar = {
@@ -90,20 +101,22 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item { Text(stringResource(R.string.notifications_heading), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                item { Text(stringResource(R.string.notifications_body), color = MutedInk) }
                 item {
-                    Text(
-                        stringResource(
-                            when {
-                                !viewModel.configured -> R.string.notifications_status_unconfigured
-                                state.enabled -> R.string.notifications_status_on
-                                else -> R.string.notifications_status_off
-                            },
+                    Row(
+                        modifier = Modifier.fillMaxWidth().toggleable(
+                            value = state.enabled,
+                            enabled = viewModel.configured && !state.busy,
+                            role = Role.Switch,
+                            onValueChange = ::setEnabled,
                         ),
-                        color = Ink,
-                    )
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(stringResource(R.string.notifications_plan_reminders), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                        Switch(checked = state.enabled, onCheckedChange = null, enabled = viewModel.configured && !state.busy)
+                    }
                 }
+                if (!viewModel.configured) item { Text(stringResource(R.string.notifications_status_unconfigured), color = MutedInk) }
                 if (BuildConfig.DEBUG && viewModel.configured) item {
                     OutlinedButton(
                         onClick = {
@@ -136,23 +149,6 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.notifications_open_settings)) }
-                }
-                item {
-                    if (state.busy) CircularProgressIndicator()
-                    else if (state.enabled) OutlinedButton(
-                        onClick = viewModel::disable,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.notifications_disable)) }
-                    else Button(
-                        onClick = {
-                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                                permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else viewModel.enable()
-                        },
-                        enabled = viewModel.configured,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-                    ) { Text(stringResource(R.string.notifications_enable)) }
                 }
             }
         }

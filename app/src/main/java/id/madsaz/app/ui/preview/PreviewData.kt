@@ -21,6 +21,8 @@ object PreviewData {
             CryScore("Heh", "Tidak nyaman", 0.05),
             CryScore("Eairh", "Perut tidak nyaman", 0.03),
         ),
+        videoWidth = 1080,
+        videoHeight = 1920,
     )
 
     val recordings = listOf(
@@ -35,6 +37,8 @@ object PreviewData {
             solution = null,
             source = null,
             scores = emptyList(),
+            videoWidth = null,
+            videoHeight = null,
         ),
         RecordingItem(
             id = "f33d1075-5369-80d1-2a58-44b86b500c23",
@@ -46,6 +50,8 @@ object PreviewData {
             solution = null,
             source = null,
             scores = emptyList(),
+            videoWidth = null,
+            videoHeight = null,
         ),
     )
 }

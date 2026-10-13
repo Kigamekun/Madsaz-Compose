@@ -7,7 +7,6 @@
     <string name="common_back">Back</string>
     <string name="common_retry">Try again</string>
     <string name="common_cancel">Cancel</string>
-    <string name="common_delete">Delete</string>
     <string name="common_close">Close</string>
 
     <!-- Navigation and header -->
@@ -53,7 +52,6 @@
     <string name="home_recent_empty_title">No recordings yet</string>
     <string name="home_recent_error_title">History couldn\'t be loaded</string>
     <string name="home_recorded_at">Recorded at %1$s</string>
-    <string name="home_duration">Duration %1$s</string>
 
     <!-- History -->
     <string name="history_title">Recording history</string>
@@ -64,8 +62,6 @@
     </plurals>
     <string name="history_empty_title">Your history is empty</string>
     <string name="history_empty_body">Make your first recording to see the analysis here.</string>
-    <string name="history_delete_recording">Delete recording</string>
-    <string name="history_delete_confirmation">The video %1$s will be permanently deleted from the server, along with its result and feedback.</string>
     <string name="history_open_recording">Open recording</string>
     <string name="status_processing">Processing</string>
     <string name="status_completed">Completed</string>
@@ -93,8 +89,8 @@
     <!-- Analysis result -->
     <string name="analysis_saving_title">Saving your recording</string>
     <string name="analysis_saving_body">Please keep this page open for a moment.</string>
-    <string name="analysis_running_title">Uploading your recording</string>
-    <string name="analysis_running_body">The video is being sent to the server.</string>
+    <string name="analysis_running_title">Uploading your video</string>
+    <string name="analysis_running_body">Please wait.</string>
     <string name="analysis_disclaimer">This result is not a medical diagnosis. Contact a healthcare professional if you are concerned about your baby\'s condition.</string>
     <string name="result_loading_title">Loading the result</string>
     <string name="result_loading_body">Just a moment.</string>
@@ -108,7 +104,7 @@
     <string name="result_what_to_try">What you can try</string>
     <string name="result_mock_note">Sample result for testing; not analysed from the recorded sound.</string>
     <string name="result_feedback">Feedback</string>
-    <string name="result_log_title">Recording log</string>
+    <string name="result_log_title">Recording history</string>
     <string name="result_log_failed">Analysis failed. The video is still saved.</string>
     <string name="result_log_pending">Video saved. The analysis isn\'t available yet.</string>
     <string name="result_play">Play recording</string>
@@ -148,7 +144,7 @@
     <string name="plan_best_value">Best value</string>
     <string name="plan_flexible">Flexible</string>
     <string name="plan_save_badge">SAVE %1$s</string>
-    <string name="plan_price_unavailable">Price unavailable</string>
+    <string name="plan_price_unavailable">Price available in Google Play</string>
     <string name="plan_manage">Manage subscription in Google Play</string>
     <string name="plan_plus_active">Madsaz Plus is active</string>
     <string name="plan_plus_renews">Renews automatically on %1$s</string>
@@ -157,22 +153,15 @@
     <string name="plan_cancel_anytime">Cancel anytime. Your free plan stays available.</string>
 
     <!-- Profile -->
-    <string name="profile_badge_baby">B</string>
     <string name="profile_badge_notifications">N</string>
     <string name="profile_badge_privacy">P</string>
-    <string name="profile_badge_feedback">S</string>
     <string name="profile_badge_logout">L</string>
     <string name="profile_badge_delete">D</string>
     <string name="profile_account">Account</string>
-    <string name="profile_baby_row_title">Baby profile</string>
-    <string name="profile_baby_row_subtitle">Update %1$s\'s details</string>
-    <string name="profile_baby_row_subtitle_generic">Update baby\'s details</string>
     <string name="profile_plus_subtitle">Manage your plan</string>
     <string name="profile_notifications_subtitle">Gentle reminders</string>
-    <string name="profile_privacy_title">Privacy and data</string>
-    <string name="profile_privacy_subtitle">Control your recordings</string>
-    <string name="profile_feedback_title">Share feedback</string>
-    <string name="profile_feedback_subtitle">Help us improve</string>
+    <string name="profile_privacy_title">Privacy policy</string>
+    <string name="profile_privacy_subtitle">How your data is handled</string>
     <string name="profile_logout_title">Log out</string>
     <string name="profile_logout_subtitle">See you soon</string>
     <string name="profile_delete_title">Delete account</string>
@@ -187,23 +176,7 @@
     </plurals>
     <string name="profile_your_profile">Your profile</string>
     <string name="profile_edit">Edit</string>
-    <string name="profile_not_analyzed">Not analyzed yet</string>
-    <string name="profile_last_analyzed">Last analyzed: %1$s</string>
-    <plurals name="profile_age_months">
-        <item quantity="one">%d month</item>
-        <item quantity="other">%d months</item>
-    </plurals>
-    <string name="profile_weight_kg">%1$s kg</string>
-    <string name="profile_sheet_subtitle">Update your baby\'s details</string>
-    <string name="profile_field_baby_name">Baby name</string>
-    <string name="profile_field_birth_date">Birth date (dd/mm/yyyy)</string>
-    <string name="profile_field_weight">Weight (kg)</string>
     <string name="profile_save">Save changes</string>
-    <string name="date_unit_day">day</string>
-    <string name="date_unit_month">month</string>
-    <string name="date_unit_year">year</string>
-    <string name="date_increase">Increase %1$s</string>
-    <string name="date_decrease">Decrease %1$s</string>
 
     <!-- Feedback -->
     <string name="feedback_eyebrow">Help shape Madsaz</string>
@@ -218,21 +191,15 @@
     <string name="feedback_topic_usability">Usability</string>
     <string name="feedback_topic_other">Something else</string>
     <string name="feedback_note_prompt">Tell us what would make Madsaz better</string>
-    <string name="feedback_note_hint">Your note goes here...</string>
+    <string name="feedback_note_hint">Your note goes here…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Send feedback</string>
-    <string name="feedback_sending">Sending...</string>
+    <string name="feedback_sending">Sending…</string>
 
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
-    <string name="notifications_heading">Plan reminders</string>
-    <string name="notifications_body">We remind you when a Plus plan that doesn\'t renew automatically is nearing the end of its term.</string>
     <string name="notifications_status_unconfigured">Firebase isn\'t configured in this build.</string>
-    <string name="notifications_status_on">Reminders are on for this device.</string>
-    <string name="notifications_status_off">Reminders are off for this device.</string>
     <string name="notifications_open_settings">Open notification settings</string>
-    <string name="notifications_disable">Turn off reminders</string>
-    <string name="notifications_enable">Turn on reminders</string>
     <string name="notifications_permission_denied">Allow notifications so reminders can be shown.</string>
 
     <!-- Cry cues -->
@@ -310,6 +277,29 @@
     <string name="error_billing_failed">The payment failed.</string>
     <string name="error_billing_server">We can’t process payments right now. Please try again later.</string>
     <string name="error_purchase_other_account">This subscription is linked to another Madsaz account.</string>
-    <string name="error_name_required">The baby\'s name is required.</string>
-    <string name="error_weight_invalid">Weight must be a number, e.g. 7.5.</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="history_processing">Processing</string>
+    <string name="history_analysis_unavailable">Analysis unavailable</string>
+    <string name="home_result_with_confidence">%1$s · %2$s confidence</string>
+    <string name="home_confidence_chip">%1$s confidence</string>
+    <string name="error_name_invalid">The name must be 1–80 characters.</string>
+    <string name="profile_badge_account">A</string>
+    <string name="profile_badge_language">G</string>
+    <string name="profile_account_row_title">Account profile</string>
+    <string name="profile_account_row_subtitle">Name, email and photo</string>
+    <string name="profile_language_title">Language</string>
+    <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
+    <string name="profile_change_photo">Change photo</string>
+    <string name="profile_tap_photo">Tap the photo to change it</string>
+    <string name="profile_field_name">Name</string>
+    <string name="profile_field_email">Email</string>
+    <string name="profile_photo_unreadable">The photo couldn’t be read.</string>
+    <string name="profile_photo_too_large">The photo is too large.</string>
+    <string name="language_title">Language</string>
+    <string name="privacy_version">Version %1$s</string>
+    <string name="privacy_draft_notice">This policy is still a draft.</string>
+    <string name="notifications_plan_reminders">Plan reminders</string>
+    <string name="result_analysis_title">Analysis result</string>
+    <string name="result_advice_title">Advice</string>
 </resources>

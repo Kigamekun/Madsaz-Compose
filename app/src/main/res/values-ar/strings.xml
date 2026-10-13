@@ -7,7 +7,6 @@
     <string name="common_back">رجوع</string>
     <string name="common_retry">حاول مرة أخرى</string>
     <string name="common_cancel">إلغاء</string>
-    <string name="common_delete">حذف</string>
     <string name="common_close">إغلاق</string>
 
     <!-- التنقل والترويسة -->
@@ -53,7 +52,6 @@
     <string name="home_recent_empty_title">لا توجد تسجيلات بعد</string>
     <string name="home_recent_error_title">تعذّر تحميل السجل</string>
     <string name="home_recorded_at">تم التسجيل في %1$s</string>
-    <string name="home_duration">المدة %1$s</string>
 
     <!-- السجل -->
     <string name="history_title">سجل التسجيلات</string>
@@ -68,8 +66,6 @@
     </plurals>
     <string name="history_empty_title">السجل فارغ</string>
     <string name="history_empty_body">ابدأ أول تسجيل لتظهر نتيجة التحليل هنا.</string>
-    <string name="history_delete_recording">حذف التسجيل</string>
-    <string name="history_delete_confirmation">سيُحذف الفيديو %1$s نهائيًا من الخادم مع نتيجته وملاحظاته.</string>
     <string name="history_open_recording">فتح التسجيل</string>
     <string name="status_processing">قيد المعالجة</string>
     <string name="status_completed">مكتمل</string>
@@ -97,8 +93,8 @@
     <!-- نتيجة التحليل -->
     <string name="analysis_saving_title">جارٍ حفظ التسجيل</string>
     <string name="analysis_saving_body">يرجى إبقاء هذه الصفحة مفتوحة لحظة.</string>
-    <string name="analysis_running_title">جارٍ رفع التسجيل</string>
-    <string name="analysis_running_body">يتم إرسال الفيديو إلى الخادم.</string>
+    <string name="analysis_running_title">جارٍ رفع الفيديو</string>
+    <string name="analysis_running_body">يُرجى الانتظار.</string>
     <string name="analysis_disclaimer">هذه النتيجة ليست تشخيصًا طبيًا. استشر مختصًا صحيًا إذا كنت قلقًا بشأن حالة طفلك.</string>
     <string name="result_loading_title">جارٍ تحميل النتيجة</string>
     <string name="result_loading_body">لحظة من فضلك.</string>
@@ -112,7 +108,7 @@
     <string name="result_what_to_try">ما يمكنك تجربته</string>
     <string name="result_mock_note">نتيجة تجريبية للاختبار؛ لم تُحلَّل من صوت التسجيل.</string>
     <string name="result_feedback">ملاحظات</string>
-    <string name="result_log_title">سجل التسجيل</string>
+    <string name="result_log_title">سجل التسجيلات</string>
     <string name="result_log_failed">فشل التحليل. الفيديو ما زال محفوظًا.</string>
     <string name="result_log_pending">تم حفظ الفيديو. التحليل غير متاح بعد.</string>
     <string name="result_play">تشغيل التسجيل</string>
@@ -164,7 +160,7 @@
     <string name="plan_best_value">الأفضل قيمة</string>
     <string name="plan_flexible">مرن</string>
     <string name="plan_save_badge">وفّر %1$s</string>
-    <string name="plan_price_unavailable">السعر غير متاح</string>
+    <string name="plan_price_unavailable">السعر متاح في Google Play</string>
     <string name="plan_manage">إدارة الاشتراك في Google Play</string>
     <string name="plan_plus_active">Madsaz Plus مفعّل</string>
     <string name="plan_plus_renews">يتجدد تلقائيًا في %1$s</string>
@@ -173,22 +169,15 @@
     <string name="plan_cancel_anytime">يمكنك الإلغاء في أي وقت. تبقى باقتك المجانية متاحة.</string>
 
     <!-- الملف الشخصي -->
-    <string name="profile_badge_baby">م</string>
     <string name="profile_badge_notifications">إ</string>
     <string name="profile_badge_privacy">خ</string>
-    <string name="profile_badge_feedback">ش</string>
     <string name="profile_badge_logout">ت</string>
     <string name="profile_badge_delete">ح</string>
     <string name="profile_account">الحساب</string>
-    <string name="profile_baby_row_title">ملف الطفل</string>
-    <string name="profile_baby_row_subtitle">تحديث بيانات %1$s</string>
-    <string name="profile_baby_row_subtitle_generic">تحديث بيانات الطفل</string>
     <string name="profile_plus_subtitle">إدارة باقتك</string>
     <string name="profile_notifications_subtitle">تذكيرات لطيفة</string>
-    <string name="profile_privacy_title">الخصوصية والبيانات</string>
-    <string name="profile_privacy_subtitle">تحكّم في تسجيلاتك</string>
-    <string name="profile_feedback_title">شارك ملاحظاتك</string>
-    <string name="profile_feedback_subtitle">ساعدنا على التحسّن</string>
+    <string name="profile_privacy_title">سياسة الخصوصية</string>
+    <string name="profile_privacy_subtitle">كيف نتعامل مع بياناتك</string>
     <string name="profile_logout_title">تسجيل الخروج</string>
     <string name="profile_logout_subtitle">إلى اللقاء</string>
     <string name="profile_delete_title">حذف الحساب</string>
@@ -207,27 +196,7 @@
     </plurals>
     <string name="profile_your_profile">ملفك الشخصي</string>
     <string name="profile_edit">تعديل</string>
-    <string name="profile_not_analyzed">لم يُحلَّل بعد</string>
-    <string name="profile_last_analyzed">آخر تحليل: %1$s</string>
-    <plurals name="profile_age_months">
-        <item quantity="zero">أقل من شهر</item>
-        <item quantity="one">شهر واحد</item>
-        <item quantity="two">شهران</item>
-        <item quantity="few">%d أشهر</item>
-        <item quantity="many">%d شهرًا</item>
-        <item quantity="other">%d شهر</item>
-    </plurals>
-    <string name="profile_weight_kg">%1$s كغ</string>
-    <string name="profile_sheet_subtitle">حدّث بيانات طفلك</string>
-    <string name="profile_field_baby_name">اسم الطفل</string>
-    <string name="profile_field_birth_date">تاريخ الميلاد (يوم/شهر/سنة)</string>
-    <string name="profile_field_weight">الوزن (كغ)</string>
     <string name="profile_save">حفظ التغييرات</string>
-    <string name="date_unit_day">اليوم</string>
-    <string name="date_unit_month">الشهر</string>
-    <string name="date_unit_year">السنة</string>
-    <string name="date_increase">زيادة %1$s</string>
-    <string name="date_decrease">إنقاص %1$s</string>
 
     <!-- الملاحظات -->
     <string name="feedback_eyebrow">ساعد في تشكيل Madsaz</string>
@@ -242,21 +211,15 @@
     <string name="feedback_topic_usability">سهولة الاستخدام</string>
     <string name="feedback_topic_other">شيء آخر</string>
     <string name="feedback_note_prompt">أخبرنا ما الذي يجعل Madsaz أفضل</string>
-    <string name="feedback_note_hint">اكتب ملاحظتك هنا...</string>
+    <string name="feedback_note_hint">اكتب ملاحظتك هنا…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">إرسال الملاحظات</string>
-    <string name="feedback_sending">جارٍ الإرسال...</string>
+    <string name="feedback_sending">جارٍ الإرسال…</string>
 
     <!-- الإشعارات -->
     <string name="notifications_title">الإشعارات</string>
-    <string name="notifications_heading">تذكيرات الباقة</string>
-    <string name="notifications_body">نذكّرك عندما تقترب باقة Plus غير المتجددة تلقائيًا من نهاية مدتها.</string>
     <string name="notifications_status_unconfigured">لم يتم إعداد Firebase في هذا الإصدار.</string>
-    <string name="notifications_status_on">التذكيرات مفعّلة على هذا الجهاز.</string>
-    <string name="notifications_status_off">التذكيرات غير مفعّلة على هذا الجهاز.</string>
     <string name="notifications_open_settings">فتح إعدادات الإشعارات</string>
-    <string name="notifications_disable">إيقاف التذكيرات</string>
-    <string name="notifications_enable">تفعيل التذكيرات</string>
     <string name="notifications_permission_denied">اسمح بالإشعارات ليتمكن التطبيق من عرض التذكيرات.</string>
 
     <!-- إشارات البكاء -->
@@ -334,6 +297,29 @@
     <string name="error_billing_failed">فشلت عملية الدفع.</string>
     <string name="error_billing_server">تعذّرت معالجة الدفع حاليًا. حاول مرة أخرى لاحقًا.</string>
     <string name="error_purchase_other_account">هذا الاشتراك مرتبط بحساب Madsaz آخر.</string>
-    <string name="error_name_required">اسم الطفل مطلوب.</string>
-    <string name="error_weight_invalid">يجب أن يكون الوزن رقمًا، مثل 7.5.</string>
+    <string name="history_today">اليوم</string>
+    <string name="history_yesterday">أمس</string>
+    <string name="history_processing">قيد المعالجة</string>
+    <string name="history_analysis_unavailable">نتيجة التحليل غير متاحة بعد</string>
+    <string name="home_result_with_confidence">%1$s · ثقة %2$s</string>
+    <string name="home_confidence_chip">ثقة %1$s</string>
+    <string name="error_name_invalid">يجب أن يتكوّن الاسم من 1 إلى 80 حرفًا.</string>
+    <string name="profile_badge_account">م</string>
+    <string name="profile_badge_language">ل</string>
+    <string name="profile_account_row_title">ملف الحساب</string>
+    <string name="profile_account_row_subtitle">الاسم والبريد الإلكتروني والصورة</string>
+    <string name="profile_language_title">اللغة</string>
+    <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
+    <string name="profile_change_photo">تغيير الصورة</string>
+    <string name="profile_tap_photo">المس الصورة لتغييرها</string>
+    <string name="profile_field_name">الاسم</string>
+    <string name="profile_field_email">البريد الإلكتروني</string>
+    <string name="profile_photo_unreadable">تعذّرت قراءة الصورة.</string>
+    <string name="profile_photo_too_large">الصورة كبيرة جدًا.</string>
+    <string name="language_title">اللغة</string>
+    <string name="privacy_version">الإصدار %1$s</string>
+    <string name="privacy_draft_notice">لا تزال هذه السياسة مسودة.</string>
+    <string name="notifications_plan_reminders">تذكيرات الباقة</string>
+    <string name="result_analysis_title">نتيجة التحليل</string>
+    <string name="result_advice_title">نصيحة</string>
 </resources>

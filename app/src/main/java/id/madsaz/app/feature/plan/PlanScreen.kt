@@ -8,7 +8,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -109,7 +109,6 @@ fun PlanScreen(
                 onExplorePlus = { showSubscription = true },
                 onContinue = onBack,
                 onRetry = onRetry,
-                onBack = onBack,
             )
             else -> Unit
         }
@@ -140,7 +139,6 @@ private fun FreePlanContent(
     onExplorePlus: () -> Unit,
     onContinue: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White),
@@ -149,9 +147,6 @@ private fun FreePlanContent(
     ) {
         item {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
-                }
                 Text(stringResource(R.string.plan_title), color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
             }
@@ -227,14 +222,22 @@ private fun FreePlanContent(
             ) { Text(stringResource(R.string.plan_explore_plus), fontWeight = FontWeight.SemiBold) }
         }
         item {
-            Text(
-                stringResource(R.string.plan_continue_free),
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onContinue).padding(top = 24.dp, bottom = 12.dp),
-                color = BrandBlueDark,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
+            Surface(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = Color.Transparent,
+            ) {
+                Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        stringResource(R.string.plan_continue_free),
+                        color = BrandBlueDark,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
             Text(
                 stringResource(R.string.plan_limit_reset),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
@@ -285,7 +288,7 @@ private fun SubscriptionContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(AppBackground),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 28.dp),
+        contentPadding = PaddingValues(bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item {
@@ -293,8 +296,12 @@ private fun SubscriptionContent(
                 Image(
                     painter = painterResource(R.drawable.madsaz_home_photo),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().height(252.dp),
+                    modifier = Modifier.fillMaxWidth().height(252.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
                     contentScale = ContentScale.Crop,
+                )
+                Box(
+                    Modifier.align(Alignment.TopStart).padding(top = 140.dp).fillMaxWidth().height(116.dp)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x14F8F9FF), AppBackground, AppBackground))),
                 )
                 Surface(
                     modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 8.dp, top = 8.dp),
@@ -304,24 +311,31 @@ private fun SubscriptionContent(
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
                     }
                 }
-                Box(
-                    Modifier.align(Alignment.BottomStart).fillMaxWidth().height(116.dp)
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, AppBackground))),
-                )
                 Surface(
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = 166.dp).fillMaxWidth().height(158.dp),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 166.dp).padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(28.dp),
                     color = BrandBlue,
                 ) {
-                    Box(Modifier.fillMaxSize()) {
-                        Column(Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp)) {
-                            Text(stringResource(R.string.plan_plus_brand), color = Color.White, fontSize = 12.sp)
-                            Text(stringResource(R.string.plan_plus_tagline), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                            listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { item ->
-                                Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Box(Modifier.size(9.dp).background(Color.White, CircleShape))
-                                    Text(stringResource(item), color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
-                                }
+                    Column(Modifier.fillMaxWidth().padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 12.dp)) {
+                        Text(stringResource(R.string.plan_plus_brand), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.plan_plus_tagline),
+                            color = Color.White,
+                            fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 5.dp),
+                        )
+                        listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { benefit ->
+                            Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(9.dp).background(Color.White, CircleShape))
+                                Text(
+                                    stringResource(benefit),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(start = 10.dp),
+                                )
                             }
                         }
                     }
@@ -335,7 +349,7 @@ private fun SubscriptionContent(
             item {
                 Text(
                     stringResource(R.string.plan_choose),
-                    modifier = Modifier.padding(top = 20.dp, bottom = 16.dp),
+                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 16.dp),
                     color = Color(0xFF0B2A2D),
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 19.sp,
@@ -344,7 +358,7 @@ private fun SubscriptionContent(
             }
             item {
                 val savings = state.yearlySavingsPercent
-                PlanOption(
+                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
                     title = stringResource(R.string.plan_yearly),
                     price = state.prices[PlanInterval.YEARLY]?.formatted,
                     // "Paling hemat" dan badge hanya bila harga Play memang lebih murah daripada 12 bulan paket bulanan.
@@ -352,22 +366,22 @@ private fun SubscriptionContent(
                     badge = savings?.let { stringResource(R.string.plan_save_badge, NumberFormat.getPercentInstance().format(it / 100.0)) },
                     selected = selectedPlan == PlanInterval.YEARLY,
                     onClick = { onSelectPlan(PlanInterval.YEARLY) },
-                )
+                ) }
             }
             item { Spacer(Modifier.height(14.dp)) }
             item {
-                PlanOption(
+                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
                     title = stringResource(R.string.plan_monthly),
                     price = state.prices[PlanInterval.MONTHLY]?.formatted,
                     helper = stringResource(R.string.plan_flexible),
                     selected = selectedPlan == PlanInterval.MONTHLY,
                     onClick = { onSelectPlan(PlanInterval.MONTHLY) },
-                )
+                ) }
             }
         }
         if (state.errorRes != null) {
             item {
-                Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(stringResource(state.errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                 }
@@ -377,7 +391,7 @@ private fun SubscriptionContent(
             if (isPlus) {
                 Button(
                     onClick = onManage,
-                    modifier = Modifier.fillMaxWidth().padding(top = 28.dp).height(52.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) { Text(stringResource(R.string.plan_manage)) }
@@ -385,7 +399,7 @@ private fun SubscriptionContent(
                 Button(
                     onClick = onPurchase,
                     enabled = state.purchaseEnabled && selectedPrice != null && !state.purchasing,
-                    modifier = Modifier.fillMaxWidth().padding(top = 28.dp).height(52.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) {
@@ -397,7 +411,7 @@ private fun SubscriptionContent(
         item {
             Text(
                 stringResource(R.string.plan_cancel_anytime),
-                modifier = Modifier.fillMaxWidth().padding(top = 28.dp, bottom = 20.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
                 color = MutedInk,
                 fontSize = 10.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -410,7 +424,7 @@ private fun SubscriptionContent(
 private fun PlusStatus(plus: PlanStatus.Plus) {
     val date = formatDate(plus.expiresAt.toEpochMilli())
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 20.dp),
         shape = RoundedCornerShape(22.dp),
         color = Color.White,
         border = BorderStroke(1.dp, Border),
@@ -450,7 +464,7 @@ private fun PlanOption(
             Column(Modifier.weight(1f)) {
                 Text(title, color = if (selected) Color.White else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 Text(price ?: stringResource(R.string.plan_price_unavailable), color = if (selected) Color.White else Ink,
-                    fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
+                    fontSize = if (price == null) 12.sp else 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 6.dp))
             }
             Column(horizontalAlignment = Alignment.End) {

@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 sealed interface HistoryUiState {
     data object Loading : HistoryUiState
 
-    /** [noticeRes] adalah kegagalan sesaat (refresh atau hapus) yang tidak boleh menghapus daftar yang sudah tampil. */
+    /** [noticeRes] adalah kegagalan refresh sesaat yang tidak boleh menghapus daftar yang sudah tampil. */
     data class Content(val recordings: List<RecordingItem>, @StringRes val noticeRes: Int? = null) : HistoryUiState {
         val totalBytes: Long = recordings.sumOf(RecordingItem::sizeBytes)
     }
@@ -45,20 +45,6 @@ class HistoryViewModel(private val api: RecordingApi) : ViewModel() {
                 throw error
             } catch (error: Exception) {
                 shown?.copy(noticeRes = error.userMessageRes()) ?: HistoryUiState.Error(error.userMessageRes())
-            }
-        }
-    }
-
-    fun delete(recording: RecordingItem) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) { api.delete(recording.id) }
-                refresh()
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                val shown = uiState as? HistoryUiState.Content ?: return@launch
-                uiState = shown.copy(noticeRes = error.userMessageRes())
             }
         }
     }

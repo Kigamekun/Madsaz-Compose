@@ -2,6 +2,7 @@ package id.madsaz.app.data.remote
 
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -78,5 +79,27 @@ class ApiClient(private val baseUrl: String, private val credentials: Credential
     companion object {
         const val CONNECT_TIMEOUT_MS = 10_000
         const val READ_TIMEOUT_MS = 20_000
+    }
+}
+
+/**
+ * PUT ke URL pra-tanda-tangan penyimpanan objek (bukan API Madsaz): tanpa Authorization dan tanpa retry 401.
+ * [write] menulis tepat [length] byte ke body.
+ */
+internal fun putToStorage(url: String, contentType: String, length: Long, readTimeoutMs: Int, write: (OutputStream) -> Unit) {
+    val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+        requestMethod = "PUT"
+        doOutput = true
+        connectTimeout = ApiClient.CONNECT_TIMEOUT_MS
+        readTimeout = readTimeoutMs
+        setFixedLengthStreamingMode(length)
+        setRequestProperty("Content-Type", contentType)
+    }
+    try {
+        connection.outputStream.use(write)
+        val status = connection.responseCode
+        if (status !in 200..299) throw ApiException(status, "storage_rejected", "Upload rejected with HTTP $status")
+    } finally {
+        connection.disconnect()
     }
 }

@@ -28,4 +28,7 @@ data class RecordingItem(
     val source: String?,
     /** Kosong selama BE belum punya hasil analisis (scores null). */
     val scores: List<CryScore>,
+    /** Ukuran tampilan video setelah rotasi; null untuk rekaman tanpa ukuran. */
+    val videoWidth: Int?,
+    val videoHeight: Int?,
 )

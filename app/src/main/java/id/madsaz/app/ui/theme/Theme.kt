@@ -67,15 +67,15 @@ private val MadsazTypography = Typography(
         platformStyle = PlatformTextStyle(includeFontPadding = false),
     ),
     headlineMedium = TextStyle(
-        fontFamily = FredokaBold,
-        fontWeight = FontWeight.Bold,
+        fontFamily = Fredoka,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         platformStyle = PlatformTextStyle(includeFontPadding = false),
     ),
     titleLarge = TextStyle(
         fontFamily = Fredoka,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
         lineHeight = 24.sp,
         platformStyle = PlatformTextStyle(includeFontPadding = false),
