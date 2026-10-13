@@ -32,6 +32,7 @@ Rilis pertama aplikasi harus manual (sudah dilakukan). Unggahan lewat API tetap 
 git checkout release/closed-testing && git merge --ff-only main && git push origin release/closed-testing
 ```
 
-Setujui run di tab Actions, lalu pantau Play Console > Publishing overview.
+Setujui run di tab Actions. Release masuk sebagai **draft** di Closed testing: buka Play Console > Closed testing > Releases,
+periksa, lalu kirim review (workflow memakai `status: draft` selama aplikasi belum pernah dipublikasikan ke production).
 
 Kunci unggah dan secret tidak pernah masuk repo; workflow menulisnya ke berkas sementara dan menghapusnya di akhir.

@@ -59,7 +59,9 @@ jobs:
           packageName: id.madsaz.app
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           track: alpha
-          status: completed
+          # Aplikasi yang belum pernah dipublikasikan ke production hanya menerima release draft lewat API; kirim review dari Play Console.
+          # Setelah production aktif, ganti ke `completed` agar rilis langsung berjalan.
+          status: draft
           whatsNewDirectory: distribution/whatsnew
 
       - name: Remove signing material
