@@ -102,8 +102,6 @@ dependencies {
     implementation(libs.androidx.camera.video)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.haze)
-    implementation(libs.haze.blur)
     testImplementation(libs.junit)
     // org.json di android.jar hanyalah stub untuk unit test JVM; ApiClient memakai implementasi asli ini saat diuji.
     testImplementation(libs.org.json)

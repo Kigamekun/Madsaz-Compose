@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.profile
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -8,9 +10,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,27 +35,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.NotificationsNone
+import androidx.compose.material.icons.rounded.PrivacyTip
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.WorkspacePremium
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
+import id.madsaz.app.ui.components.MadsazTextField
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +76,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,10 +83,8 @@ import id.madsaz.app.R
 import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.feature.auth.DeleteAccountState
 import id.madsaz.app.ui.components.CompactContainer
-import id.madsaz.app.ui.components.LightStatusBarIcons
 import id.madsaz.app.ui.components.ProfileAvatar
 import id.madsaz.app.ui.components.formatStorageSize
-import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
@@ -83,10 +95,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val HeaderBlue = Color(0xFF3E86AB)
 private val CardBorder = Color(0xFFDEEAF2)
-private val RowBlue = Color(0xFFE5F4FC)
-private val LogoutPink = Color(0xFFFFE5EB)
 
 @Composable
 fun ProfileScreen(
@@ -106,90 +115,78 @@ fun ProfileScreen(
     onPrivacy: () -> Unit,
     onLanguage: () -> Unit,
     contentPadding: PaddingValues,
+    loggingOut: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    LightStatusBarIcons()
     var editing by remember { mutableStateOf(false) }
     var confirmingDelete by remember { mutableStateOf(false) }
     var photoErrorRes by remember { mutableStateOf<Int?>(null) }
+    var photoBusy by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     // Photo Picker resmi: tanpa izin penyimpanan, pengguna hanya membagikan foto yang dipilih.
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
-        if (uri != null) scope.launch {
+        if (uri == null) {
+            photoBusy = false
+        } else scope.launch {
             try {
                 val jpeg = withContext(Dispatchers.IO) { compressAvatar(context.contentResolver, uri) }
                 photoErrorRes = null
                 onUploadAvatar(jpeg)
             } catch (error: PhotoException) {
                 photoErrorRes = error.messageRes
+            } finally {
+                photoBusy = false
             }
         }
     }
-    val pickPhoto = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+    val pickPhoto: () -> Unit = {
+        if (!photoBusy && (state as? ProfileUiState.Content)?.saving != true) {
+            photoBusy = true
+            photoErrorRes = null
+            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+    }
 
-    Scaffold(
-        modifier = modifier,
-        containerColor = HeaderBlue,
-        contentWindowInsets = WindowInsets.statusBars,
-    ) { padding ->
-        CompactContainer(Modifier.padding(padding)) {
-            Box(Modifier.fillMaxSize().background(HeaderBlue)) {
-                Surface(
-                    modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(top = 169.dp).fillMaxSize(),
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    color = Color.White,
-                ) { }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 47.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
-                ) {
-                    item {
-                        when (state) {
-                            ProfileUiState.Loading -> Box(Modifier.fillMaxWidth().height(154.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(color = BrandBlue)
-                            }
-                            is ProfileUiState.Error -> ProfileErrorCard(stringResource(state.messageRes), onRefresh)
-                            is ProfileUiState.Content -> ProfileCard(state.account, state.saving, onEdit = { editing = true }, onPhoto = pickPhoto)
-                        }
+    Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.statusBars) { padding ->
+        CompactContainer(Modifier.padding(padding).consumeWindowInsets(padding)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().testTag("profile_screen"),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
+            ) {
+                item { Text(stringResource(R.string.profile_your_profile), style = MaterialTheme.typography.headlineMedium, color = Ink) }
+                item {
+                    when (state) {
+                        ProfileUiState.Loading -> Box(Modifier.fillMaxWidth().height(96.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                        is ProfileUiState.Error -> ProfileErrorCard(stringResource(state.messageRes), onRefresh)
+                        is ProfileUiState.Content -> ProfileCard(state.account, state.saving || photoBusy, onEdit = { editing = true }, onPhoto = pickPhoto)
                     }
-                    val shownError = photoErrorRes ?: (state as? ProfileUiState.Content)?.errorRes
-                    if (shownError != null && !editing) {
-                        item { Text(stringResource(shownError), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp)) }
-                    }
-                    item { Spacer(Modifier.height(24.dp)) }
-                    item { Text(stringResource(R.string.profile_account), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-                    item { Spacer(Modifier.height(16.dp)) }
-                    item {
-                        ProfileRow(
-                            stringResource(R.string.profile_badge_account), stringResource(R.string.profile_account_row_title),
-                            stringResource(R.string.profile_account_row_subtitle), RowBlue,
-                            onClick = { if (state is ProfileUiState.Content) editing = true },
-                        )
-                    }
-                    item { ProfileRow(stringResource(R.string.profile_badge_plus), stringResource(R.string.plan_plus_brand), stringResource(R.string.profile_plus_subtitle), Color.White, onPlan) }
-                    item { ProfileRow(stringResource(R.string.profile_badge_notifications), stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), Color.White, onNotifications) }
-                    item { ProfileRow(stringResource(R.string.profile_badge_privacy), stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle), Color.White, onPrivacy) }
-                    item { ProfileRow(stringResource(R.string.profile_badge_language), stringResource(R.string.profile_language_title), stringResource(R.string.profile_language_subtitle), Color.White, onLanguage) }
-                    item { ProfileRow(stringResource(R.string.profile_badge_logout), stringResource(R.string.profile_logout_title), stringResource(R.string.profile_logout_subtitle), LogoutPink, onLogout, tag = "profile_logout") }
-                    item {
-                        ProfileRow(
-                            stringResource(R.string.profile_badge_delete), stringResource(R.string.profile_delete_title),
-                            stringResource(R.string.profile_delete_subtitle), LogoutPink,
-                            onClick = { confirmingDelete = true }, tag = "profile_delete",
-                        )
-                    }
-                    item {
-                        if (recordingCount != null && storageBytes != null) {
-                            Text(
-                                pluralStringResource(R.plurals.profile_usage, recordingCount, recordingCount, formatStorageSize(storageBytes)),
-                                color = MutedInk,
-                                fontSize = 11.sp,
-                                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
+                }
+                val shownError = photoErrorRes ?: (state as? ProfileUiState.Content)?.errorRes
+                if (shownError != null && !editing) item { Text(stringResource(shownError), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                item { Text(stringResource(R.string.profile_account), Modifier.padding(top = 20.dp, bottom = 8.dp), style = MaterialTheme.typography.labelLarge, color = MutedInk) }
+                item { ProfileRow(Icons.Rounded.WorkspacePremium, stringResource(R.string.plan_plus_brand), stringResource(R.string.profile_plus_subtitle), onPlan) }
+                item { ProfileRow(Icons.Rounded.NotificationsNone, stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), onNotifications) }
+                item { ProfileRow(Icons.Rounded.PrivacyTip, stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle), onPrivacy) }
+                item { ProfileRow(Icons.Rounded.Language, stringResource(R.string.profile_language_title), stringResource(R.string.profile_language_subtitle), onLanguage) }
+                item { Spacer(Modifier.height(16.dp)) }
+                item {
+                    ProfileRow(
+                        Icons.AutoMirrored.Rounded.Logout,
+                        stringResource(R.string.profile_logout_title),
+                        stringResource(R.string.profile_logout_subtitle),
+                        onLogout,
+                        tag = "profile_logout",
+                        enabled = !loggingOut,
+                        loading = loggingOut,
+                    )
+                }
+                item { ProfileRow(Icons.Rounded.DeleteOutline, stringResource(R.string.profile_delete_title), stringResource(R.string.profile_delete_subtitle), { confirmingDelete = true }, destructive = true, tag = "profile_delete") }
+                item {
+                    if (recordingCount != null && storageBytes != null) Text(
+                        pluralStringResource(R.plurals.profile_usage, recordingCount, recordingCount, formatStorageSize(storageBytes)),
+                        modifier = Modifier.fillMaxWidth().padding(top = 20.dp), style = MaterialTheme.typography.bodySmall, color = MutedInk, textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -206,7 +203,7 @@ fun ProfileScreen(
         }
         AccountEditSheet(
             account = state.account,
-            saving = state.saving,
+            saving = state.saving || photoBusy,
             errorRes = photoErrorRes ?: state.errorRes,
             onPhoto = pickPhoto,
             onDismiss = {
@@ -240,16 +237,16 @@ private fun DeleteAccountDialog(state: DeleteAccountState, onConfirm: (String) -
         onDismissRequest = { if (!deleting) onDismiss() },
         title = { Text(stringResource(R.string.profile_delete_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.profile_delete_warning))
                 Text(stringResource(R.string.profile_delete_subscription_note), color = MutedInk)
-                OutlinedTextField(
+                MadsazTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text(stringResource(R.string.profile_delete_password)) },
+                    label = stringResource(R.string.profile_delete_password),
                     singleLine = true,
                     enabled = !deleting,
-                    visualTransformation = PasswordVisualTransformation(),
+                    secret = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     isError = state is DeleteAccountState.Error,
                     modifier = Modifier.fillMaxWidth().testTag("delete_password"),
@@ -274,44 +271,42 @@ private fun DeleteAccountDialog(state: DeleteAccountState, onConfirm: (String) -
 @Composable
 private fun ProfileCard(account: AccountProfile, saving: Boolean, onEdit: () -> Unit, onPhoto: () -> Unit) {
     val changePhoto = stringResource(R.string.profile_change_photo)
-    Surface(shape = RoundedCornerShape(24.dp), color = Color.White, border = BorderStroke(1.dp, CardBorder)) {
-        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.profile_your_profile), Modifier.weight(1f), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                if (saving) CircularProgressIndicator(Modifier.size(18.dp), color = BrandBlue, strokeWidth = 2.dp)
-                else Text(stringResource(R.string.profile_edit), Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onEdit).padding(8.dp), color = BrandBlue)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ProfileAvatar(
-                    account.avatarUrl, account.name,
-                    Modifier.size(72.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto),
-                )
-                Column(Modifier.padding(start = 12.dp)) {
-                    Text(account.name, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(account.email, color = MutedInk, fontSize = 13.sp)
-                }
-            }
+    Row(Modifier.fillMaxWidth().padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        ProfileAvatar(account.avatarUrl, account.name, Modifier.size(56.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(account.name, style = MaterialTheme.typography.titleLarge, color = Ink)
+            Text(account.email, style = MaterialTheme.typography.bodySmall, color = MutedInk)
         }
+        if (saving) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+        else TextButton(onClick = onEdit, modifier = Modifier.testTag("profile_edit")) { Text(stringResource(R.string.profile_edit)) }
     }
 }
 
 @Composable
-private fun ProfileRow(badge: String, title: String, subtitle: String, color: Color, onClick: () -> Unit, tag: String? = null) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).height(54.dp).then(if (tag != null) Modifier.testTag(tag) else Modifier),
-        shape = RoundedCornerShape(16.dp),
-        color = color,
-        border = BorderStroke(1.dp, CardBorder),
-    ) {
-        Row(Modifier.fillMaxSize().padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(badge, color = BrandBlueDark, fontSize = 13.sp, modifier = Modifier.padding(end = 16.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, color = Ink, fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, color = MutedInk, fontSize = 11.sp, lineHeight = 15.sp)
+private fun ProfileRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    destructive: Boolean = false,
+    tag: String? = null,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+) {
+    val accent = if (destructive) MaterialTheme.colorScheme.error else BrandBlueDark
+    Column {
+        Surface(onClick = onClick, enabled = enabled, color = Color.White, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).then(if (tag != null) Modifier.testTag(tag) else Modifier)) {
+            Row(Modifier.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(icon, null, Modifier.size(22.dp), tint = accent)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, color = if (destructive) accent else Ink)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MutedInk)
+                }
+                if (loading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = accent)
+                else Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, Modifier.size(20.dp), tint = MutedInk)
             }
-            Icon(Icons.Rounded.ChevronRight, null, tint = MutedInk, modifier = Modifier.size(20.dp))
         }
+        HorizontalDivider(color = CardBorder)
     }
 }
 
@@ -320,7 +315,7 @@ private fun ProfileErrorCard(message: String, onRefresh: () -> Unit) {
     Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
         Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(message, color = MaterialTheme.colorScheme.error)
-            Button(onClick = onRefresh, colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)) { Text(stringResource(R.string.common_retry)) }
+            Button(onClick = onRefresh, colors = ButtonDefaults.buttonColors(containerColor = BrandBlueDark)) { Text(stringResource(R.string.common_retry)) }
         }
     }
 }
@@ -337,39 +332,49 @@ private fun AccountEditSheet(
 ) {
     var name by remember(account.name) { mutableStateOf(account.name) }
     val changePhoto = stringResource(R.string.profile_change_photo)
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.profile_account_row_title), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    ModalBottomSheet(onDismissRequest = { if (!saving) onDismiss() }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = Color.White, dragHandle = null) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.profile_account_row_title), Modifier.weight(1f), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                IconButton(onClick = onDismiss, enabled = !saving) {
+                    Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+                }
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 ProfileAvatar(
                     account.avatarUrl, account.name,
-                    Modifier.size(84.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto),
+                    Modifier.size(56.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto),
                 )
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(account.name, color = Ink, style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.profile_tap_photo), color = MutedInk, fontSize = 12.sp)
+                }
             }
-            Text(stringResource(R.string.profile_tap_photo), color = MutedInk, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-            OutlinedTextField(
+            MadsazTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.profile_field_name)) },
+                label = stringResource(R.string.profile_field_name),
+                enabled = !saving,
+                isError = errorRes != null,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("profile_name"),
             )
-            OutlinedTextField(
-                value = account.email,
-                onValueChange = {},
-                label = { Text(stringResource(R.string.profile_field_email)) },
-                readOnly = true,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.profile_field_email), style = MaterialTheme.typography.labelLarge, color = Ink)
+                Surface(Modifier.fillMaxWidth(), RoundedCornerShape(14.dp), Color.White, border = BorderStroke(1.dp, CardBorder)) {
+                    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 14.dp, vertical = 12.dp), contentAlignment = Alignment.CenterStart) {
+                        SelectionContainer { Text(account.email, style = MaterialTheme.typography.bodyLarge, color = MutedInk) }
+                    }
+                }
+            }
             if (errorRes != null) {
                 Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
             Button(
                 onClick = { onSave(name) },
                 enabled = !saving && name.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp).heightIn(min = 52.dp).testTag("profile_save"),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandBlueDark),
             ) {
                 if (saving) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
                 else Text(stringResource(R.string.profile_save))

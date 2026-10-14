@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.plan
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -17,58 +19,55 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import id.madsaz.app.R
 import id.madsaz.app.data.remote.PlanStatus
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.formatDate
-import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanScreen(
     state: PlanUiState,
@@ -84,42 +83,78 @@ fun PlanScreen(
     val selectedPrice = state.prices[selectedPlan]?.formatted
 
     BackHandler(enabled = showSubscription && !isPlus) { showSubscription = false }
+    val sheetMaxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.92f
 
-    CompactContainer(Modifier.fillMaxSize().background(AppBackground)) {
-        when {
-            // Tanpa data paket yang berhasil dimuat, jangan menampilkan Free maupun Plus.
-            status == null -> PlanUnavailableContent(state, onRetry, onBack)
-            showSubscription -> SubscriptionContent(
-                state = state,
-                selectedPlan = selectedPlan,
-                selectedPrice = selectedPrice,
-                isPlus = isPlus,
-                onSelectPlan = { selectedPlan = it },
-                onPurchase = { (context as? Activity)?.let { onPurchase(it, selectedPlan) } },
-                onManage = {
-                    val uri = Uri.parse("https://play.google.com/store/account/subscriptions?package=${context.packageName}&sku=${state.productId}")
-                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                },
-                onRetry = onRetry,
-                onBack = { if (isPlus) onBack() else showSubscription = false },
+    ModalBottomSheet(
+        onDismissRequest = onBack,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = Color.White,
+        dragHandle = null,
+    ) {
+        Column(Modifier.fillMaxWidth().heightIn(max = sheetMaxHeight).background(Color.White)) {
+            PlanSheetHeader(
+                title = if (showSubscription) R.string.plan_plus_brand else R.string.plan_title,
+                onNavigateBack = if (showSubscription && !isPlus) ({ showSubscription = false }) else null,
+                onDismiss = onBack,
             )
-            status is PlanStatus.Free -> FreePlanContent(
-                state = state,
-                status = status,
-                onExplorePlus = { showSubscription = true },
-                onContinue = onBack,
-                onRetry = onRetry,
-            )
-            else -> Unit
+            when {
+                // Tanpa data paket yang berhasil dimuat, jangan menampilkan Free maupun Plus.
+                status == null -> PlanUnavailableContent(state, onRetry)
+                showSubscription -> SubscriptionContent(
+                    state = state,
+                    selectedPlan = selectedPlan,
+                    selectedPrice = selectedPrice,
+                    isPlus = isPlus,
+                    onSelectPlan = { selectedPlan = it },
+                    onPurchase = { (context as? Activity)?.let { onPurchase(it, selectedPlan) } },
+                    onManage = {
+                        val uri = Uri.parse("https://play.google.com/store/account/subscriptions?package=${context.packageName}&sku=${state.productId}")
+                        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    },
+                    onRetry = onRetry,
+                )
+                status is PlanStatus.Free -> FreePlanContent(
+                    state = state,
+                    status = status,
+                    onExplorePlus = { showSubscription = true },
+                    onContinue = onBack,
+                    onRetry = onRetry,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun PlanUnavailableContent(state: PlanUiState, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun PlanSheetHeader(title: Int, onNavigateBack: (() -> Unit)?, onDismiss: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (onNavigateBack != null) {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink)
+            }
+        }
+        Text(
+            stringResource(title),
+            modifier = Modifier.weight(1f),
+            color = Ink,
+            fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+        IconButton(onClick = onDismiss) {
+            Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+        }
+    }
+}
+
+@Composable
+private fun PlanUnavailableContent(state: PlanUiState, onRetry: () -> Unit) {
     Column(
-        Modifier.fillMaxSize().background(Color.White).statusBarsPadding().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        Modifier.fillMaxWidth().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (state.loading) {
@@ -127,7 +162,6 @@ private fun PlanUnavailableContent(state: PlanUiState, onRetry: () -> Unit, onBa
         } else {
             Text(stringResource(state.errorRes ?: R.string.error_unknown), color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
             OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-            OutlinedButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
         }
     }
 }
@@ -141,50 +175,27 @@ private fun FreePlanContent(
     onRetry: () -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item {
-            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.plan_title), color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-            }
-        }
-        item {
             Surface(shape = RoundedCornerShape(24.dp), color = BrandBlue) {
-                Box(Modifier.fillMaxWidth().height(174.dp)) {
-                    Column(Modifier.offset(x = 20.dp, y = 16.dp)) {
-                        Text(stringResource(R.string.plan_free_title), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.plan_monthly_analyses), color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            stringResource(R.string.plan_used_of, status.used, status.limit),
-                            color = Color.White,
-                            fontSize = 23.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
-                        Text(
-                            pluralStringResource(R.plurals.plan_remaining_month, status.remaining, status.remaining),
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 11.sp,
-                            modifier = Modifier.padding(top = 4.dp),
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.plan_free_title), style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    Text(stringResource(R.string.plan_monthly_analyses), style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.88f))
+                    Text(stringResource(R.string.plan_used_of, status.used, status.limit), style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                    Box(Modifier.fillMaxWidth().height(7.dp).background(Color.White.copy(alpha = 0.26f), CircleShape)) {
+                        if (status.limit > 0) Box(
+                            Modifier.fillMaxWidth((status.used.toFloat() / status.limit).coerceIn(0f, 1f))
+                                .height(7.dp).background(Color(0xFFFF7474), CircleShape),
                         )
                     }
-                    Surface(
-                        modifier = Modifier.offset(x = 20.dp, y = 130.dp),
-                        shape = CircleShape,
-                        color = Color.White,
-                    ) {
-                        Text(
-                            pluralStringResource(R.plurals.plan_remaining_chip, status.remaining, status.remaining),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp),
-                            color = BrandBlueDark,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    UsageBars(used = status.used, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 36.dp, bottom = 22.dp))
+                    Text(
+                        pluralStringResource(R.plurals.plan_remaining_month, status.remaining, status.remaining),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                    )
                 }
             }
         }
@@ -199,8 +210,8 @@ private fun FreePlanContent(
         item {
             Text(
                 stringResource(R.string.plan_included_title),
-                modifier = Modifier.padding(top = 30.dp, bottom = 16.dp),
-                color = Color(0xFF0B2A2D),
+                modifier = Modifier.padding(top = 20.dp, bottom = 14.dp),
+                color = Ink,
                 fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                 fontSize = 19.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -216,8 +227,8 @@ private fun FreePlanContent(
         item {
             Button(
                 onClick = onExplorePlus,
-                modifier = Modifier.fillMaxWidth().padding(top = 38.dp).height(52.dp),
-                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 22.dp).heightIn(min = 52.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
             ) { Text(stringResource(R.string.plan_explore_plus), fontWeight = FontWeight.SemiBold) }
         }
@@ -225,10 +236,10 @@ private fun FreePlanContent(
             Surface(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(16.dp),
                 color = Color.Transparent,
             ) {
-                Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
                     Text(
                         stringResource(R.string.plan_continue_free),
                         color = BrandBlueDark,
@@ -242,22 +253,9 @@ private fun FreePlanContent(
                 stringResource(R.string.plan_limit_reset),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
                 color = MutedInk,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
-        }
-    }
-}
-
-@Composable
-private fun UsageBars(used: Int, modifier: Modifier = Modifier) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.Bottom) {
-        listOf(18, 26, 34, 46, 56).forEachIndexed { index, height ->
-            val color = when {
-                index < used -> Color(0xFFF15F5F)
-                else -> Color.White.copy(alpha = 0.94f)
-            }
-            Box(Modifier.width(8.dp).height(height.dp).background(color, RoundedCornerShape(5.dp)))
         }
     }
 }
@@ -284,60 +282,26 @@ private fun SubscriptionContent(
     onPurchase: () -> Unit,
     onManage: () -> Unit,
     onRetry: () -> Unit,
-    onBack: () -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(AppBackground),
-        contentPadding = PaddingValues(bottom = 28.dp),
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item {
-            Box(Modifier.fillMaxWidth().height(324.dp)) {
-                Image(
-                    painter = painterResource(R.drawable.madsaz_home_photo),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().height(252.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(
-                    Modifier.align(Alignment.TopStart).padding(top = 140.dp).fillMaxWidth().height(116.dp)
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x14F8F9FF), AppBackground, AppBackground))),
-                )
-                Surface(
-                    modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 8.dp, top = 8.dp),
-                    shape = CircleShape, color = Color.White,
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
-                    }
-                }
-                Surface(
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 166.dp).padding(horizontal = 20.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = BrandBlue,
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 12.dp)) {
-                        Text(stringResource(R.string.plan_plus_brand), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            stringResource(R.string.plan_plus_tagline),
-                            color = Color.White,
-                            fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 5.dp),
-                        )
-                        listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { benefit ->
-                            Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.size(9.dp).background(Color.White, CircleShape))
-                                Text(
-                                    stringResource(benefit),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(start = 10.dp),
-                                )
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Surface(shape = RoundedCornerShape(24.dp), color = BrandBlue) {
+                    Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(stringResource(R.string.plan_plus_tagline), style = MaterialTheme.typography.titleLarge, color = Color.White)
+                            listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { benefit ->
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Surface(Modifier.size(6.dp), CircleShape, Color.White.copy(alpha = 0.9f)) {}
+                                    Text(stringResource(benefit), style = MaterialTheme.typography.bodySmall, color = Color.White)
+                                }
                             }
                         }
+                        Image(painterResource(R.drawable.cue_owh), contentDescription = null, modifier = Modifier.padding(start = 8.dp).size(72.dp))
                     }
                 }
             }
@@ -349,8 +313,8 @@ private fun SubscriptionContent(
             item {
                 Text(
                     stringResource(R.string.plan_choose),
-                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 16.dp),
-                    color = Color(0xFF0B2A2D),
+                    modifier = Modifier.padding(start = 20.dp, top = 18.dp, bottom = 14.dp),
+                    color = Ink,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -391,16 +355,16 @@ private fun SubscriptionContent(
             if (isPlus) {
                 Button(
                     onClick = onManage,
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
-                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp).heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) { Text(stringResource(R.string.plan_manage)) }
             } else {
                 Button(
                     onClick = onPurchase,
                     enabled = state.purchaseEnabled && selectedPrice != null && !state.purchasing,
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp).height(52.dp),
-                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp).heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) {
                     if (state.purchasing) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
@@ -411,9 +375,9 @@ private fun SubscriptionContent(
         item {
             Text(
                 stringResource(R.string.plan_cancel_anytime),
-                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 20.dp),
                 color = MutedInk,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
@@ -470,11 +434,11 @@ private fun PlanOption(
             Column(horizontalAlignment = Alignment.End) {
                 if (badge != null) {
                     Surface(shape = CircleShape, color = Color.White) {
-                        Text(badge, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = BrandBlueDark, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(badge, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = BrandBlueDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
-                    if (helper != null) Text(helper, color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+                    if (helper != null) Text(helper, color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
                 } else if (helper != null) {
-                    Text(helper, color = if (selected) Color.White else MutedInk, fontSize = 10.sp)
+                    Text(helper, color = if (selected) Color.White else MutedInk, fontSize = 12.sp)
                 }
             }
         }

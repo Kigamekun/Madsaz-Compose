@@ -1,8 +1,6 @@
 package id.madsaz.app.feature.history
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,12 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.HorizontalDivider
+import id.madsaz.app.ui.components.RecordingEmptyState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -40,31 +39,29 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatDuration
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueSoft
-import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 fun HistoryScreen(
     state: HistoryUiState,
     onRetry: () -> Unit,
+    onRecord: () -> Unit,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     onNoticeShown: () -> Unit,
@@ -90,6 +87,7 @@ fun HistoryScreen(
                 HistoryContent(
                     recordings = state.recordings,
                     bottomPadding = contentPadding.calculateBottomPadding(),
+                    onRecord = onRecord,
                     onProfile = onProfile,
                     onOpenRecording = onOpenRecording,
                     avatarUrl = avatarUrl,
@@ -104,6 +102,7 @@ fun HistoryScreen(
 private fun HistoryContent(
     recordings: List<RecordingItem>,
     bottomPadding: androidx.compose.ui.unit.Dp,
+    onRecord: () -> Unit,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     avatarUrl: String?,
@@ -115,10 +114,10 @@ private fun HistoryContent(
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         item { MadsazHeader(onProfile = onProfile, avatarUrl = avatarUrl, name = accountName) }
-        item { Spacer(Modifier.height(40.dp)) }
+        item { Spacer(Modifier.height(16.dp)) }
         item {
             Row(
-                modifier = Modifier.padding(horizontal = 18.dp),
+                modifier = Modifier.padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
@@ -129,14 +128,14 @@ private fun HistoryContent(
                         fontSize = 19.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Text(stringResource(R.string.history_subtitle), color = MutedInk, fontSize = 10.sp)
+                    Text(stringResource(R.string.history_subtitle), color = MutedInk, fontSize = 12.sp)
                 }
                 Surface(shape = CircleShape, color = Color(0xFFF4F9FD)) {
                     Text(
                         pluralStringResource(R.plurals.history_count, recordings.size, recordings.size),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         color = Color(0xFF0B2A2D),
-                        fontSize = 9.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -144,26 +143,14 @@ private fun HistoryContent(
         }
         item { Spacer(Modifier.height(14.dp)) }
         if (recordings.isEmpty()) {
-            item { EmptyHistory(Modifier.padding(horizontal = 18.dp)) }
-        } else {
             item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color.White,
-                    border = BorderStroke(1.dp, Border),
-                ) {
-                    Column(Modifier.padding(horizontal = 14.dp)) {
-                        recordings.forEachIndexed { index, recording ->
-                            HistoryRecordingRow(
-                                recording = recording,
-                                onOpen = { onOpenRecording(recording) },
-                            )
-                            if (index != recordings.lastIndex) {
-                                Box(Modifier.fillMaxWidth().padding(start = 54.dp).height(1.dp).background(Border))
-                            }
-                        }
-                    }
+                RecordingEmptyState(stringResource(R.string.history_empty_title), stringResource(R.string.history_empty_body), onRecord, Modifier.padding(horizontal = 20.dp))
+            }
+        } else {
+            items(recordings, key = { it.id }) { recording ->
+                Column(Modifier.padding(horizontal = 20.dp)) {
+                    HistoryRecordingRow(recording = recording, onOpen = { onOpenRecording(recording) })
+                    HorizontalDivider(color = Border)
                 }
             }
         }
@@ -175,41 +162,24 @@ private fun HistoryRecordingRow(
     recording: RecordingItem,
     onOpen: () -> Unit,
 ) {
-    val code = recording.category?.substringBefore(" - ")
-    val badgeColor = when (code?.lowercase(Locale.ROOT)) {
-        "neh" -> Color(0xFFFFF0E9)
-        "heh" -> Color(0xFFFCE7EC)
-        else -> BrandBlueSoft
-    }
+    val code = recording.category?.substringBefore(" - ") ?: recording.scores.firstOrNull()?.code
     val openLabel = stringResource(R.string.history_open_recording)
     Row(
-        modifier = Modifier.fillMaxWidth().height(63.dp).clickable(role = Role.Button, onClickLabel = openLabel, onClick = onOpen),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(vertical = 12.dp).clickable(role = Role.Button, onClickLabel = openLabel, onClick = onOpen),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(shape = RoundedCornerShape(13.dp), color = badgeColor) {
-            Box(Modifier.widthIn(min = 40.dp, max = 88.dp).height(40.dp).padding(horizontal = 7.dp), contentAlignment = Alignment.Center) {
-                Text(
-                    code ?: stringResource(recording.status.labelRes),
-                    color = Ink,
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
+        CryCueIcon(code, Modifier.size(48.dp))
         Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 recording.scores.firstOrNull()?.label
                     ?: stringResource(if (recording.status == RecordingStatus.PROCESSING) R.string.history_processing else R.string.history_analysis_unavailable),
                 color = Color(0xFF17343B),
-                style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 "${formatHistoryTime(recording.recordedAtEpochMillis)} · ${formatDuration(recording.durationMillis)}",
                 color = Color(0xFF465E68),
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 9.sp, lineHeight = 12.sp),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 18.sp),
             )
         }
         // Dekoratif: seluruh baris adalah satu tombol, sehingga pembaca layar tidak menemukan dua target untuk aksi yang sama.
@@ -217,21 +187,6 @@ private fun HistoryRecordingRow(
             Box(contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(18.dp))
             }
-        }
-    }
-}
-
-@Composable
-private fun EmptyHistory(modifier: Modifier = Modifier) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(20.dp), color = BrandBlueSoft) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(Icons.Rounded.History, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(34.dp))
-            Text(stringResource(R.string.history_empty_title), style = MaterialTheme.typography.titleLarge)
-            Text(stringResource(R.string.history_empty_body), style = MaterialTheme.typography.bodyMedium, color = MutedInk, textAlign = TextAlign.Center)
         }
     }
 }

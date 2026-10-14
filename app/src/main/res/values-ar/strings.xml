@@ -22,10 +22,10 @@
     <string name="auth_register_title">إنشاء حساب</string>
     <string name="auth_headline_login">طريقة أهدأ للاستماع</string>
     <string name="auth_headline_register">طريقة أهدأ للبدء</string>
-    <string name="auth_sub_login">تابع من حيث توقفت مع أحدث إشارات طفلك.</string>
+    <string name="auth_sub_login">تابع مع أحدث إشارات طفلك.</string>
     <string name="auth_sub_register">أنشئ حسابًا للاحتفاظ بأحدث إشارات طفلك.</string>
     <string name="auth_privacy_note">تبقى تسجيلاتك خاصة بحسابك.</string>
-    <string name="auth_field_name">اسم الطفل</string>
+    <string name="auth_field_name">الاسم</string>
     <string name="auth_field_email">البريد الإلكتروني</string>
     <string name="auth_field_password">كلمة المرور</string>
     <string name="auth_forgot">هل نسيت كلمة المرور؟</string>
@@ -39,9 +39,7 @@
     <string name="auth_hide_password">إخفاء كلمة المرور</string>
 
     <!-- الرئيسية -->
-    <string name="home_hero_description">غرفة طفل Madsaz</string>
     <string name="home_latest_cry">أحدث إشارة بكاء</string>
-    <string name="home_latest_empty">لا توجد نتيجة بعد</string>
     <string name="home_status_waiting">بانتظار التحليل</string>
     <string name="home_status_failed">فشل التحليل</string>
     <string name="home_status_result">نتيجة التحليل</string>
@@ -50,6 +48,8 @@
     <string name="home_recent_title">أحدث التسجيلات</string>
     <string name="home_see_all">عرض الكل  ‹</string>
     <string name="home_recent_empty_title">لا توجد تسجيلات بعد</string>
+    <string name="home_recent_empty_message">ستظهر تسجيلاتك هنا.</string>
+    <string name="home_recent_empty_action">ابدأ التسجيل</string>
     <string name="home_recent_error_title">تعذّر تحميل السجل</string>
     <string name="home_recorded_at">تم التسجيل في %1$s</string>
 
@@ -100,13 +100,11 @@
     <string name="result_loading_body">لحظة من فضلك.</string>
     <string name="result_processing_title">جارٍ تحليل التسجيل</string>
     <string name="result_processing_body">ستظهر النتيجة تلقائيًا.</string>
-    <string name="result_baby_description">طفل يبكي</string>
     <string name="result_title">نتيجة نمط البكاء</string>
     <string name="result_most_likely">الأرجح</string>
     <string name="result_confidence_title">ثقة إشارة البكاء</string>
     <string name="result_suggested_action">الإجراء المقترح</string>
     <string name="result_what_to_try">ما يمكنك تجربته</string>
-    <string name="result_mock_note">نتيجة تجريبية للاختبار؛ لم تُحلَّل من صوت التسجيل.</string>
     <string name="result_feedback">ملاحظات</string>
     <string name="result_log_title">سجل التسجيلات</string>
     <string name="result_log_failed">فشل التحليل. الفيديو ما زال محفوظًا.</string>
@@ -127,14 +125,6 @@
         <item quantity="few">تبقّت %d تسجيلات هذا الشهر</item>
         <item quantity="many">تبقّى %d تسجيلًا هذا الشهر</item>
         <item quantity="other">تبقّى %d تسجيل هذا الشهر</item>
-    </plurals>
-    <plurals name="plan_remaining_chip">
-        <item quantity="zero">لا تسجيلات متبقية</item>
-        <item quantity="one">تبقّى تسجيل واحد</item>
-        <item quantity="two">تبقّى تسجيلان</item>
-        <item quantity="few">تبقّت %d تسجيلات</item>
-        <item quantity="many">تبقّى %d تسجيلًا</item>
-        <item quantity="other">تبقّى %d تسجيل</item>
     </plurals>
     <string name="plan_included_title">ضمن الباقة المجانية</string>
     <plurals name="plan_benefit_analyses">
@@ -169,10 +159,6 @@
     <string name="plan_cancel_anytime">يمكنك الإلغاء في أي وقت. تبقى باقتك المجانية متاحة.</string>
 
     <!-- الملف الشخصي -->
-    <string name="profile_badge_notifications">إ</string>
-    <string name="profile_badge_privacy">خ</string>
-    <string name="profile_badge_logout">ت</string>
-    <string name="profile_badge_delete">ح</string>
     <string name="profile_account">الحساب</string>
     <string name="profile_plus_subtitle">إدارة باقتك</string>
     <string name="profile_notifications_subtitle">تذكيرات لطيفة</string>
@@ -182,7 +168,7 @@
     <string name="profile_logout_subtitle">إلى اللقاء</string>
     <string name="profile_delete_title">حذف الحساب</string>
     <string name="profile_delete_subtitle">احذف بياناتك نهائيًا</string>
-    <string name="profile_delete_warning">سيتم حذف حسابك وملف الطفل وجميع تسجيلات الفيديو مع نتائجها والملاحظات نهائيًا، ولا يمكن استرجاعها.</string>
+    <string name="profile_delete_warning">سيتم حذف حسابك وجميع تسجيلات الفيديو مع نتائجها والملاحظات نهائيًا، ولا يمكن استرجاعها.</string>
     <string name="profile_delete_subscription_note">لا يُلغى اشتراك Madsaz Plus في Google Play تلقائيًا. ألغِه أولًا من Google Play &gt; المدفوعات والاشتراكات.</string>
     <string name="profile_delete_password">كلمة المرور</string>
     <string name="profile_delete_confirm">احذف حسابي</string>
@@ -304,10 +290,7 @@
     <string name="home_result_with_confidence">%1$s · ثقة %2$s</string>
     <string name="home_confidence_chip">ثقة %1$s</string>
     <string name="error_name_invalid">يجب أن يتكوّن الاسم من 1 إلى 80 حرفًا.</string>
-    <string name="profile_badge_account">م</string>
-    <string name="profile_badge_language">ل</string>
     <string name="profile_account_row_title">ملف الحساب</string>
-    <string name="profile_account_row_subtitle">الاسم والبريد الإلكتروني والصورة</string>
     <string name="profile_language_title">اللغة</string>
     <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
     <string name="profile_change_photo">تغيير الصورة</string>
@@ -322,4 +305,6 @@
     <string name="notifications_plan_reminders">تذكيرات الباقة</string>
     <string name="result_analysis_title">نتيجة التحليل</string>
     <string name="result_advice_title">نصيحة</string>
+    <string name="recording_switch_camera">تبديل الكاميرا</string>
+    <string name="home_latest_empty">لا توجد نتيجة بعد</string>
 </resources>

@@ -1,5 +1,4 @@
 [versions]
-haze = "2.0.0"
 agp = "9.4.0"
 kotlin = "2.4.20"
 coreKtx = "1.19.0"
@@ -15,8 +14,6 @@ testRunner = "1.6.2"
 testExtJunit = "1.2.1"
 
 [libraries]
-haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
-haze-blur = { group = "dev.chrisbanes.haze", name = "haze-blur", version.ref = "haze" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }

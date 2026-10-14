@@ -20,6 +20,7 @@ private fun EmptyHistoryPreview() {
             onRecord = {},
         ) { padding ->
             HistoryScreen(
+                onRecord = {},
                 state = HistoryUiState.Content(emptyList()),
                 onRetry = {},
                 onProfile = {},
@@ -42,6 +43,7 @@ private fun FilledHistoryPreview() {
             onRecord = {},
         ) { padding ->
             HistoryScreen(
+                onRecord = {},
                 state = HistoryUiState.Content(PreviewData.recordings),
                 onRetry = {},
                 onProfile = {},

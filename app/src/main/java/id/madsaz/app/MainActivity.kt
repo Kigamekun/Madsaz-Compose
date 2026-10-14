@@ -1,15 +1,17 @@
 package id.madsaz.app
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import android.graphics.Color
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import id.madsaz.app.ui.theme.MadsazTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +20,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT), navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT))
         // FCM menampilkan push background tanpa memanggil service, jadi kanal harus sudah ada sebelum pesan tiba.
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(

@@ -26,10 +26,10 @@
     <string name="auth_register_title">Daftar</string>
     <string name="auth_headline_login">Cara yang lebih tenang untuk mendengarkan</string>
     <string name="auth_headline_register">Cara yang lebih tenang untuk memulai</string>
-    <string name="auth_sub_login">Lanjutkan dari tempat Anda berhenti dengan petunjuk terbaru bayi Anda.</string>
+    <string name="auth_sub_login">Lanjutkan dengan petunjuk terbaru bayi Anda.</string>
     <string name="auth_sub_register">Buat akun untuk menyimpan petunjuk terbaru bayi Anda.</string>
     <string name="auth_privacy_note">Rekaman Anda tetap privat untuk akun Anda.</string>
-    <string name="auth_field_name">Nama bayi</string>
+    <string name="auth_field_name">Nama</string>
     <string name="auth_field_email">Alamat email</string>
     <string name="auth_field_password">Kata sandi</string>
     <string name="auth_forgot">Lupa kata sandi?</string>
@@ -43,17 +43,17 @@
     <string name="auth_hide_password">Sembunyikan kata sandi</string>
 
     <!-- Beranda -->
-    <string name="home_hero_description">Kamar bayi Madsaz</string>
     <string name="home_latest_cry">Petunjuk tangisan terbaru</string>
-    <string name="home_latest_empty">Belum ada hasil</string>
     <string name="home_status_waiting">Menunggu analisis</string>
     <string name="home_status_failed">Analisis gagal</string>
     <string name="home_status_result">Hasil analisis</string>
     <string name="home_cry_cues_title">Petunjuk Tangisan</string>
-    <string name="home_cry_cues_description">Pahami petunjuk dari bayi Anda</string>
+    <string name="home_cry_cues_description">Pahami petunjuk tangisan bayi</string>
     <string name="home_recent_title">Rekaman terbaru</string>
     <string name="home_see_all">Lihat semua  ›</string>
     <string name="home_recent_empty_title">Belum ada rekaman</string>
+    <string name="home_recent_empty_message">Hasil rekaman Anda akan muncul di sini.</string>
+    <string name="home_recent_empty_action">Mulai merekam</string>
     <string name="home_recent_error_title">Riwayat belum dapat dibaca</string>
     <string name="home_recorded_at">Direkam pukul %1$s</string>
 
@@ -99,13 +99,11 @@
     <string name="result_loading_body">Sebentar ya.</string>
     <string name="result_processing_title">Menganalisis rekaman</string>
     <string name="result_processing_body">Hasil akan muncul otomatis.</string>
-    <string name="result_baby_description">Bayi menangis</string>
     <string name="result_title">Hasil pola tangisan</string>
     <string name="result_most_likely">PALING MUNGKIN</string>
     <string name="result_confidence_title">Tingkat keyakinan petunjuk tangisan</string>
     <string name="result_suggested_action">SARAN TINDAKAN</string>
     <string name="result_what_to_try">Yang bisa dicoba</string>
-    <string name="result_mock_note">Hasil contoh untuk pengujian; belum dianalisis dari suara rekaman.</string>
     <string name="result_feedback">Masukan</string>
     <string name="result_log_title">Riwayat rekaman</string>
     <string name="result_log_failed">Analisis gagal. Video tetap tersimpan.</string>
@@ -116,30 +114,27 @@
 
     <!-- Paket -->
     <string name="plan_title">Paket Anda</string>
-    <string name="plan_free_title">Paket Gratis</string>
+    <string name="plan_free_title">Paket gratis</string>
     <string name="plan_monthly_analyses">Analisis bulanan</string>
     <string name="plan_used_of">%1$d dari %2$d terpakai</string>
     <plurals name="plan_remaining_month">
         <item quantity="other">Sisa %d rekaman bulan ini</item>
     </plurals>
-    <plurals name="plan_remaining_chip">
-        <item quantity="other">Sisa %d rekaman</item>
-    </plurals>
-    <string name="plan_included_title">Termasuk dalam paket Gratis</string>
+    <string name="plan_included_title">Termasuk paket gratis</string>
     <plurals name="plan_benefit_analyses">
         <item quantity="other">%d analisis tangisan setiap bulan</item>
     </plurals>
-    <string name="plan_benefit_cues">Interpretasi petunjuk dasar</string>
+    <string name="plan_benefit_cues">Interpretasi dasar petunjuk tangisan</string>
     <string name="plan_benefit_recent">Rekaman terbaru tersimpan</string>
     <string name="plan_explore_plus">Jelajahi Madsaz Plus</string>
     <string name="plan_continue_free">Lanjut dengan paket gratis</string>
-    <string name="plan_limit_reset">Batas Anda direset pada hari pertama setiap bulan.</string>
+    <string name="plan_limit_reset">Batas penggunaan direset pada awal setiap bulan.</string>
     <string name="plan_plus_brand" translatable="false">Madsaz Plus</string>
-    <string name="plan_plus_tagline">Lebih tenang, lebih paham.</string>
+    <string name="plan_plus_tagline">Lebih tenang, lebih memahami.</string>
     <string name="plan_plus_benefit_unlimited">Rekaman tanpa batas</string>
-    <string name="plan_plus_benefit_history">Riwayat lengkap dan wawasan</string>
-    <string name="plan_plus_benefit_cues">Pelajari setiap petunjuk</string>
-    <string name="plan_choose">Pilih paket Anda</string>
+    <string name="plan_plus_benefit_history">Riwayat dan wawasan lengkap</string>
+    <string name="plan_plus_benefit_cues">Pahami setiap petunjuk</string>
+    <string name="plan_choose">Pilih paket</string>
     <string name="plan_yearly">Tahunan</string>
     <string name="plan_monthly">Bulanan</string>
     <string name="plan_best_value">Paling hemat</string>
@@ -151,24 +146,19 @@
     <string name="plan_plus_renews">Diperpanjang otomatis pada %1$s</string>
     <string name="plan_plus_ends">Berakhir pada %1$s. Tidak diperpanjang otomatis.</string>
     <string name="plan_start">Mulai Madsaz Plus</string>
-    <string name="plan_cancel_anytime">Batalkan kapan saja. Paket gratis Anda tetap tersedia.</string>
+    <string name="plan_cancel_anytime">Batalkan kapan saja. Paket gratis tetap tersedia.</string>
 
     <!-- Profil -->
-    <string name="profile_badge_plus" translatable="false">M</string>
-    <string name="profile_badge_notifications">N</string>
-    <string name="profile_badge_privacy">P</string>
-    <string name="profile_badge_logout">K</string>
-    <string name="profile_badge_delete">H</string>
     <string name="profile_account">Akun</string>
-    <string name="profile_plus_subtitle">Kelola paket Anda</string>
-    <string name="profile_notifications_subtitle">Pengingat lembut</string>
+    <string name="profile_plus_subtitle">Kelola paket</string>
+    <string name="profile_notifications_subtitle">Pengingat</string>
     <string name="profile_privacy_title">Kebijakan privasi</string>
     <string name="profile_privacy_subtitle">Cara data digunakan</string>
     <string name="profile_logout_title">Keluar</string>
     <string name="profile_logout_subtitle">Sampai jumpa</string>
     <string name="profile_delete_title">Hapus akun</string>
     <string name="profile_delete_subtitle">Hapus data Anda secara permanen</string>
-    <string name="profile_delete_warning">Akun, profil bayi, semua rekaman video beserta hasil analisis, dan feedback akan dihapus permanen dan tidak dapat dikembalikan.</string>
+    <string name="profile_delete_warning">Akun, semua rekaman video beserta hasil analisis, dan feedback akan dihapus permanen dan tidak dapat dikembalikan.</string>
     <string name="profile_delete_subscription_note">Langganan Madsaz Plus di Google Play tidak dibatalkan otomatis. Batalkan lebih dulu di Google Play &gt; Pembayaran dan langganan.</string>
     <string name="profile_delete_password">Kata sandi</string>
     <string name="profile_delete_confirm">Hapus akun saya</string>
@@ -201,7 +191,7 @@
     <string name="notifications_title">Notifikasi</string>
     <string name="notifications_status_unconfigured">Firebase belum dikonfigurasi pada APK ini.</string>
     <string name="notifications_open_settings">Buka pengaturan notifikasi</string>
-    <string name="notifications_permission_denied">Izinkan notifikasi agar pengingat dapat ditampilkan.</string>
+    <string name="notifications_permission_denied">Izinkan notifikasi di pengaturan Android.</string>
 
     <!-- Petunjuk tangisan -->
     <string name="cry_cues_close">Tutup petunjuk tangisan</string>
@@ -285,10 +275,7 @@
     <string name="home_result_with_confidence">%1$s · %2$s keyakinan</string>
     <string name="home_confidence_chip">%1$s keyakinan</string>
     <string name="error_name_invalid">Nama harus berisi 1–80 karakter.</string>
-    <string name="profile_badge_account">A</string>
-    <string name="profile_badge_language">B</string>
     <string name="profile_account_row_title">Profil akun</string>
-    <string name="profile_account_row_subtitle">Nama, email, dan foto</string>
     <string name="profile_language_title">Bahasa</string>
     <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
     <string name="profile_change_photo">Ganti foto</string>
@@ -303,4 +290,6 @@
     <string name="notifications_plan_reminders">Pengingat paket</string>
     <string name="result_analysis_title">Hasil analisis</string>
     <string name="result_advice_title">Saran</string>
+    <string name="recording_switch_camera">Ganti kamera</string>
+    <string name="home_latest_empty">Belum ada hasil</string>
 </resources>

@@ -22,10 +22,10 @@
     <string name="auth_register_title">Register</string>
     <string name="auth_headline_login">A calmer way to listen</string>
     <string name="auth_headline_register">A calmer way to begin</string>
-    <string name="auth_sub_login">Pick up where you left off with your baby\'s latest cues.</string>
+    <string name="auth_sub_login">Continue with your baby\'s latest cues.</string>
     <string name="auth_sub_register">Create an account to keep your baby\'s latest cues.</string>
     <string name="auth_privacy_note">Your recordings stay private to your account.</string>
-    <string name="auth_field_name">Baby\'s name</string>
+    <string name="auth_field_name">Name</string>
     <string name="auth_field_email">Email address</string>
     <string name="auth_field_password">Password</string>
     <string name="auth_forgot">Forgot password?</string>
@@ -39,9 +39,7 @@
     <string name="auth_hide_password">Hide password</string>
 
     <!-- Home -->
-    <string name="home_hero_description">Madsaz nursery</string>
     <string name="home_latest_cry">Latest cry cue</string>
-    <string name="home_latest_empty">No result yet</string>
     <string name="home_status_waiting">Waiting for analysis</string>
     <string name="home_status_failed">Analysis failed</string>
     <string name="home_status_result">Analysis result</string>
@@ -50,6 +48,8 @@
     <string name="home_recent_title">Recent recordings</string>
     <string name="home_see_all">See all  ›</string>
     <string name="home_recent_empty_title">No recordings yet</string>
+    <string name="home_recent_empty_message">Your recordings will show up here.</string>
+    <string name="home_recent_empty_action">Start recording</string>
     <string name="home_recent_error_title">History couldn\'t be loaded</string>
     <string name="home_recorded_at">Recorded at %1$s</string>
 
@@ -96,13 +96,11 @@
     <string name="result_loading_body">Just a moment.</string>
     <string name="result_processing_title">Analysing your recording</string>
     <string name="result_processing_body">The result will appear automatically.</string>
-    <string name="result_baby_description">Crying baby</string>
     <string name="result_title">Cry pattern result</string>
     <string name="result_most_likely">MOST LIKELY</string>
     <string name="result_confidence_title">Cry cue confidence</string>
     <string name="result_suggested_action">SUGGESTED ACTION</string>
     <string name="result_what_to_try">What you can try</string>
-    <string name="result_mock_note">Sample result for testing; not analysed from the recorded sound.</string>
     <string name="result_feedback">Feedback</string>
     <string name="result_log_title">Recording history</string>
     <string name="result_log_failed">Analysis failed. The video is still saved.</string>
@@ -120,10 +118,6 @@
         <item quantity="one">%d recording left this month</item>
         <item quantity="other">%d recordings left this month</item>
     </plurals>
-    <plurals name="plan_remaining_chip">
-        <item quantity="one">%d recording left</item>
-        <item quantity="other">%d recordings left</item>
-    </plurals>
     <string name="plan_included_title">Included in Free</string>
     <plurals name="plan_benefit_analyses">
         <item quantity="one">%d cry analysis each month</item>
@@ -136,7 +130,7 @@
     <string name="plan_limit_reset">Your limit resets on the first day of each month.</string>
     <string name="plan_plus_tagline">More calm, more context.</string>
     <string name="plan_plus_benefit_unlimited">Unlimited recordings</string>
-    <string name="plan_plus_benefit_history">Full history and insights</string>
+    <string name="plan_plus_benefit_history">Full history &amp; insights</string>
     <string name="plan_plus_benefit_cues">Learn every cue</string>
     <string name="plan_choose">Choose your plan</string>
     <string name="plan_yearly">Yearly</string>
@@ -153,10 +147,6 @@
     <string name="plan_cancel_anytime">Cancel anytime. Your free plan stays available.</string>
 
     <!-- Profile -->
-    <string name="profile_badge_notifications">N</string>
-    <string name="profile_badge_privacy">P</string>
-    <string name="profile_badge_logout">L</string>
-    <string name="profile_badge_delete">D</string>
     <string name="profile_account">Account</string>
     <string name="profile_plus_subtitle">Manage your plan</string>
     <string name="profile_notifications_subtitle">Gentle reminders</string>
@@ -166,7 +156,7 @@
     <string name="profile_logout_subtitle">See you soon</string>
     <string name="profile_delete_title">Delete account</string>
     <string name="profile_delete_subtitle">Remove your data permanently</string>
-    <string name="profile_delete_warning">Your account, baby profile, all video recordings with their results, and feedback will be permanently deleted and can\'t be restored.</string>
+    <string name="profile_delete_warning">Your account, all video recordings with their results, and feedback will be permanently deleted and can\'t be restored.</string>
     <string name="profile_delete_subscription_note">A Madsaz Plus subscription on Google Play is not cancelled automatically. Cancel it first in Google Play &gt; Payments and subscriptions.</string>
     <string name="profile_delete_password">Password</string>
     <string name="profile_delete_confirm">Delete my account</string>
@@ -200,7 +190,7 @@
     <string name="notifications_title">Notifications</string>
     <string name="notifications_status_unconfigured">Firebase isn\'t configured in this build.</string>
     <string name="notifications_open_settings">Open notification settings</string>
-    <string name="notifications_permission_denied">Allow notifications so reminders can be shown.</string>
+    <string name="notifications_permission_denied">Allow notifications in Android settings.</string>
 
     <!-- Cry cues -->
     <string name="cry_cues_close">Close cry cues</string>
@@ -284,14 +274,11 @@
     <string name="home_result_with_confidence">%1$s · %2$s confidence</string>
     <string name="home_confidence_chip">%1$s confidence</string>
     <string name="error_name_invalid">The name must be 1–80 characters.</string>
-    <string name="profile_badge_account">A</string>
-    <string name="profile_badge_language">G</string>
     <string name="profile_account_row_title">Account profile</string>
-    <string name="profile_account_row_subtitle">Name, email and photo</string>
     <string name="profile_language_title">Language</string>
     <string name="profile_language_subtitle">Bahasa Indonesia · English · العربية</string>
     <string name="profile_change_photo">Change photo</string>
-    <string name="profile_tap_photo">Tap the photo to change it</string>
+    <string name="profile_tap_photo">Tap photo to change</string>
     <string name="profile_field_name">Name</string>
     <string name="profile_field_email">Email</string>
     <string name="profile_photo_unreadable">The photo couldn’t be read.</string>
@@ -302,4 +289,6 @@
     <string name="notifications_plan_reminders">Plan reminders</string>
     <string name="result_analysis_title">Analysis result</string>
     <string name="result_advice_title">Advice</string>
+    <string name="recording_switch_camera">Switch camera</string>
+    <string name="home_latest_empty">No result yet</string>
 </resources>

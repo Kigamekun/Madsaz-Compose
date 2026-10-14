@@ -1,5 +1,14 @@
 package id.madsaz.app.feature.home
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -9,12 +18,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,22 +31,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.ChildCare
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -51,7 +55,9 @@ import id.madsaz.app.R
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.feature.crycues.CryCuesSheet
+import id.madsaz.app.ui.components.RecordingEmptyState
 import id.madsaz.app.ui.components.CompactContainer
+import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatPercent
 import id.madsaz.app.ui.components.formatTime
@@ -91,9 +97,9 @@ fun HomeScreen(
                     onRecord = onRecord,
                     onCryCues = openCryCues,
                     onProfile = onProfile,
-                    onOpenRecording = onOpenRecording,
                     avatarUrl = avatarUrl,
                     accountName = accountName,
+                    onOpenRecording = onOpenRecording,
                 )
             }
             item { LearningDestinations(openCryCues) }
@@ -104,6 +110,7 @@ fun HomeScreen(
                     error = historyError,
                     onSeeAll = onHistory,
                     onOpenRecording = onOpenRecording,
+                    onRecord = onRecord,
                 )
             }
         }
@@ -116,13 +123,12 @@ private fun LearningDestinations(onCryCues: () -> Unit) {
     LearningCard(
         title = stringResource(R.string.home_cry_cues_title),
         description = stringResource(R.string.home_cry_cues_description),
-        icon = Icons.Rounded.ChildCare,
+        illustration = { Image(painterResource(R.drawable.home_cry_cues), null, Modifier.size(64.dp)) },
         background = Color(0xFFF3F8FC),
-        iconBackground = Color(0xFFE7F5FA),
         accent = BrandBlueDark,
         borderColor = Color(0xFFD8E9F2),
         onClick = onCryCues,
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 16.dp),
     )
 }
 
@@ -130,24 +136,21 @@ private fun LearningDestinations(onCryCues: () -> Unit) {
 private fun LearningCard(
     title: String,
     description: String,
-    icon: ImageVector,
+    illustration: @Composable () -> Unit,
     background: Color,
-    iconBackground: Color,
     accent: Color,
     borderColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(onClick = onClick, modifier = modifier.heightIn(min = 76.dp), shape = RoundedCornerShape(22.dp),
+    Surface(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(22.dp),
         color = background, border = BorderStroke(1.dp, borderColor)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = RoundedCornerShape(12.dp), color = iconBackground) {
-                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.padding(9.dp).size(22.dp))
-            }
-            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { illustration() }
+            Column(Modifier.weight(1f).padding(horizontal = 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, color = Ink, fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Text(description, color = Color(0xFF476576), fontSize = 11.sp, lineHeight = 14.sp)
+                    fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(description, color = Color(0xFF476576), fontSize = 12.sp, lineHeight = 16.sp)
             }
             Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null, tint = accent, modifier = Modifier.size(20.dp))
         }
@@ -165,21 +168,21 @@ private fun HomeHero(
     accountName: String?,
 ) {
     val latestScore = latestRecording?.scores?.firstOrNull()
-    Box(Modifier.fillMaxWidth().height(330.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
+    Box(Modifier.fillMaxWidth().height(366.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
             painter = painterResource(R.drawable.madsaz_home_nursery),
-            contentDescription = stringResource(R.string.home_hero_description),
-            modifier = Modifier.fillMaxWidth().height(342.dp).align(Alignment.TopCenter).offset(y = (-36).dp)
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth().height(342.dp).align(Alignment.TopCenter).offset(y = (-20).dp)
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
             contentScale = ContentScale.Crop,
         )
         Box(
-            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().height(62.dp)
+            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().height(63.dp)
                 .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)),
         )
         MadsazHeader(
             onProfile = onProfile,
-            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 6.dp),
+            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
             avatarUrl = avatarUrl,
             name = accountName,
         )
@@ -187,7 +190,7 @@ private fun HomeHero(
             onClick = {
                 if (latestRecording == null) onCryCues() else onOpenRecording(latestRecording)
             },
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 205.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp),
+            modifier = Modifier.align(Alignment.TopCenter).offset(y = 241.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp),
             shape = RoundedCornerShape(23.dp),
             color = BrandBlue,
         ) {
@@ -230,15 +233,10 @@ private fun HomeHero(
                     color = Color.White.copy(alpha = 0.88f),
                     fontSize = 11.sp,
                 )
-                Row(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 28.dp, bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    listOf(16, 26, 33, 42, 30, 50, 64).forEach { height ->
-                        Box(Modifier.width(8.dp).height(height.dp).background(Color(0xFFD7EAF4), RoundedCornerShape(4.dp)))
-                    }
-                }
+                if (latestRecording != null) CryCueIcon(
+                    latestRecording.category ?: latestScore?.code,
+                    Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 10.dp).size(64.dp),
+                )
             }
         }
     }
@@ -251,80 +249,61 @@ private fun RecentRecordings(
     error: Boolean,
     onSeeAll: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
+    onRecord: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().background(Color.White).padding(top = 8.dp, bottom = 20.dp),
-    ) {
+    Column(Modifier.fillMaxWidth().background(Color.White).padding(top = 12.dp, bottom = 20.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(start = 20.dp, end = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 stringResource(R.string.home_recent_title),
+                modifier = Modifier.weight(1f),
                 color = Ink,
-                fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
-                fontSize = 17.sp,
+                fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
             )
-            Text(
+            if (recordings.isNotEmpty()) Text(
                 stringResource(R.string.home_see_all),
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable(onClick = onSeeAll)
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                color = BrandBlue,
-                fontSize = 10.sp,
+                    .padding(horizontal = 10.dp, vertical = 12.dp),
+                color = BrandBlueDark,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
             )
         }
 
         when {
             loading -> CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 28.dp).size(24.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 32.dp).size(24.dp),
                 color = BrandBlue,
                 strokeWidth = 2.dp,
             )
             error -> Text(
                 stringResource(R.string.home_recent_error_title),
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 28.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 32.dp),
                 color = MutedInk,
                 style = MaterialTheme.typography.bodySmall,
             )
-            recordings.isEmpty() -> Text(
-                stringResource(R.string.home_recent_empty_title),
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 44.dp, bottom = 60.dp),
-                color = MutedInk,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            else -> {
-                Box(
-                    Modifier.padding(top = 12.dp, start = 20.dp, end = 16.dp)
-                        .fillMaxWidth()
-                        .height((recordings.take(3).size * 98 - 10).dp),
-                ) {
-                    Box(
-                        Modifier.padding(start = 5.dp, top = 43.dp, bottom = 43.dp)
-                            .width(2.dp).fillMaxSize()
-                            .background(Color(0xFFD5EAF3)),
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        recordings.take(3).forEach { recording ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.width(12.dp).height(88.dp), contentAlignment = Alignment.Center) {
-                                    Box(Modifier.size(12.dp).background(BrandBlue, CircleShape))
-                                }
-                                Spacer(Modifier.width(4.dp))
-                                Surface(
-                                    onClick = { onOpenRecording(recording) },
-                                    modifier = Modifier.weight(1f).height(88.dp),
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = Color.White,
-                                    border = BorderStroke(1.dp, Border),
-                                ) {
-                                    ActivityContent(recording)
-                                }
-                            }
+            recordings.isEmpty() -> EmptyRecordings(onRecord, Modifier.padding(horizontal = 20.dp).padding(top = 12.dp))
+            else -> Column(Modifier.padding(horizontal = 20.dp).padding(top = 12.dp)) {
+                val shown = recordings.take(3)
+                shown.forEachIndexed { index, recording ->
+                    // IntrinsicSize.Min: rel timeline setinggi kartu, jadi tidak perlu menebak tinggi per item.
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                        TimelineRail(first = index == 0, last = index == shown.lastIndex, gap = if (index == shown.lastIndex) 0.dp else TimelineGap)
+                        Surface(
+                            onClick = { onOpenRecording(recording) },
+                            modifier = Modifier.weight(1f).padding(bottom = if (index == shown.lastIndex) 0.dp else TimelineGap).heightIn(min = 88.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White,
+                            border = BorderStroke(1.dp, Border),
+                        ) {
+                            ActivityContent(recording)
                         }
                     }
                 }
@@ -333,37 +312,55 @@ private fun RecentRecordings(
     }
 }
 
+private val TimelineGap = 12.dp
+
+/** Titik per item dan garis penghubung; garis berhenti di titik pertama/terakhir. [gap] = jarak bawah kartu yang bukan bagian dari kartu. */
+@Composable
+private fun TimelineRail(first: Boolean, last: Boolean, gap: Dp) {
+    val dot = BrandBlue
+    val line = Color(0xFFD5EAF3)
+    Box(
+        Modifier.width(24.dp).fillMaxHeight().drawBehind {
+            val cardHeight = size.height - gap.toPx()
+            val centerX = if (layoutDirection == LayoutDirection.Rtl) size.width - 6.dp.toPx() else 6.dp.toPx()
+            val centerY = cardHeight / 2
+            drawLine(line, Offset(centerX, if (first) centerY else 0f), Offset(centerX, if (last) centerY else size.height), strokeWidth = 2.dp.toPx())
+            drawCircle(dot, radius = 6.dp.toPx(), center = Offset(centerX, centerY))
+        },
+    )
+}
+
+@Composable
+private fun EmptyRecordings(onRecord: () -> Unit, modifier: Modifier = Modifier) {
+    RecordingEmptyState(
+        title = stringResource(R.string.home_recent_empty_title),
+        body = stringResource(R.string.home_recent_empty_message),
+        onRecord = onRecord,
+        modifier = modifier,
+    )
+}
+
 @Composable
 private fun ActivityContent(recording: RecordingItem) {
     val score = recording.scores.firstOrNull()
     val code = recording.category?.substringBefore(" - ") ?: score?.code
     val confidence = score?.confidence
     Row(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(Modifier.size(44.dp), CircleShape, BrandBlueSoft) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    code ?: "•",
-                    color = BrandBlueDark,
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold),
-                )
-            }
-        }
+        CryCueIcon(code, Modifier.size(48.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 if (code != null && score != null) "$code - ${score.label}" else code ?: stringResource(recording.status.labelRes),
                 color = Ink,
                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
             )
             Text(
                 stringResource(R.string.home_recorded_at, formatTime(recording.recordedAtEpochMillis)),
                 color = MutedInk,
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 14.sp),
-                maxLines = 1,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 18.sp),
             )
             if (confidence != null) {
                 Surface(shape = CircleShape, color = BrandBlueSoft) {
@@ -371,7 +368,7 @@ private fun ActivityContent(recording: RecordingItem) {
                         stringResource(R.string.home_confidence_chip, formatPercent(confidence)),
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
                         color = BrandBlueDark,
-                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 9.sp, lineHeight = 12.sp),
+                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 18.sp),
                     )
                 }
             }

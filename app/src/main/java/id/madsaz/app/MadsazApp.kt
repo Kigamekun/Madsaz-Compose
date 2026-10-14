@@ -1,5 +1,14 @@
 package id.madsaz.app
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
@@ -9,8 +18,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
@@ -78,6 +90,19 @@ private object Routes {
     fun feedback(recordingId: String) = "feedback/$recordingId"
 }
 
+private enum class AppSheet {
+    PLAN,
+    NOTIFICATIONS,
+    LANGUAGE,
+}
+
+internal fun usesDetailTransition(from: String?, to: String?): Boolean {
+    val mainRoutes = setOf(Routes.HOME, Routes.HISTORY, Routes.PROFILE)
+    val routesWithoutPageMotion = setOf(Routes.PLAN, Routes.NOTIFICATIONS, Routes.LANGUAGE, Routes.PRIVACY)
+    return from != null && to != null && from !in routesWithoutPageMotion && to !in routesWithoutPageMotion &&
+        (from !in mainRoutes || to !in mainRoutes)
+}
+
 /** Pemilik ViewModel yang hidup selama satu sesi login; isinya dibuang saat logout atau akun berganti. */
 private class SessionViewModelStoreOwner : ViewModelStoreOwner {
     override val viewModelStore = ViewModelStore()
@@ -124,10 +149,13 @@ private fun SignedInApp(
     val scope = rememberCoroutineScope()
     // NavController dan ViewModel dibuat ulang untuk setiap sesi login, sehingga data akun sebelumnya tidak terbawa.
     val navController = rememberNavController()
+    var appSheet by remember { mutableStateOf<AppSheet?>(null) }
     val sessionOwner = remember(auth.userId) { SessionViewModelStoreOwner() }
     DisposableEffect(sessionOwner) { onDispose { sessionOwner.viewModelStore.clear() } }
     val historyViewModel: HistoryViewModel = viewModel(sessionOwner) { HistoryViewModel(container.recordingApi) }
     val profileViewModel: ProfileViewModel = viewModel(sessionOwner) { ProfileViewModel(container.profileApi) }
+    // Kebijakan tersedia dalam bahasa Indonesia dan Inggris; bahasa lain memakai teks Inggris.
+    val policyLanguage = if (AppLanguage.current(context) == "id") "id" else "en"
     val accountProfile = (profileViewModel.uiState as? ProfileUiState.Content)?.account
     // Kuota Free habis: arahkan ke layar Paket alih-alih membiarkan pengguna merekam lalu ditolak BE setelah mengunggah.
     val openRecorder: () -> Unit = {
@@ -135,7 +163,8 @@ private fun SignedInApp(
             try {
                 val plan = withContext(Dispatchers.IO) { container.planApi.status() }
                 val quotaExhausted = plan is PlanStatus.Free && plan.remaining == 0
-                navController.navigate(if (quotaExhausted) Routes.PLAN else Routes.RECORDING) { launchSingleTop = true }
+                if (quotaExhausted) appSheet = AppSheet.PLAN
+                else navController.navigate(Routes.RECORDING) { launchSingleTop = true }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -178,7 +207,29 @@ private fun SignedInApp(
         }
     }
 
-    NavHost(navController = navController, startDestination = Routes.HOME) {
+    val motionDistance = with(LocalDensity.current) { 24.dp.roundToPx() }
+    val forwardOffset = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -motionDistance else motionDistance
+    NavHost(
+        navController = navController,
+        startDestination = Routes.HOME,
+        enterTransition = {
+            if (usesDetailTransition(initialState.destination.route, targetState.destination.route)) slideInHorizontally(tween(220)) { forwardOffset }
+            else EnterTransition.None
+        },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = {
+            if (usesDetailTransition(initialState.destination.route, targetState.destination.route)) slideOutHorizontally(tween(180)) { forwardOffset }
+            else ExitTransition.None
+        },
+        // Navigation 2.10 has separate gesture transitions; overriding only pop leaves its default fade enabled.
+        predictivePopEnterTransition = { EnterTransition.None },
+        predictivePopExitTransition = { swipeEdge ->
+            if (usesDetailTransition(initialState.destination.route, targetState.destination.route)) {
+                slideOutHorizontally(tween(180)) { if (swipeEdge == 0) motionDistance else -motionDistance }
+            } else ExitTransition.None
+        },
+    ) {
         composable(Routes.HOME) {
             val historyState = historyViewModel.uiState
             val content = historyState as? HistoryUiState.Content
@@ -203,6 +254,7 @@ private fun SignedInApp(
             MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder) { padding ->
                 HistoryScreen(
                     state = historyViewModel.uiState,
+                    onRecord = openRecorder,
                     onRetry = historyViewModel::refresh,
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
@@ -214,6 +266,11 @@ private fun SignedInApp(
             }
         }
         composable(Routes.PROFILE) {
+            // Mulai memuat saat Profil dibuka, lalu pertahankan hasilnya saat halaman privasi ditutup/dibuka kembali.
+            val privacyViewModel: PrivacyViewModel = viewModel(
+                viewModelStoreOwner = sessionOwner,
+                key = "privacy:$policyLanguage",
+            ) { PrivacyViewModel(container.policyApi, policyLanguage) }
             val content = historyViewModel.uiState as? HistoryUiState.Content
             MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder) { padding ->
                 ProfileScreen(
@@ -225,39 +282,25 @@ private fun SignedInApp(
                     onUploadAvatar = profileViewModel::uploadAvatar,
                     onDismissProfileError = profileViewModel::dismissError,
                     onLogout = authViewModel::logout,
+                    loggingOut = authViewModel.logoutInProgress,
                     deleteState = authViewModel.deleteState,
                     onDeleteAccount = authViewModel::deleteAccount,
                     onDismissDeleteAccount = authViewModel::resetDeleteState,
-                    onPlan = { navController.navigate(Routes.PLAN) },
-                    onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
+                    onPlan = { appSheet = AppSheet.PLAN },
+                    onNotifications = { appSheet = AppSheet.NOTIFICATIONS },
                     onPrivacy = { navController.navigate(Routes.PRIVACY) },
-                    onLanguage = { navController.navigate(Routes.LANGUAGE) },
+                    onLanguage = { appSheet = AppSheet.LANGUAGE },
                     contentPadding = padding,
                 )
             }
         }
-        composable(Routes.PLAN) {
-            val planViewModel: PlanViewModel = viewModel {
-                PlanViewModel(container.planApi, container.billing, auth.userId)
-            }
-            PlanScreen(
-                state = planViewModel.uiState,
-                onBack = { navController.popBackStack() },
-                onRetry = planViewModel::refresh,
-                onPurchase = planViewModel::purchase,
-            )
-        }
-        composable(Routes.NOTIFICATIONS) {
-            val notificationsViewModel: NotificationsViewModel = viewModel { NotificationsViewModel(fcm) }
-            NotificationsScreen(notificationsViewModel, onBack = { navController.popBackStack() })
-        }
         composable(Routes.PRIVACY) {
-            // BE punya teks kebijakan Indonesia dan Inggris; bahasa lain (mis. Arab) memakai teks Inggris.
-            val policyLanguage = if (AppLanguage.current(context) == "id") "id" else "en"
-            val privacyViewModel: PrivacyViewModel = viewModel { PrivacyViewModel(container.policyApi, policyLanguage) }
+            val privacyViewModel: PrivacyViewModel = viewModel(
+                viewModelStoreOwner = sessionOwner,
+                key = "privacy:$policyLanguage",
+            ) { PrivacyViewModel(container.policyApi, policyLanguage) }
             PrivacyScreen(privacyViewModel.uiState, onRetry = privacyViewModel::load, onBack = { navController.popBackStack() })
         }
-        composable(Routes.LANGUAGE) { LanguageScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.RECORDING) {
             val recordingViewModel: RecordingViewModel = viewModel {
                 RecordingViewModel(container.recordingStore(auth.userId), container.recordingApi)
@@ -305,9 +348,29 @@ private fun SignedInApp(
         }
     }
 
+    when (appSheet) {
+        AppSheet.PLAN -> {
+            val planViewModel: PlanViewModel = viewModel(sessionOwner) {
+                PlanViewModel(container.planApi, container.billing, auth.userId)
+            }
+            PlanScreen(
+                state = planViewModel.uiState,
+                onBack = { appSheet = null },
+                onRetry = planViewModel::refresh,
+                onPurchase = planViewModel::purchase,
+            )
+        }
+        AppSheet.NOTIFICATIONS -> {
+            val notificationsViewModel: NotificationsViewModel = viewModel(sessionOwner) { NotificationsViewModel(fcm) }
+            NotificationsScreen(notificationsViewModel, onBack = { appSheet = null })
+        }
+        AppSheet.LANGUAGE -> LanguageScreen(onBack = { appSheet = null })
+        null -> Unit
+    }
+
     LaunchedEffect(notificationDestination) {
         if (notificationDestination == DESTINATION_PLAN) {
-            navController.navigate(Routes.PLAN) { launchSingleTop = true }
+            appSheet = AppSheet.PLAN
             onNotificationDestinationHandled()
         }
     }

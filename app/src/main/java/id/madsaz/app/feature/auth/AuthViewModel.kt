@@ -42,6 +42,9 @@ class AuthViewModel(
     var deleteState: DeleteAccountState by mutableStateOf(DeleteAccountState.Idle)
         private set
 
+    var logoutInProgress: Boolean by mutableStateOf(false)
+        private set
+
     init {
         // Sumber kebenaran sesi adalah SessionManager: login, logout, hapus akun, dan refresh yang ditolak server semuanya lewat sini.
         viewModelScope.launch {
@@ -82,18 +85,24 @@ class AuthViewModel(
 
     fun logout() {
         val refreshToken = sessionManager.session.value?.refreshToken ?: return
+        if (logoutInProgress) return
+        logoutInProgress = true
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    fcmRegistration.unregisterDevice()
-                    authApi.logout(refreshToken)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (_: Exception) {
-                    // Pembersihan di server bersifat best-effort: logout lokal harus selalu berhasil, refresh token kedaluwarsa sendiri.
-                } finally {
-                    sessionManager.signOut()
+            try {
+                withContext(Dispatchers.IO) {
+                    try {
+                        fcmRegistration.unregisterDevice()
+                        authApi.logout(refreshToken)
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        // Pembersihan di server bersifat best-effort: logout lokal harus selalu berhasil, refresh token kedaluwarsa sendiri.
+                    } finally {
+                        sessionManager.signOut()
+                    }
                 }
+            } finally {
+                logoutInProgress = false
             }
         }
     }
