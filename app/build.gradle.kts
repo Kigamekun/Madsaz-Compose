@@ -10,12 +10,13 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "id.madsaz.app"
+        // Memperbarui app yang sudah terbit di Play (com.madsaz); kode tetap di namespace id.madsaz.app.
+        applicationId = "com.madsaz"
         minSdk = 33
         targetSdk = 37
-        // CI (release/closed-testing) mengirim -PversionCode=<nomor naik>; build lokal memakai nilai tetap ini.
-        versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(2).get()
-        versionName = "1.0.1"
+        // Harus di atas versionCode app lama (14, versi 1.2.1). CI mengirim -PversionCode=<nomor naik>; build lokal memakai nilai ini.
+        versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(100).get()
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

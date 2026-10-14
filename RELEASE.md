@@ -1,38 +1,41 @@
-# Rilis ke Closed testing (Alpha) lewat GitHub Actions
+# Rilis lewat GitHub Actions (app `com.madsaz`)
 
-Push ke branch **`release/closed-testing`** menjalankan `.github/workflows/release-closed-testing.yml`:
-test JVM, lint rilis, build AAB bertanda tangan, lalu unggah ke track **alpha** (Closed testing) di Play Console.
-`versionCode` otomatis `1000 + nomor run`, jadi selalu naik. `versionName` diambil dari `app/build.gradle.kts`.
-Catatan rilis diambil dari `distribution/whatsnew/` (maksimal 500 karakter per bahasa); ubah sebelum push.
+Aplikasi ini memperbarui app yang sudah terbit di Play (`com.madsaz`, versi lama 1.2.1 / versionCode 14).
+Push ke branch **`release/closed-testing`** (nama historis) menjalankan `.github/workflows/release-closed-testing.yml`:
+test JVM, lint rilis, build AAB bertanda tangan, lalu unggah ke track **internal** (tanpa review Google).
+`versionCode` otomatis `1000 + nomor run`, selalu di atas versi lama. `versionName` dari `app/build.gradle.kts`.
+Catatan rilis dari `distribution/whatsnew/` (maksimal 500 karakter per bahasa); ubah sebelum push.
 
-Rilis pertama aplikasi harus manual (sudah dilakukan). Unggahan lewat API tetap melalui review Google seperti biasa.
+Dari track internal, promosikan ke **Production** dari Play Console dengan **staged rollout** (mis. 10% dulu).
+Production selalu melalui review Google.
+
+## Kunci penandatangan: wajib kunci unggah app lama
+Play hanya menerima update `com.madsaz` yang ditandatangani **kunci unggah yang terdaftar** untuk app itu
+(Play Console > Test and release > App integrity). Dari proyek lama, kunci itu adalah `my-release-key.jks`
+(alias dan password ada di `gradle.properties` proyek lama). Pastikan sidik jari SHA-1 `D9:ED:82:74:…:56:FC`
+(dari `upload_certificate.pem`) sama dengan **Upload key certificate** di Play Console. Bila beda atau kunci hilang,
+minta **upload key reset** di Play Console (butuh beberapa hari).
+`keystore.properties` lokal juga harus menunjuk ke kunci itu, bukan `madsaz-upload.jks` (kunci khusus `id.madsaz.app`).
 
 ## Sekali saja
-
-1. **Service account untuk Play API.** Google Cloud: aktifkan *Google Play Android Developer API*, buat service account dan kunci JSON.
-   Play Console > *Users and permissions* > undang email service account itu dengan izin **Release manager** (atau minimal
-   *Release apps to testing tracks* untuk aplikasi ini).
-2. **Environment GitHub** `play-closed-testing` (Settings > Environments). Aktifkan **Required reviewers** agar tiap rilis
-   butuh persetujuan Anda; batasi *Deployment branches* ke `release/closed-testing`.
-3. **Secret** di environment itu (Settings > Environments > play-closed-testing > Secrets):
+1. **Firebase:** daftarkan Android app **`com.madsaz`** (Firebase console > Project settings > Add app), unduh
+   `google-services.json` baru ke `app/google-services.json`. Berkas lama untuk `id.madsaz.app` sudah dipindah ke `~/madsaz-keys/`.
+   Tanpa berkas yang cocok dengan `com.madsaz`, build gagal ("No matching client found").
+2. **Service account Play API:** di Play Console > Users and permissions, tambahkan app **Madsaz Baby Cry Translator**
+   (`com.madsaz`) ke izin service account `madsaz-play-release` (izin rilis ke jalur testing; jangan izin production).
+3. **Secret** GitHub (environment `play-closed-testing`) diperbarui:
 
    | Secret | Isi |
    |---|---|
-   | `PLAY_SERVICE_ACCOUNT_JSON` | isi berkas JSON service account (teks apa adanya) |
-   | `UPLOAD_KEYSTORE_BASE64` | `base64 -i madsaz-upload.jks \| pbcopy` |
-   | `UPLOAD_STORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD` | sama dengan `keystore.properties` lokal |
-   | `GOOGLE_SERVICES_JSON_BASE64` | `base64 -i app/google-services.json \| pbcopy` |
-   | `MADSAZ_API_BASE_URL` | `https://madsaz-be.onrender.com/api/v1` |
+   | `UPLOAD_KEYSTORE_BASE64` | `base64 -i /Users/Shared/Projects/Madsaz/my-release-key.jks \| pbcopy` |
+   | `UPLOAD_STORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD` | dari `gradle.properties` proyek lama (`MYAPP_UPLOAD_*`) |
+   | `GOOGLE_SERVICES_JSON_BASE64` | `base64 -i app/google-services.json \| pbcopy` (berkas `com.madsaz`) |
+   | `PLAY_SERVICE_ACCOUNT_JSON`, `MADSAZ_API_BASE_URL` | tidak berubah |
 
-4. Lindungi branch `release/closed-testing` (hanya Anda yang boleh push).
+4. **Backend (Render):** set `PLAY_PACKAGE_NAME=com.madsaz`. Produk langganan dibuat di app `com.madsaz`.
 
 ## Tiap rilis
-
 ```bash
-git checkout release/closed-testing && git merge --ff-only main && git push origin release/closed-testing
+git checkout -B release/closed-testing main && git push -f origin release/closed-testing
 ```
-
-Setujui run di tab Actions. Release masuk sebagai **draft** di Closed testing: buka Play Console > Closed testing > Releases,
-periksa, lalu kirim review (workflow memakai `status: draft` selama aplikasi belum pernah dipublikasikan ke production).
-
-Kunci unggah dan secret tidak pernah masuk repo; workflow menulisnya ke berkas sementara dan menghapusnya di akhir.
+Setujui run di tab Actions; AAB masuk ke track internal. Uji dari HP penguji internal, lalu promosikan ke production bertahap.
