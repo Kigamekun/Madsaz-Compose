@@ -5,15 +5,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -67,12 +67,12 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
 
     LightStatusBarIcons()
     CompactContainer {
-        Box(Modifier.fillMaxSize().background(BrandBlue).imePadding()) {
+        Column(Modifier.fillMaxSize().background(BrandBlue).imePadding()) {
             Column(
-                modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 20.dp, top = 16.dp, end = 20.dp),
+                modifier = Modifier.statusBarsPadding().padding(start = 20.dp, top = 16.dp, end = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Row(Modifier.fillMaxWidth().heightIn(min = 88.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(14.dp), color = Color.White, modifier = Modifier.size(44.dp)) {
                         Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.55f))
                     }
@@ -102,11 +102,12 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                 }
             }
 
+            Spacer(Modifier.height(14.dp))
+
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                    .weight(1f)
                     .fillMaxWidth()
-                    .fillMaxHeight(0.72f)
                     .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                     .background(Color.White)
                     .verticalScroll(rememberScrollState())
