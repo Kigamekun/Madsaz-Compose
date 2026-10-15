@@ -3,17 +3,21 @@ package id.madsaz.app.feature.auth
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +28,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,9 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,9 +78,21 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
 
     LightStatusBarIcons()
     CompactContainer {
-        Column(Modifier.fillMaxSize().background(BrandBlue).imePadding()) {
+        BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFEFF8FC)).imePadding()) {
+            val heroHeight = maxHeight * 0.42f
+            val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            Image(
+                painter = painterResource(R.drawable.madsaz_login_regis_v5),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth().height(heroHeight),
+                contentScale = ContentScale.Crop,
+            )
+            Box(
+                Modifier.fillMaxWidth().height(heroHeight)
+                    .background(Brush.horizontalGradient(0f to BrandBlueDark.copy(alpha = 0.32f), 0.7f to BrandBlueDark.copy(alpha = 0.48f), 1f to Color.Transparent)),
+            )
             Column(
-                modifier = Modifier.statusBarsPadding().padding(start = 20.dp, top = 16.dp, end = 20.dp),
+                modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, top = 16.dp, end = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -90,39 +113,43 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                         stringResource(if (register) R.string.auth_headline_register else R.string.auth_headline_login),
                         color = Color.White,
                         fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                        fontSize = 25.sp,
+                        fontSize = 24.sp,
                         lineHeight = 30.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         stringResource(if (register) R.string.auth_sub_register else R.string.auth_sub_login),
                         color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp,
+                            fontWeight = FontWeight.Medium,
+                        ),
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
-
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                    .fillMaxHeight()
+                    .padding(top = heroHeight - 20.dp, bottom = 12.dp)
+                    .clip(RoundedCornerShape(28.dp))
                     .background(Color.White)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState(), enabled = keyboardVisible)
                     .padding(horizontal = 20.dp)
                     .padding(top = 25.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
                     stringResource(if (register) R.string.auth_register_title else R.string.auth_login_title),
                     color = Ink,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 20.sp,
+                    fontSize = 30.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodyMedium)
 
                 if (register) MadsazTextField(
                     name,
@@ -132,6 +159,8 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     enabled = !submitting,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
+                    placeholder = stringResource(R.string.auth_placeholder_name),
+                    leadingIcon = Icons.Rounded.Person,
                 )
                 MadsazTextField(
                     email,
@@ -142,6 +171,8 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     isError = state is AuthUiState.Error,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
+                    placeholder = stringResource(R.string.auth_placeholder_email),
+                    leadingIcon = Icons.Rounded.Email,
                 )
                 MadsazTextField(
                     password,
@@ -153,6 +184,8 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     secret = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { submit() }),
+                    placeholder = stringResource(R.string.auth_placeholder_password),
+                    leadingIcon = Icons.Rounded.Lock,
                 )
                 if (state is AuthUiState.Error) {
                     Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)

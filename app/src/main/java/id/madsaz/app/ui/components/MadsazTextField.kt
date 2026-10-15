@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -46,6 +47,8 @@ fun MadsazTextField(
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    placeholder: String? = null,
+    leadingIcon: ImageVector? = null,
 ) {
     var visible by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -64,6 +67,8 @@ fun MadsazTextField(
             colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Border, focusedBorderColor = BrandBlueDark),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
+            placeholder = placeholder?.let { hint -> { Text(hint) } },
+            leadingIcon = leadingIcon?.let { icon -> { Icon(icon, contentDescription = null) } },
             visualTransformation = if (secret && !visible) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = if (secret) ({
                 IconButton(onClick = { visible = !visible }, enabled = enabled) {

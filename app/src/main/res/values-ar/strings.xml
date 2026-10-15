@@ -20,14 +20,17 @@
     <!-- تسجيل الدخول وإنشاء الحساب -->
     <string name="auth_login_title">تسجيل الدخول</string>
     <string name="auth_register_title">إنشاء حساب</string>
-    <string name="auth_headline_login">طريقة أهدأ للاستماع</string>
-    <string name="auth_headline_register">طريقة أهدأ للبدء</string>
-    <string name="auth_sub_login">تابع مع أحدث إشارات طفلك.</string>
-    <string name="auth_sub_register">أنشئ حسابًا للاحتفاظ بأحدث إشارات طفلك.</string>
+    <string name="auth_headline_login">طريقة أهدأ\nللاستماع</string>
+    <string name="auth_headline_register">طريقة أهدأ\nللبدء</string>
+    <string name="auth_sub_login">تابع مع أحدث إشارات\nطفلك.</string>
+    <string name="auth_sub_register">أنشئ حسابًا للاحتفاظ\nبأحدث إشارات طفلك.</string>
     <string name="auth_privacy_note">تبقى تسجيلاتك خاصة بحسابك.</string>
     <string name="auth_field_name">الاسم</string>
     <string name="auth_field_email">البريد الإلكتروني</string>
     <string name="auth_field_password">كلمة المرور</string>
+    <string name="auth_placeholder_name">أدخل اسمك</string>
+    <string name="auth_placeholder_email">name@email.com</string>
+    <string name="auth_placeholder_password">أدخل كلمة المرور</string>
     <string name="auth_forgot">هل نسيت كلمة المرور؟</string>
     <string name="auth_forgot_unavailable">ميزة استعادة كلمة المرور غير متاحة بعد.</string>
     <string name="auth_submit_login">تسجيل الدخول</string>

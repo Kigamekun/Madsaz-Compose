@@ -24,14 +24,17 @@
     <string name="auth_brand" translatable="false">madsaz</string>
     <string name="auth_login_title">Masuk</string>
     <string name="auth_register_title">Daftar</string>
-    <string name="auth_headline_login">Cara yang lebih tenang untuk mendengarkan</string>
-    <string name="auth_headline_register">Cara yang lebih tenang untuk memulai</string>
-    <string name="auth_sub_login">Lanjutkan dengan petunjuk terbaru bayi Anda.</string>
-    <string name="auth_sub_register">Buat akun untuk menyimpan petunjuk terbaru bayi Anda.</string>
+    <string name="auth_headline_login">Cara yang lebih tenang\nuntuk mendengarkan</string>
+    <string name="auth_headline_register">Cara yang lebih tenang\nuntuk memulai</string>
+    <string name="auth_sub_login">Lanjutkan dengan petunjuk terbaru\nbayi Anda.</string>
+    <string name="auth_sub_register">Buat akun untuk menyimpan\npetunjuk terbaru bayi Anda.</string>
     <string name="auth_privacy_note">Rekaman Anda tetap privat untuk akun Anda.</string>
     <string name="auth_field_name">Nama</string>
     <string name="auth_field_email">Alamat email</string>
     <string name="auth_field_password">Kata sandi</string>
+    <string name="auth_placeholder_name">Masukkan nama Anda</string>
+    <string name="auth_placeholder_email">nama@email.com</string>
+    <string name="auth_placeholder_password">Masukkan kata sandi</string>
     <string name="auth_forgot">Lupa kata sandi?</string>
     <string name="auth_forgot_unavailable">Fitur lupa kata sandi belum tersedia.</string>
     <string name="auth_submit_login">Masuk</string>
