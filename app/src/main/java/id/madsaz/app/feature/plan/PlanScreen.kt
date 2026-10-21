@@ -294,11 +294,9 @@ private fun SubscriptionContent(
                     Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(stringResource(R.string.plan_plus_tagline), style = MaterialTheme.typography.titleLarge, color = Color.White)
-                            listOf(R.string.plan_plus_benefit_unlimited, R.string.plan_plus_benefit_history, R.string.plan_plus_benefit_cues).forEach { benefit ->
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Surface(Modifier.size(6.dp), CircleShape, Color.White.copy(alpha = 0.9f)) {}
-                                    Text(stringResource(benefit), style = MaterialTheme.typography.bodySmall, color = Color.White)
-                                }
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Surface(Modifier.size(6.dp), CircleShape, Color.White.copy(alpha = 0.9f)) {}
+                                Text(stringResource(R.string.plan_plus_benefit_unlimited), style = MaterialTheme.typography.bodySmall, color = Color.White)
                             }
                         }
                         Image(painterResource(R.drawable.cue_owh), contentDescription = null, modifier = Modifier.padding(start = 8.dp).size(72.dp))

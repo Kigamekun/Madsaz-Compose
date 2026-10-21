@@ -133,8 +133,6 @@
     <string name="plan_limit_reset">Your limit resets on the first day of each month.</string>
     <string name="plan_plus_tagline">More calm, more context.</string>
     <string name="plan_plus_benefit_unlimited">Unlimited recordings</string>
-    <string name="plan_plus_benefit_history">Full history &amp; insights</string>
-    <string name="plan_plus_benefit_cues">Learn every cue</string>
     <string name="plan_choose">Choose your plan</string>
     <string name="plan_yearly">Yearly</string>
     <string name="plan_monthly">Monthly</string>

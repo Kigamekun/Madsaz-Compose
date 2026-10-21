@@ -145,8 +145,6 @@
     <string name="plan_limit_reset">يُعاد ضبط الحد في اليوم الأول من كل شهر.</string>
     <string name="plan_plus_tagline">مزيد من الهدوء ومزيد من الفهم.</string>
     <string name="plan_plus_benefit_unlimited">تسجيلات غير محدودة</string>
-    <string name="plan_plus_benefit_history">سجل كامل ورؤى</string>
-    <string name="plan_plus_benefit_cues">تعرّف على كل إشارة</string>
     <string name="plan_choose">اختر باقتك</string>
     <string name="plan_yearly">سنوي</string>
     <string name="plan_monthly">شهري</string>

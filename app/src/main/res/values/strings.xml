@@ -135,8 +135,6 @@
     <string name="plan_plus_brand" translatable="false">Madsaz Plus</string>
     <string name="plan_plus_tagline">Lebih tenang, lebih memahami.</string>
     <string name="plan_plus_benefit_unlimited">Rekaman tanpa batas</string>
-    <string name="plan_plus_benefit_history">Riwayat dan wawasan lengkap</string>
-    <string name="plan_plus_benefit_cues">Pahami setiap petunjuk</string>
     <string name="plan_choose">Pilih paket</string>
     <string name="plan_yearly">Tahunan</string>
     <string name="plan_monthly">Bulanan</string>
