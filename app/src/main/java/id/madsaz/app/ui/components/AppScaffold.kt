@@ -8,37 +8,52 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -46,47 +61,41 @@ import id.madsaz.app.R
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
+import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.MutedInk
 
+/** Empat tujuan utama di navigasi bawah; slot tengah adalah aksi Rekam, bukan tujuan. */
 enum class MainDestination {
     HOME,
     HISTORY,
+    CUES,
     PROFILE,
 }
 
-// Ukuran desain navigasi melayang. Tinggi total dihitung dari sini sehingga layar tidak perlu menebak padding bawahnya.
-private val PillWidth = 280.dp
-private val RecordRingSize = 88.dp
-private val RecordButtonSize = 64.dp
-private val RecordRingLift = 4.dp
-
-/** Ruang kosong di tengah pill untuk cincin tombol rekam (88dp) ditambah jarak napas 6dp di kiri dan kanan. */
-private val RecordGap = RecordRingSize + 12.dp
+// Cincin tombol rekam menonjol di atas pill; tinggi total dihitung dari sini sehingga layar tidak perlu menebak padding bawahnya.
+private val RecordRingSize = 64.dp
+private val RecordButtonSize = 52.dp
+private val ItemVerticalPadding = 8.dp
 private val FloatGap = 12.dp
 
-/** Tinggi dari dasar pill sampai puncak cincin tombol rekam. */
-
 /**
- * Kerangka tiga tujuan utama dengan navigasi melayang. [content] menerima padding bawah yang sudah mencakup
- * navigasi melayang dan inset bilah navigasi sistem; konten digambar penuh di belakang navigasi dan memakai
- * padding itu sebagai ruang akhir daftarnya.
+ * Kerangka tujuan utama dengan navigasi melayang: Beranda, Riwayat, [Rekam], Petunjuk, Profil (pedoman Material:
+ * 3-5 tujuan, setiap tujuan berikon dan berlabel). [content] menerima padding bawah yang sudah mencakup navigasi dan
+ * inset bilah navigasi sistem; konten digambar penuh di belakang navigasi dan memakai padding itu sebagai ruang akhir.
  */
 @Composable
 fun MadsazScaffold(
     selected: MainDestination,
-    onHome: () -> Unit,
-    onHistory: () -> Unit,
+    onNavigate: (MainDestination) -> Unit,
     onRecord: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val density = LocalDensity.current
-    val labelLines = if (density.fontScale > 1.3f) 2f else 1f
-    val largeTextPadding = if (density.fontScale > 1.3f) 8.dp else 0.dp
-    val pillHeight = maxOf(
-        68.dp,
-        44.dp + with(density) { MaterialTheme.typography.labelSmall.lineHeight.toDp() } * labelLines + largeTextPadding,
-    )
-    val navHeight = maxOf(pillHeight, RecordRingSize + RecordRingLift)
+    val labelHeight = with(density) { navLabelStyle().lineHeight.toDp() }
+    // Ikon (24) + jarak (4) + label + padding atas/bawah, minimal 64dp agar setiap tujuan punya target sentuh di atas 48dp.
+    val pillHeight = maxOf(64.dp, 28.dp + labelHeight + ItemVerticalPadding * 2)
+    // Label "Rekam" sejajar label lain; cincin duduk tepat di atas label dan menonjol keluar dari pill.
+    val navHeight = maxOf(pillHeight, RecordRingSize + 4.dp + labelHeight + (pillHeight - 28.dp - labelHeight) / 2)
     val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     Box(Modifier.fillMaxSize().background(AppBackground)) {
         content(PaddingValues(bottom = systemBottom + FloatGap + navHeight))
@@ -94,8 +103,9 @@ fun MadsazScaffold(
             selected = selected,
             pillHeight = pillHeight,
             navHeight = navHeight,
-            onHome = onHome,
-            onHistory = onHistory,
+            // Label tujuan berada di tengah pill secara vertikal; label Rekam diberi jarak bawah yang sama agar sebaris.
+            recordBottomPadding = (pillHeight - 28.dp - labelHeight) / 2,
+            onNavigate = onNavigate,
             onRecord = onRecord,
             modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = FloatGap).zIndex(1f),
         )
@@ -105,94 +115,130 @@ fun MadsazScaffold(
 @Composable
 private fun FloatingNav(
     selected: MainDestination,
-    pillHeight: androidx.compose.ui.unit.Dp,
-    navHeight: androidx.compose.ui.unit.Dp,
-    onHome: () -> Unit,
-    onHistory: () -> Unit,
+    pillHeight: Dp,
+    navHeight: Dp,
+    recordBottomPadding: Dp,
+    onNavigate: (MainDestination) -> Unit,
     onRecord: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.fillMaxWidth().height(navHeight), contentAlignment = Alignment.BottomCenter) {
+    Box(
+        modifier.fillMaxWidth().padding(horizontal = 12.dp).widthIn(max = 420.dp).height(navHeight),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
         Surface(
-            modifier = Modifier.padding(horizontal = 20.dp).width(if (LocalDensity.current.fontScale > 1.3f) 360.dp else PillWidth).height(pillHeight),
-            shape = RoundedCornerShape(27.dp),
+            modifier = Modifier.fillMaxWidth().height(pillHeight),
+            shape = RoundedCornerShape(28.dp),
             color = Color.White,
             border = BorderStroke(1.dp, Color(0xFFDFE3F2)),
             shadowElevation = 2.dp,
         ) {
-            // Tujuan kiri, ruang tetap di bawah tombol rekam, tujuan kanan; dua tujuan berbagi sisa lebar sama besar. Row ikut mencerminkan di RTL.
+            // Lima kolom sama lebar; kolom tengah dikosongkan untuk tombol Rekam. Row ikut mencerminkan di RTL.
             Row(Modifier.fillMaxSize().selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
+                NavItem(MainDestination.HOME, selected, Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home, "nav_home", onNavigate)
+                NavItem(MainDestination.HISTORY, selected, Icons.Filled.History, Icons.Outlined.History, R.string.nav_history, "nav_history", onNavigate)
+                Spacer(Modifier.weight(1f))
                 NavItem(
-                    iconRes = R.drawable.phosphor_house,
-                    label = stringResource(R.string.nav_home),
-                    selected = selected == MainDestination.HOME,
-                    onClick = onHome,
-                    modifier = Modifier.weight(1f),
+                    MainDestination.CUES, selected, Icons.AutoMirrored.Filled.MenuBook, Icons.AutoMirrored.Outlined.MenuBook,
+                    R.string.nav_cues, "nav_cues", onNavigate,
                 )
-                Spacer(Modifier.width(RecordGap))
-                NavItem(
-                    iconRes = R.drawable.phosphor_clock_counter_clockwise,
-                    label = stringResource(R.string.nav_history),
-                    selected = selected == MainDestination.HISTORY,
-                    onClick = onHistory,
-                    modifier = Modifier.weight(1f),
-                )
+                NavItem(MainDestination.PROFILE, selected, Icons.Filled.Person, Icons.Outlined.Person, R.string.nav_profile, "nav_profile", onNavigate)
             }
         }
-        RecordButton(onRecord, Modifier.align(Alignment.BottomCenter).offset(y = -RecordRingLift))
+        RecordAction(onRecord, Modifier.align(Alignment.BottomCenter).padding(bottom = recordBottomPadding))
     }
 }
 
 @Composable
-private fun NavItem(iconRes: Int, label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val tint = if (selected) BrandBlueDark else MutedInk
+private fun RowScope.NavItem(
+    destination: MainDestination,
+    selected: MainDestination,
+    selectedIcon: ImageVector,
+    icon: ImageVector,
+    labelRes: Int,
+    tag: String,
+    onNavigate: (MainDestination) -> Unit,
+) {
+    val isSelected = destination == selected
+    val tint = if (isSelected) BrandBlueDark else MutedInk
     Column(
-        modifier = modifier
-            .padding(horizontal = 8.dp)
-            .defaultMinSize(minHeight = 48.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .selectable(selected = selected, onClick = onClick, role = Role.Tab)
-            .padding(vertical = 8.dp),
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(20.dp))
+            .selectable(selected = isSelected, onClick = { onNavigate(destination) }, role = Role.Tab)
+            .padding(vertical = ItemVerticalPadding)
+            .testTag(tag),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
     ) {
-        // Label sudah dibaca TalkBack sebagai teks tab; ikon dekoratif.
-        Icon(painter = painterResource(iconRes), contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+        // Indikator aktif Material: pill di belakang ikon tujuan terpilih, ikon terisi untuk terpilih dan garis untuk lainnya.
+        Box(
+            Modifier.width(48.dp).height(24.dp).clip(CircleShape).background(if (isSelected) BrandBlueSoft else Color.Transparent),
+            contentAlignment = Alignment.Center,
+        ) {
+            // Label sudah dibaca TalkBack sebagai teks tab; ikon dekoratif.
+            Icon(if (isSelected) selectedIcon else icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+        }
         Text(
-            text = label,
-            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(labelRes),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
             color = tint,
             textAlign = TextAlign.Center,
-            fontSize = 12.sp,
-            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = navLabelStyle(),
         )
     }
 }
 
+/** Tombol Rekam: cincin menonjol plus label yang terlihat; keduanya satu target sentuh dan satu tombol bagi TalkBack. */
 @Composable
-private fun RecordButton(onRecord: () -> Unit, modifier: Modifier = Modifier) {
+private fun RecordAction(onRecord: () -> Unit, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.nav_record)
-    Surface(
-        modifier = modifier.size(RecordRingSize),
-        shape = CircleShape,
-        color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFC7D9F5)),
+    Column(
+        modifier = modifier
+            .width(RecordRingSize)
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onRecord)
+            .testTag("nav_record"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Surface(
-                modifier = Modifier.size(RecordButtonSize).clip(CircleShape).clickable(role = Role.Button, onClickLabel = description, onClick = onRecord),
-                shape = CircleShape,
-                color = BrandBlue,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(R.drawable.phosphor_camera),
-                        contentDescription = description,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
+        Surface(
+            modifier = Modifier.size(RecordRingSize),
+            shape = CircleShape,
+            color = Color.White,
+            border = BorderStroke(1.dp, Color(0xFFC7D9F5)),
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Surface(modifier = Modifier.size(RecordButtonSize), shape = CircleShape, color = BrandBlue) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Videocam, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                    }
                 }
             }
         }
+        Text(
+            stringResource(R.string.nav_record_label),
+            color = BrandBlueDark,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            style = navLabelStyle(),
+        )
     }
 }
+
+/**
+ * Label navigasi ikut ukuran huruf sistem sampai 130%, lalu berhenti membesar: lima slot di layar 360dp tidak muat
+ * untuk satu kata pada 200% ("Beranda", "Petunjuk"), dan label terpotong lebih buruk daripada label yang sedikit lebih kecil.
+ * Teks lain di layar tetap mengikuti ukuran huruf penuh.
+ */
+@Composable
+private fun navLabelStyle(): TextStyle {
+    val fontScale = LocalDensity.current.fontScale
+    val factor = minOf(fontScale, MaxNavLabelScale) / fontScale
+    return MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * factor, lineHeight = 16.sp * factor)
+}
+
+private const val MaxNavLabelScale = 1.3f

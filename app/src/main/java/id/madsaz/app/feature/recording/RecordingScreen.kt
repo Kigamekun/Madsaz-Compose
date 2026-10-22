@@ -65,6 +65,8 @@ fun RecordingScreen(
     onStart: () -> Unit,
     onStop: () -> Unit,
     audioLevels: List<Float> = emptyList(),
+    /** false sampai pratinjau kamera benar-benar berjalan; merekam sebelum itu gagal di CameraX. */
+    cameraReady: Boolean = true,
     cameraPreview: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -116,24 +118,33 @@ fun RecordingScreen(
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                 Surface(
                                     onClick = if (recording) onStop else onStart,
+                                    enabled = recording || cameraReady,
                                     modifier = Modifier.size(76.dp).testTag(if (recording) "recording_stop" else "recording_start"),
                                     shape = CircleShape,
                                     border = BorderStroke(4.dp, BrandBlueSoft),
-                                    color = if (recording) MaterialTheme.colorScheme.error else BrandBlueDark,
+                                    color = when {
+                                        recording -> MaterialTheme.colorScheme.error
+                                        cameraReady -> BrandBlueDark
+                                        else -> BrandBlueDark.copy(alpha = 0.4f)
+                                    },
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(painterResource(if (recording) R.drawable.phosphor_stop_circle else R.drawable.phosphor_camera), stringResource(if (recording) R.string.recording_stop else R.string.recording_start), Modifier.size(30.dp), tint = Color.White)
                                     }
                                 }
                                 if (canSwitchCamera && !recording) {
-                                    IconButton(onClick = onSwitchCamera, modifier = Modifier.align(Alignment.CenterEnd).clip(CircleShape).background(BrandBlueSoft).testTag("recording_switch")) {
+                                    IconButton(onClick = onSwitchCamera, enabled = cameraReady, modifier = Modifier.align(Alignment.CenterEnd).clip(CircleShape).background(BrandBlueSoft).testTag("recording_switch")) {
                                         Icon(Icons.Rounded.Cameraswitch, stringResource(R.string.recording_switch_camera), tint = Ink)
                                     }
                                 }
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(stringResource(if (recording) R.string.recording_stop_label else R.string.recording_tap_to_record), style = MaterialTheme.typography.titleMedium, color = Ink, textAlign = TextAlign.Center)
-                                Text(stringResource(if (recording) R.string.recording_stop_helper else R.string.recording_camera_ready), style = MaterialTheme.typography.bodySmall, color = MutedInk, textAlign = TextAlign.Center)
+                                Text(stringResource(when {
+                                    recording -> R.string.recording_stop_helper
+                                    cameraReady -> R.string.recording_camera_ready
+                                    else -> R.string.recording_camera_starting
+                                }), style = MaterialTheme.typography.bodySmall, color = MutedInk, textAlign = TextAlign.Center)
                             }
                         }
                     }

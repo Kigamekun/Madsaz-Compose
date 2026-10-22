@@ -37,6 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Observer
 import id.madsaz.app.feature.result.RecordingStatusScreen
 import id.madsaz.app.model.RecordingUiState
 import java.io.File
@@ -84,6 +85,24 @@ fun RecordingRoute(
 
     val latestActiveRecording by rememberUpdatedState(activeRecording)
 
+    // Tombol ganti kamera hanya bila CameraX benar-benar menemukan kedua lensa (CameraController.hasCamera, setelah kamera
+    // siap). Fitur PackageManager saja tidak cukup: perangkat bisa mendeklarasikan kamera depan yang tidak tersedia.
+    var canSwitchCamera by remember { mutableStateOf(false) }
+    var cameraReady by remember { mutableStateOf(false) }
+    DisposableEffect(cameraController) {
+        val future = cameraController.initializationFuture
+        future.addListener({
+            canSwitchCamera = try {
+                future.get()
+                cameraController.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) && cameraController.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)
+            } catch (_: Exception) {
+                // Inisialisasi gagal: pratinjau sudah melaporkan galat kamera lewat CameraPreview.
+                false
+            }
+        }, ContextCompat.getMainExecutor(context))
+        onDispose { }
+    }
+
     LaunchedEffect(permissionsGranted) {
         viewModel.onPermissionState(permissionsGranted)
     }
@@ -126,7 +145,7 @@ fun RecordingRoute(
         -> RecordingScreen(
             state = state,
             permissionPreviouslyRequested = permissionPreviouslyRequested,
-            canSwitchCamera = hasBackCamera && hasFrontCamera,
+            canSwitchCamera = canSwitchCamera,
             onBack = { if (state is RecordingUiState.Recording) stopRecording() else onBack() },
             onRequestPermission = { permissionLauncher.launch(REQUIRED_PERMISSIONS) },
             onOpenSettings = { context.openAppSettings() },
@@ -190,10 +209,12 @@ fun RecordingRoute(
             },
             onStop = ::stopRecording,
             audioLevels = audioLevels,
+            cameraReady = cameraReady,
             cameraPreview = { previewModifier ->
                 CameraPreview(
                     controller = cameraController,
                     onError = viewModel::onCameraError,
+                    onStreamingChanged = { cameraReady = it },
                     modifier = previewModifier,
                 )
             },
@@ -220,9 +241,19 @@ fun RecordingRoute(
 private fun CameraPreview(
     controller: LifecycleCameraController,
     onError: () -> Unit,
+    onStreamingChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val previewView = remember(context, controller) {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            this.controller = controller
+        }
+    }
+    val latestOnStreamingChanged by rememberUpdatedState(onStreamingChanged)
 
     DisposableEffect(controller, lifecycleOwner) {
         try {
@@ -233,16 +264,14 @@ private fun CameraPreview(
         onDispose { controller.unbind() }
     }
 
-    AndroidView(
-        factory = { context ->
-            PreviewView(context).apply {
-                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                scaleType = PreviewView.ScaleType.FILL_CENTER
-                this.controller = controller
-            }
-        },
-        modifier = modifier,
-    )
+    // STREAMING = kamera terikat dan mengirim frame (juga setelah ganti lensa); baru setelah itu rekaman boleh dimulai.
+    DisposableEffect(previewView, lifecycleOwner) {
+        val observer = Observer<PreviewView.StreamState> { latestOnStreamingChanged(it == PreviewView.StreamState.STREAMING) }
+        previewView.previewStreamState.observe(lifecycleOwner, observer)
+        onDispose { previewView.previewStreamState.removeObserver(observer) }
+    }
+
+    AndroidView(factory = { previewView }, modifier = modifier)
 }
 
 internal fun Context.hasRecordingPermissions(): Boolean = REQUIRED_PERMISSIONS.all { permission ->

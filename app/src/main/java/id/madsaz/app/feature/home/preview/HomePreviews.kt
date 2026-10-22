@@ -14,8 +14,7 @@ private fun HomeEmptyPreview() {
     MadsazTheme {
         MadsazScaffold(
             selected = MainDestination.HOME,
-            onHome = {},
-            onHistory = {},
+            onNavigate = {},
             onRecord = {},
         ) { padding ->
             HomeScreen(
@@ -24,6 +23,7 @@ private fun HomeEmptyPreview() {
                 historyError = false,
                 onRecord = {},
                 onHistory = {},
+                onCryCues = {},
                 onProfile = {},
                 onOpenRecording = {},
                 contentPadding = padding,
@@ -38,8 +38,7 @@ private fun HomeWithResultPreview() {
     MadsazTheme {
         MadsazScaffold(
             selected = MainDestination.HOME,
-            onHome = {},
-            onHistory = {},
+            onNavigate = {},
             onRecord = {},
         ) { padding ->
             HomeScreen(
@@ -49,6 +48,7 @@ private fun HomeWithResultPreview() {
                 historyError = false,
                 onRecord = {},
                 onHistory = {},
+                onCryCues = {},
                 onProfile = {},
                 onOpenRecording = {},
                 contentPadding = padding,

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,10 +55,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import id.madsaz.app.R
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
-import id.madsaz.app.feature.crycues.CryCuesSheet
 import id.madsaz.app.ui.components.RecordingEmptyState
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
+import id.madsaz.app.ui.components.cryCueLabel
+import id.madsaz.app.model.CryCue
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatPercent
 import id.madsaz.app.ui.components.formatTime
@@ -76,6 +78,7 @@ fun HomeScreen(
     historyError: Boolean,
     onRecord: () -> Unit,
     onHistory: () -> Unit,
+    onCryCues: () -> Unit,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     contentPadding: PaddingValues,
@@ -83,8 +86,6 @@ fun HomeScreen(
     avatarUrl: String? = null,
     accountName: String? = null,
 ) {
-    var showCryCues by remember { mutableStateOf(false) }
-    val openCryCues = { showCryCues = true }
     CompactContainer(modifier = modifier) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().background(Color.White).testTag("home_screen"),
@@ -95,14 +96,13 @@ fun HomeScreen(
                 HomeHero(
                     latestRecording = latestRecording,
                     onRecord = onRecord,
-                    onCryCues = openCryCues,
                     onProfile = onProfile,
                     avatarUrl = avatarUrl,
                     accountName = accountName,
                     onOpenRecording = onOpenRecording,
                 )
             }
-            item { LearningDestinations(openCryCues) }
+            item { LearningDestinations(onCryCues) }
             item {
                 RecentRecordings(
                     recordings = recentRecordings,
@@ -114,7 +114,6 @@ fun HomeScreen(
                 )
             }
         }
-        if (showCryCues) CryCuesSheet(onDismiss = { showCryCues = false })
     }
 }
 
@@ -161,14 +160,15 @@ private fun LearningCard(
 private fun HomeHero(
     latestRecording: RecordingItem?,
     onRecord: () -> Unit,
-    onCryCues: () -> Unit,
     onProfile: () -> Unit,
     onOpenRecording: (RecordingItem) -> Unit,
     avatarUrl: String?,
     accountName: String?,
 ) {
     val latestScore = latestRecording?.scores?.firstOrNull()
-    Box(Modifier.fillMaxWidth().height(366.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
+    val latestCode = latestRecording?.let { CryCue.fromCode(it.category ?: latestScore?.code)?.code ?: it.category ?: latestScore?.code }
+    // Tinggi mengikuti kartu (minimal sama dengan desain), sehingga teks besar atau bahasa panjang tidak terpotong.
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
             painter = painterResource(R.drawable.madsaz_home_nursery),
             contentDescription = null,
@@ -187,56 +187,66 @@ private fun HomeHero(
             name = accountName,
         )
         Surface(
-            onClick = {
-                if (latestRecording == null) onCryCues() else onOpenRecording(latestRecording)
-            },
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 241.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp),
+            // Tanpa rekaman kartu ini mengajak merekam; dengan rekaman ia membuka hasilnya. Ajakannya tertulis di kartu.
+            onClick = { if (latestRecording == null) onRecord() else onOpenRecording(latestRecording) },
+            modifier = Modifier.padding(top = 241.dp).padding(horizontal = 16.dp).fillMaxWidth().heightIn(min = 125.dp),
             shape = RoundedCornerShape(23.dp),
             color = BrandBlue,
         ) {
-            Box(Modifier.fillMaxSize()) {
-                Text(
-                    text = stringResource(R.string.home_latest_cry),
-                    modifier = Modifier.offset(x = 18.dp, y = 14.dp),
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = latestRecording?.let { it.category ?: stringResource(it.status.labelRes) } ?: "—",
-                    modifier = Modifier.offset(x = 18.dp, y = 39.dp),
-                    color = Color.White,
-                    fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 40.sp,
-                )
-                Text(
-                    text = when {
-                        latestRecording == null -> stringResource(R.string.home_latest_empty)
-                        latestScore != null -> stringResource(R.string.home_result_with_confidence, latestScore.label, formatPercent(latestScore.confidence))
-                        else -> stringResource(
-                            when (latestRecording.status) {
-                                RecordingStatus.PROCESSING -> R.string.home_status_waiting
-                                RecordingStatus.FAILED -> R.string.home_status_failed
-                                RecordingStatus.COMPLETED -> R.string.home_status_result
-                            },
+            Row(Modifier.padding(start = 18.dp, end = 16.dp, top = 14.dp, bottom = 12.dp), verticalAlignment = Alignment.Bottom) {
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.home_latest_cry),
+                            modifier = Modifier.weight(1f),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
                         )
-                    },
-                    modifier = Modifier.offset(x = 18.dp, y = 89.dp),
-                    color = Color.White.copy(alpha = 0.88f),
-                    fontSize = 12.sp,
-                )
-                Text(
-                    text = latestRecording?.let { formatTime(it.recordedAtEpochMillis) } ?: "",
-                    modifier = Modifier.align(Alignment.TopEnd).offset(x = (-18).dp, y = 14.dp),
-                    color = Color.White.copy(alpha = 0.88f),
-                    fontSize = 11.sp,
-                )
-                if (latestRecording != null) CryCueIcon(
-                    latestRecording.category ?: latestScore?.code,
-                    Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 10.dp).size(64.dp),
-                )
+                        if (latestRecording != null) Text(
+                            text = formatTime(latestRecording.recordedAtEpochMillis),
+                            color = Color.White.copy(alpha = 0.88f),
+                            fontSize = 11.sp,
+                        )
+                    }
+                    Text(
+                        text = latestCode ?: latestRecording?.let { stringResource(it.status.labelRes) } ?: "—",
+                        color = Color.White,
+                        fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 40.sp,
+                    )
+                    Text(
+                        text = when {
+                            latestRecording == null -> stringResource(R.string.home_latest_empty)
+                            latestScore != null -> stringResource(
+                                R.string.home_result_with_confidence,
+                                cryCueLabel(latestScore.code, latestScore.label),
+                                formatPercent(latestScore.confidence),
+                            )
+                            else -> stringResource(
+                                when (latestRecording.status) {
+                                    RecordingStatus.PROCESSING -> R.string.home_status_waiting
+                                    RecordingStatus.FAILED -> R.string.home_status_failed
+                                    RecordingStatus.COMPLETED -> R.string.home_status_result
+                                },
+                            )
+                        },
+                        color = Color.White.copy(alpha = 0.88f),
+                        fontSize = 12.sp,
+                    )
+                    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(if (latestRecording == null) R.string.home_latest_start else R.string.home_latest_open),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                }
+                if (latestRecording != null) CryCueIcon(latestCode, Modifier.padding(start = 12.dp).size(64.dp))
             }
         }
     }
@@ -343,7 +353,7 @@ private fun EmptyRecordings(onRecord: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 private fun ActivityContent(recording: RecordingItem) {
     val score = recording.scores.firstOrNull()
-    val code = recording.category?.substringBefore(" - ") ?: score?.code
+    val code = (recording.category ?: score?.code)?.let { CryCue.fromCode(it)?.code ?: it.substringBefore(" - ") }
     val confidence = score?.confidence
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
@@ -353,7 +363,7 @@ private fun ActivityContent(recording: RecordingItem) {
         CryCueIcon(code, Modifier.size(48.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                if (code != null && score != null) "$code - ${score.label}" else code ?: stringResource(recording.status.labelRes),
+                if (code != null && score != null) "$code · ${cryCueLabel(score.code, score.label)}" else code ?: stringResource(recording.status.labelRes),
                 color = Ink,
                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold),
             )
@@ -373,6 +383,8 @@ private fun ActivityContent(recording: RecordingItem) {
                 }
             }
         }
+        // Penanda bahwa kartu membuka detail rekaman; dekoratif karena seluruh kartu adalah satu tombol.
+        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MutedInk)
     }
 }
 

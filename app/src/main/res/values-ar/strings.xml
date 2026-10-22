@@ -13,6 +13,15 @@
     <string name="nav_home">الرئيسية</string>
     <string name="nav_history">السجل</string>
     <string name="nav_record">ابدأ التسجيل</string>
+    <string name="nav_cues">الإشارات</string>
+    <string name="nav_profile">حسابي</string>
+    <string name="nav_record_label">تسجيل</string>
+    <string name="cues_intro">خمسة أنماط لبكاء الرضّع من عمر 0 إلى 3 أشهر (لغة دانستان للرضّع). اضغط على أحدها لمعرفة علاماته وطريقة تهدئة طفلك.</string>
+    <string name="cue_open_detail">عرض التفاصيل</string>
+    <string name="home_latest_open">عرض النتيجة</string>
+    <string name="home_latest_start">ابدأ التسجيل</string>
+    <string name="result_learn_cue">تعرّف على %1$s: العلامات وطرق التهدئة</string>
+    <string name="result_done">تم</string>
     <string name="header_tagline">أنماط البكاء</string>
     <string name="header_profile_initial">م</string>
     <string name="header_profile_description">الملف الشخصي</string>
@@ -87,6 +96,7 @@
     <string name="recording_keep_baby_in_view">أبقِ الطفل في الإطار</string>
     <string name="recording_tap_to_record">اضغط للتسجيل</string>
     <string name="recording_camera_ready">الكاميرا والميكروفون جاهزان</string>
+    <string name="recording_camera_starting">جارٍ تشغيل الكاميرا…</string>
     <string name="recording_stop_label">إيقاف التسجيل</string>
     <string name="recording_stop_helper">يمكنك التوقف في أي وقت عندما يهدأ طفلك.</string>
     <string name="recording_status_ready">جاهز</string>
@@ -201,6 +211,7 @@
     <string name="feedback_note_hint">اكتب ملاحظتك هنا…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">إرسال الملاحظات</string>
+    <string name="feedback_requirements">اختر تقييمًا وموضوعًا، ثم اكتب ملاحظة قصيرة للإرسال.</string>
     <string name="feedback_sending">جارٍ الإرسال…</string>
 
     <!-- الإشعارات -->
@@ -210,34 +221,29 @@
     <string name="notifications_permission_denied">اسمح بالإشعارات ليتمكن التطبيق من عرض التذكيرات.</string>
 
     <!-- إشارات البكاء -->
-    <string name="cry_cues_close">إغلاق إشارات البكاء</string>
     <string name="cry_cues_signs">العلامات</string>
     <string name="cry_cues_actions">ما يمكنك فعله</string>
-    <string name="cry_cues_got_it">فهمت</string>
     <string name="cue_neh_meaning">جائع</string>
     <string name="cue_neh_description">يعني هذا البكاء عادةً أن الطفل جائع ويريد الرضاعة.</string>
-    <string name="cue_neh_metric_meaning">جوع</string>
-    <string name="cue_neh_metric_detail">يحتاج إلى حليب</string>
+    <string name="cue_neh_metric_detail">يريد الرضاعة</string>
     <string name="cue_neh_feature_1">بكاء يشبه «نيه نيه نيه»</string>
     <string name="cue_neh_feature_2">يتكرر عادةً ويزداد قوة</string>
     <string name="cue_neh_feature_3">يبحث عن الحلمة أو يفتح فمه</string>
     <string name="cue_neh_action_1">قدّم حليب الأم أو الحليب الصناعي فورًا</string>
     <string name="cue_neh_action_2">تأكد من راحة وضعية الرضاعة</string>
     <string name="cue_neh_action_3">راقب علامات الشبع لدى الطفل</string>
-    <string name="cue_owh_meaning">نعسان</string>
+    <string name="cue_owh_meaning">متعب</string>
     <string name="cue_owh_description">قد يكون هذا الصوت علامة على أن الطفل بدأ يتعب ويحتاج إلى الراحة.</string>
-    <string name="cue_owh_metric_meaning">نعاس</string>
-    <string name="cue_owh_metric_detail">حان وقت الراحة</string>
+    <string name="cue_owh_metric_detail">بدأ يشعر بالنعاس</string>
     <string name="cue_owh_feature_1">صوت «أوه» طويل</string>
     <string name="cue_owh_feature_2">التثاؤب أو فرك العينين</string>
     <string name="cue_owh_feature_3">تبدأ حركات الطفل بالتباطؤ</string>
     <string name="cue_owh_action_1">انقل الطفل إلى مكان هادئ</string>
     <string name="cue_owh_action_2">خفّف الإضاءة وقلّل الضوضاء</string>
     <string name="cue_owh_action_3">ساعد الطفل على النوم بروتين لطيف</string>
-    <string name="cue_eh_meaning">يحتاج إلى التجشؤ</string>
+    <string name="cue_eh_meaning">يريد التجشؤ</string>
     <string name="cue_eh_description">قد يخبرك الطفل بأن هناك هواءً يجب إخراجه بعد الرضاعة.</string>
-    <string name="cue_eh_metric_meaning">يحتاج إلى التجشؤ</string>
-    <string name="cue_eh_metric_detail">بعد الرضاعة</string>
+    <string name="cue_eh_metric_detail">ساعده على التجشؤ</string>
     <string name="cue_eh_feature_1">صوت «إيه» قصير</string>
     <string name="cue_eh_feature_2">يظهر بعد الرضاعة</string>
     <string name="cue_eh_feature_3">يتلوّى الطفل أو يبدو غير مرتاح</string>
@@ -246,8 +252,7 @@
     <string name="cue_eh_action_3">توقف عندما يبدو الطفل مرتاحًا</string>
     <string name="cue_heh_meaning">غير مرتاح</string>
     <string name="cue_heh_description">قد يكون الطفل غير مرتاح ويحتاج إلى فحص بسيط.</string>
-    <string name="cue_heh_metric_meaning">عدم ارتياح</string>
-    <string name="cue_heh_metric_detail">تحقق من الراحة</string>
+    <string name="cue_heh_metric_detail">الحفاض أو الحرارة أو الوضعية</string>
     <string name="cue_heh_feature_1">صوت «هيه» مع توقفات قصيرة</string>
     <string name="cue_heh_feature_2">يتحرك الطفل كثيرًا أو يتذمر</string>
     <string name="cue_heh_feature_3">يبدو الوجه غير مرتاح</string>
@@ -256,8 +261,7 @@
     <string name="cue_heh_action_3">احمل الطفل وهدّئه ببطء</string>
     <string name="cue_eairh_meaning">انتفاخ البطن</string>
     <string name="cue_eairh_description">قد يدل هذا الصوت على أن الطفل غير مرتاح بسبب الغازات في البطن.</string>
-    <string name="cue_eairh_metric_meaning">غازات في البطن</string>
-    <string name="cue_eairh_metric_detail">انزعاج في البطن</string>
+    <string name="cue_eairh_metric_detail">غازات في البطن</string>
     <string name="cue_eairh_feature_1">صوت «إيرْ» مع ضغط</string>
     <string name="cue_eairh_feature_2">يثني الطفل ساقيه نحو البطن</string>
     <string name="cue_eairh_feature_3">البطن ممتلئ أو يصعب تهدئة الطفل</string>

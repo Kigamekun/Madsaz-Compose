@@ -58,6 +58,9 @@ import id.madsaz.app.feature.recording.RecordingRoute
 import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.result.ResultScreen
 import id.madsaz.app.feature.result.ResultViewModel
+import id.madsaz.app.feature.crycues.CryCueDetailScreen
+import id.madsaz.app.feature.crycues.CryCuesScreen
+import id.madsaz.app.model.CryCue
 import id.madsaz.app.data.local.AppLanguage
 import id.madsaz.app.notifications.canPostNotifications
 import id.madsaz.app.notifications.canRequestNotificationPermission
@@ -79,6 +82,8 @@ private object Routes {
     const val HOME = "home"
     const val HISTORY = "history"
     const val PROFILE = "profile"
+    const val CUES = "cues"
+    const val CUE_DETAIL = "cue/{code}"
     const val PLAN = "plan"
     const val NOTIFICATIONS = "notifications"
     const val PRIVACY = "privacy"
@@ -89,6 +94,7 @@ private object Routes {
 
     fun result(recordingId: String, log: Boolean = false) = "result/$recordingId?log=$log"
     fun feedback(recordingId: String) = "feedback/$recordingId"
+    fun cue(code: String) = "cue/$code"
 }
 
 private enum class AppSheet {
@@ -98,7 +104,7 @@ private enum class AppSheet {
 }
 
 internal fun usesDetailTransition(from: String?, to: String?): Boolean {
-    val mainRoutes = setOf(Routes.HOME, Routes.HISTORY, Routes.PROFILE)
+    val mainRoutes = setOf(Routes.HOME, Routes.HISTORY, Routes.CUES, Routes.PROFILE)
     val routesWithoutPageMotion = setOf(Routes.PLAN, Routes.NOTIFICATIONS, Routes.LANGUAGE, Routes.PRIVACY)
     return from != null && to != null && from !in routesWithoutPageMotion && to !in routesWithoutPageMotion &&
         (from !in mainRoutes || to !in mainRoutes)
@@ -248,6 +254,7 @@ private fun SignedInApp(
                     historyError = historyState is HistoryUiState.Error,
                     onRecord = openRecorder,
                     onHistory = { navigateMain(Routes.HISTORY) },
+                    onCryCues = { navigateMain(Routes.CUES) },
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     contentPadding = padding,
@@ -270,6 +277,25 @@ private fun SignedInApp(
                     accountName = accountProfile?.name,
                 )
             }
+        }
+        composable(Routes.CUES) {
+            MainDestinationScaffold(MainDestination.CUES, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
+                CryCuesScreen(
+                    onOpenCue = { navController.navigate(Routes.cue(it.code)) },
+                    onProfile = { navigateMain(Routes.PROFILE) },
+                    contentPadding = padding,
+                    avatarUrl = accountProfile?.avatarUrl,
+                    accountName = accountProfile?.name,
+                )
+            }
+        }
+        composable(
+            route = Routes.CUE_DETAIL,
+            arguments = listOf(navArgument("code") { type = NavType.StringType }),
+        ) { entry ->
+            // Rute hanya dibuat dari CryCue.code, jadi kode di luar lima pola berarti bug navigasi.
+            val cue = requireNotNull(CryCue.fromCode(entry.arguments?.getString("code"))) { "Unknown cry cue route" }
+            CryCueDetailScreen(cue, onBack = { navController.popBackStack() })
         }
         composable(Routes.PROFILE) {
             // Mulai memuat saat Profil dibuka, lalu pertahankan hasilnya saat halaman privasi ditutup/dibuka kembali.
@@ -331,6 +357,7 @@ private fun SignedInApp(
                 state = feedbackViewModel.uiState,
                 onSubmit = feedbackViewModel::submit,
                 onSubmitted = { navigateMain(Routes.HOME) },
+                onBack = { navController.popBackStack() },
             )
         }
         composable(
@@ -348,6 +375,7 @@ private fun SignedInApp(
                 onBack = { navController.popBackStack() },
                 onRefresh = resultViewModel::load,
                 onFeedback = { navController.navigate(Routes.feedback(it)) },
+                onOpenCue = { navController.navigate(Routes.cue(it.code)) },
                 startInLog = entry.arguments?.getBoolean("log") == true,
             )
         }
@@ -397,8 +425,16 @@ private fun MainDestinationScaffold(
     }
     MadsazScaffold(
         selected = selected,
-        onHome = { navigateMain(Routes.HOME) },
-        onHistory = { navigateMain(Routes.HISTORY) },
+        onNavigate = { destination ->
+            navigateMain(
+                when (destination) {
+                    MainDestination.HOME -> Routes.HOME
+                    MainDestination.HISTORY -> Routes.HISTORY
+                    MainDestination.CUES -> Routes.CUES
+                    MainDestination.PROFILE -> Routes.PROFILE
+                },
+            )
+        },
         onRecord = onRecord,
         content = content,
     )

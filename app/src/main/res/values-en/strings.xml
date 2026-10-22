@@ -13,6 +13,15 @@
     <string name="nav_home">Home</string>
     <string name="nav_history">History</string>
     <string name="nav_record">Take a recording</string>
+    <string name="nav_cues">Cues</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_record_label">Record</string>
+    <string name="cues_intro">Five cry patterns of babies aged 0–3 months (Dunstan Baby Language). Tap one to see its signs and how to soothe your baby.</string>
+    <string name="cue_open_detail">See details</string>
+    <string name="home_latest_open">See result</string>
+    <string name="home_latest_start">Start recording</string>
+    <string name="result_learn_cue">Learn %1$s: signs and how to soothe</string>
+    <string name="result_done">Done</string>
     <string name="header_tagline">Cry patterns</string>
     <string name="header_profile_initial">P</string>
     <string name="header_profile_description">Profile</string>
@@ -83,6 +92,7 @@
     <string name="recording_keep_baby_in_view">Keep baby in view</string>
     <string name="recording_tap_to_record">Tap to record</string>
     <string name="recording_camera_ready">Camera + microphone ready</string>
+    <string name="recording_camera_starting">Starting the camera…</string>
     <string name="recording_stop_label">Stop recording</string>
     <string name="recording_stop_helper">You can stop whenever your baby feels calm.</string>
     <string name="recording_status_ready">READY</string>
@@ -185,6 +195,7 @@
     <string name="feedback_note_hint">Your note goes here…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Send feedback</string>
+    <string name="feedback_requirements">Choose a rating and a topic, then write a short note to send.</string>
     <string name="feedback_sending">Sending…</string>
 
     <!-- Notifications -->
@@ -194,34 +205,29 @@
     <string name="notifications_permission_denied">Allow notifications in Android settings.</string>
 
     <!-- Cry cues -->
-    <string name="cry_cues_close">Close cry cues</string>
     <string name="cry_cues_signs">Signs</string>
     <string name="cry_cues_actions">What you can do</string>
-    <string name="cry_cues_got_it">Got it</string>
     <string name="cue_neh_meaning">Hungry</string>
     <string name="cue_neh_description">This cry usually means your baby is hungry and wants to feed.</string>
-    <string name="cue_neh_metric_meaning">Hunger</string>
-    <string name="cue_neh_metric_detail">Needs milk</string>
+    <string name="cue_neh_metric_detail">Wants to feed</string>
     <string name="cue_neh_feature_1">A cry that sounds like “neh neh neh”</string>
     <string name="cue_neh_feature_2">Usually repeated and getting louder</string>
     <string name="cue_neh_feature_3">Rooting or opening the mouth</string>
     <string name="cue_neh_action_1">Offer breast milk or formula right away</string>
     <string name="cue_neh_action_2">Make sure the feeding position is comfortable</string>
     <string name="cue_neh_action_3">Watch for signs that your baby is full</string>
-    <string name="cue_owh_meaning">Sleepy</string>
+    <string name="cue_owh_meaning">Tired</string>
     <string name="cue_owh_description">This sound can be a sign your baby is getting tired and needs rest.</string>
-    <string name="cue_owh_metric_meaning">Sleepy</string>
-    <string name="cue_owh_metric_detail">Time to rest</string>
+    <string name="cue_owh_metric_detail">Getting sleepy</string>
     <string name="cue_owh_feature_1">A long “owh” sound</string>
     <string name="cue_owh_feature_2">Yawning or rubbing the eyes</string>
     <string name="cue_owh_feature_3">Movements start to slow down</string>
     <string name="cue_owh_action_1">Move your baby somewhere quiet</string>
     <string name="cue_owh_action_2">Dim the lights and reduce noise</string>
     <string name="cue_owh_action_3">Help your baby sleep with a gentle routine</string>
-    <string name="cue_eh_meaning">Needs a burp</string>
+    <string name="cue_eh_meaning">Wants to burp</string>
     <string name="cue_eh_description">Your baby may be telling you there\'s air to release after feeding.</string>
-    <string name="cue_eh_metric_meaning">Needs a burp</string>
-    <string name="cue_eh_metric_detail">After feeding</string>
+    <string name="cue_eh_metric_detail">Burp your baby</string>
     <string name="cue_eh_feature_1">A short “eh” sound</string>
     <string name="cue_eh_feature_2">Happens after feeding</string>
     <string name="cue_eh_feature_3">Your baby wriggles or looks uncomfortable</string>
@@ -230,18 +236,16 @@
     <string name="cue_eh_action_3">Stop once your baby looks comfortable</string>
     <string name="cue_heh_meaning">Uncomfortable</string>
     <string name="cue_heh_description">Your baby may be uncomfortable and needs a simple check.</string>
-    <string name="cue_heh_metric_meaning">Uncomfortable</string>
-    <string name="cue_heh_metric_detail">Check comfort</string>
+    <string name="cue_heh_metric_detail">Diaper, temperature or position</string>
     <string name="cue_heh_feature_1">A “heh” sound with short pauses</string>
     <string name="cue_heh_feature_2">Your baby moves a lot or fusses</string>
     <string name="cue_heh_feature_3">The face looks uncomfortable</string>
     <string name="cue_heh_action_1">Check the diaper and clothing</string>
     <string name="cue_heh_action_2">Make sure the room temperature is comfortable</string>
     <string name="cue_heh_action_3">Hold and soothe your baby slowly</string>
-    <string name="cue_eairh_meaning">Gassy tummy</string>
+    <string name="cue_eairh_meaning">Bloated</string>
     <string name="cue_eairh_description">This sound can mean your baby is uncomfortable because of gas in the tummy.</string>
-    <string name="cue_eairh_metric_meaning">Lower gas</string>
-    <string name="cue_eairh_metric_detail">Tummy discomfort</string>
+    <string name="cue_eairh_metric_detail">Gassy tummy</string>
     <string name="cue_eairh_feature_1">An “eairh” sound with straining</string>
     <string name="cue_eairh_feature_2">Your baby pulls the legs toward the tummy</string>
     <string name="cue_eairh_feature_3">The tummy feels full or your baby is hard to settle</string>

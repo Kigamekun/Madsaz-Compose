@@ -42,8 +42,10 @@ class RecordingFlowTest {
         if (compose.onAllNodesWithTag("recording_switch").fetchSemanticsNodes().isNotEmpty()) {
             compose.onNodeWithTag("recording_switch").performClick()
         }
-        // Camera binding happens asynchronously; allow the selected lens to become ready.
-        Thread.sleep(1500)
+        // The record button is enabled only once the preview is streaming (camera bound to the selected lens).
+        compose.waitUntil(30_000) {
+            compose.onAllNodes(hasTestTag("recording_start") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithTag("recording_start").performClick()
         waitForTag("recording_timer")
         compose.waitUntil(15_000) {

@@ -16,6 +16,15 @@
     <string name="nav_home">Beranda</string>
     <string name="nav_history">Riwayat</string>
     <string name="nav_record">Mulai merekam</string>
+    <string name="nav_cues">Petunjuk</string>
+    <string name="nav_profile">Profil</string>
+    <string name="nav_record_label">Rekam</string>
+    <string name="cues_intro">Lima pola tangisan bayi usia 0–3 bulan (Dunstan Baby Language). Ketuk salah satu untuk melihat ciri-ciri dan cara menenangkannya.</string>
+    <string name="cue_open_detail">Lihat detail</string>
+    <string name="home_latest_open">Lihat hasil</string>
+    <string name="home_latest_start">Mulai merekam</string>
+    <string name="result_learn_cue">Pelajari %1$s: ciri dan cara menenangkan</string>
+    <string name="result_done">Selesai</string>
     <string name="header_tagline">Pola tangisan</string>
     <string name="header_profile_initial">P</string>
     <string name="header_profile_description">Profil</string>
@@ -86,6 +95,7 @@
     <string name="recording_keep_baby_in_view">Jaga bayi tetap terlihat</string>
     <string name="recording_tap_to_record">Ketuk untuk merekam</string>
     <string name="recording_camera_ready">Kamera + mikrofon siap</string>
+    <string name="recording_camera_starting">Menyiapkan kamera…</string>
     <string name="recording_stop_label">Hentikan rekaman</string>
     <string name="recording_stop_helper">Anda bisa berhenti kapan saja saat bayi sudah tenang.</string>
     <string name="recording_status_ready">SIAP</string>
@@ -186,6 +196,7 @@
     <string name="feedback_note_hint">Tulis catatan Anda di sini…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Kirim masukan</string>
+    <string name="feedback_requirements">Pilih penilaian dan topik, lalu tulis catatan singkat untuk mengirim.</string>
     <string name="feedback_sending">Mengirim…</string>
 
     <!-- Notifikasi -->
@@ -195,34 +206,29 @@
     <string name="notifications_permission_denied">Izinkan notifikasi di pengaturan Android.</string>
 
     <!-- Petunjuk tangisan -->
-    <string name="cry_cues_close">Tutup petunjuk tangisan</string>
     <string name="cry_cues_signs">Ciri-ciri</string>
     <string name="cry_cues_actions">Yang bisa dilakukan</string>
-    <string name="cry_cues_got_it">Mengerti</string>
     <string name="cue_neh_meaning">Lapar</string>
     <string name="cue_neh_description">Tangisan ini biasanya menandakan bayi merasa lapar dan ingin menyusu.</string>
-    <string name="cue_neh_metric_meaning">Lapar</string>
-    <string name="cue_neh_metric_detail">Butuh susu</string>
+    <string name="cue_neh_metric_detail">Ingin menyusu</string>
     <string name="cue_neh_feature_1">Suara tangisan seperti ‘neh neh neh’</string>
     <string name="cue_neh_feature_2">Biasanya berulang dan semakin kuat</string>
     <string name="cue_neh_feature_3">Mencari puting atau membuka mulut</string>
     <string name="cue_neh_action_1">Segera berikan ASI atau susu formula</string>
     <string name="cue_neh_action_2">Pastikan posisi menyusu nyaman</string>
     <string name="cue_neh_action_3">Perhatikan tanda kenyang pada bayi</string>
-    <string name="cue_owh_meaning">Mengantuk</string>
+    <string name="cue_owh_meaning">Lelah</string>
     <string name="cue_owh_description">Suara ini bisa menjadi tanda bayi mulai lelah dan membutuhkan waktu untuk beristirahat.</string>
-    <string name="cue_owh_metric_meaning">Mengantuk</string>
-    <string name="cue_owh_metric_detail">Waktunya istirahat</string>
+    <string name="cue_owh_metric_detail">Mulai mengantuk</string>
     <string name="cue_owh_feature_1">Suara seperti ‘owh’ dengan nada panjang</string>
     <string name="cue_owh_feature_2">Menguap atau menggosok mata</string>
     <string name="cue_owh_feature_3">Gerakan bayi mulai melambat</string>
     <string name="cue_owh_action_1">Pindahkan bayi ke tempat yang tenang</string>
     <string name="cue_owh_action_2">Redupkan cahaya dan kurangi suara</string>
     <string name="cue_owh_action_3">Bantu bayi tidur dengan rutinitas lembut</string>
-    <string name="cue_eh_meaning">Perlu bersendawa</string>
+    <string name="cue_eh_meaning">Ingin bersendawa</string>
     <string name="cue_eh_description">Bayi mungkin sedang memberi tahu bahwa ada udara yang perlu dikeluarkan setelah menyusu.</string>
-    <string name="cue_eh_metric_meaning">Perlu bersendawa</string>
-    <string name="cue_eh_metric_detail">Setelah menyusu</string>
+    <string name="cue_eh_metric_detail">Sendawakan bayi</string>
     <string name="cue_eh_feature_1">Suara pendek seperti ‘eh’</string>
     <string name="cue_eh_feature_2">Muncul setelah bayi menyusu</string>
     <string name="cue_eh_feature_3">Bayi terlihat menggeliat atau tidak nyaman</string>
@@ -231,18 +237,16 @@
     <string name="cue_eh_action_3">Berhenti jika bayi sudah terlihat nyaman</string>
     <string name="cue_heh_meaning">Tidak nyaman</string>
     <string name="cue_heh_description">Bayi mungkin sedang merasa kurang nyaman dan membutuhkan pemeriksaan sederhana.</string>
-    <string name="cue_heh_metric_meaning">Tidak nyaman</string>
-    <string name="cue_heh_metric_detail">Periksa kenyamanan</string>
+    <string name="cue_heh_metric_detail">Popok, suhu, atau posisi</string>
     <string name="cue_heh_feature_1">Suara seperti ‘heh’ dengan jeda pendek</string>
     <string name="cue_heh_feature_2">Bayi banyak bergerak atau merengek</string>
     <string name="cue_heh_feature_3">Ekspresi wajah tampak tidak nyaman</string>
     <string name="cue_heh_action_1">Periksa popok dan pakaian bayi</string>
     <string name="cue_heh_action_2">Pastikan suhu ruangan nyaman</string>
     <string name="cue_heh_action_3">Gendong dan tenangkan bayi perlahan</string>
-    <string name="cue_eairh_meaning">Perut kembung</string>
+    <string name="cue_eairh_meaning">Masuk angin</string>
     <string name="cue_eairh_description">Suara ini bisa menandakan bayi merasa tidak nyaman karena gas di perut.</string>
-    <string name="cue_eairh_metric_meaning">Gas di perut</string>
-    <string name="cue_eairh_metric_detail">Perut tidak nyaman</string>
+    <string name="cue_eairh_metric_detail">Perut kembung</string>
     <string name="cue_eairh_feature_1">Suara seperti ‘eairh’ dengan tekanan</string>
     <string name="cue_eairh_feature_2">Bayi menekuk kaki ke arah perut</string>
     <string name="cue_eairh_feature_3">Perut terasa penuh atau bayi sulit tenang</string>

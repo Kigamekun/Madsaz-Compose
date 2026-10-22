@@ -16,8 +16,7 @@ private fun ProfilePreview() {
     MadsazTheme {
         MadsazScaffold(
             selected = MainDestination.PROFILE,
-            onHome = {},
-            onHistory = {},
+            onNavigate = {},
             onRecord = {},
         ) { padding ->
             ProfileScreen(

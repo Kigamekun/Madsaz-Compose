@@ -42,6 +42,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
+import id.madsaz.app.model.CryCue
+import id.madsaz.app.ui.components.cryCueLabel
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.ui.components.CompactContainer
@@ -162,7 +165,8 @@ private fun HistoryRecordingRow(
     recording: RecordingItem,
     onOpen: () -> Unit,
 ) {
-    val code = recording.category?.substringBefore(" - ") ?: recording.scores.firstOrNull()?.code
+    val score = recording.scores.firstOrNull()
+    val code = (recording.category ?: score?.code)?.let { CryCue.fromCode(it)?.code ?: it.substringBefore(" - ") }
     val openLabel = stringResource(R.string.history_open_recording)
     Row(
         modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(vertical = 12.dp).clickable(role = Role.Button, onClickLabel = openLabel, onClick = onOpen),
@@ -171,7 +175,7 @@ private fun HistoryRecordingRow(
         CryCueIcon(code, Modifier.size(48.dp))
         Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                recording.scores.firstOrNull()?.label
+                score?.let { "${code ?: it.code} · ${cryCueLabel(it.code, it.label)}" }
                     ?: stringResource(if (recording.status == RecordingStatus.PROCESSING) R.string.history_processing else R.string.history_analysis_unavailable),
                 color = Color(0xFF17343B),
                 style = MaterialTheme.typography.titleMedium,
@@ -182,12 +186,8 @@ private fun HistoryRecordingRow(
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 18.sp),
             )
         }
-        // Dekoratif: seluruh baris adalah satu tombol, sehingga pembaca layar tidak menemukan dua target untuk aksi yang sama.
-        Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = BrandBlueSoft) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(18.dp))
-            }
-        }
+        // Penanda bahwa baris membuka detail (video dan hasil). Dekoratif: seluruh baris adalah satu tombol.
+        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MutedInk)
     }
 }
 

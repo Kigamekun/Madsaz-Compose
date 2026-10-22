@@ -1,5 +1,8 @@
 package id.madsaz.app
 
+import id.madsaz.app.feature.crycues.CryCueDetailScreen
+import id.madsaz.app.feature.crycues.CryCuesScreen
+import id.madsaz.app.model.CryCue
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import android.content.res.Configuration
@@ -84,7 +87,7 @@ class UiLayoutTest {
         }
         val overflows = mutableListOf<String>()
         for (width in listOf(360, 411)) for (scale in listOf(1f, 1.3f, 2f)) {
-            for (language in listOf("id", "en", "ar")) for (screen in listOf("home", "history", "profile", "recording", "auth", "feedback")) {
+            for (language in listOf("id", "en", "ar")) for (screen in listOf("home", "history", "cues", "cue", "profile", "recording", "auth", "feedback")) {
                 val next = LayoutSpec(language, scale, width, screen)
                 compose.runOnIdle { spec = next }
                 compose.waitForIdle()
@@ -115,18 +118,22 @@ class UiLayoutTest {
 
     @Composable private fun Screen(screen: String) {
         when (screen) {
-            "home" -> MadsazScaffold(MainDestination.HOME, {}, {}, {}) { padding ->
-                HomeScreen(null, historyLoading = false, historyError = false, onRecord = {}, onHistory = {}, onProfile = {}, onOpenRecording = {}, contentPadding = padding)
+            "home" -> MadsazScaffold(MainDestination.HOME, {}, {}) { padding ->
+                HomeScreen(null, historyLoading = false, historyError = false, onRecord = {}, onHistory = {}, onCryCues = {}, onProfile = {}, onOpenRecording = {}, contentPadding = padding)
             }
-            "history" -> MadsazScaffold(MainDestination.HISTORY, {}, {}, {}) { padding ->
+            "history" -> MadsazScaffold(MainDestination.HISTORY, {}, {}) { padding ->
                 HistoryScreen(HistoryUiState.Content(emptyList()), {}, {}, {}, {}, {}, padding)
             }
-            "profile" -> MadsazScaffold(MainDestination.PROFILE, {}, {}, {}) { padding ->
+            "profile" -> MadsazScaffold(MainDestination.PROFILE, {}, {}) { padding ->
                 ProfileScreen(ProfileUiState.Content(AccountProfile("fixture", "Orang Tua", "parent@example.test", null)), 0, 0, {}, {}, {}, {}, {}, DeleteAccountState.Idle, {}, {}, {}, {}, {}, {}, padding)
             }
+            "cues" -> MadsazScaffold(MainDestination.CUES, {}, {}) { padding ->
+                CryCuesScreen(onOpenCue = {}, onProfile = {}, contentPadding = padding)
+            }
+            "cue" -> CryCueDetailScreen(CryCue.EAIRH, onBack = {})
             "recording" -> RecordingScreen(RecordingUiState.Ready, false, true, {}, {}, {}, {}, {}, {}, cameraPreview = { Box(it.background(Color(0xFF1C3A53))) })
             "auth" -> AuthScreen(AuthUiState.SignedOut, { _, _, _, _ -> }, {})
-            "feedback" -> FeedbackScreen(FeedbackUiState.Idle, { _, _, _ -> }, {})
+            "feedback" -> FeedbackScreen(FeedbackUiState.Idle, { _, _, _ -> }, {}, {})
         }
     }
 

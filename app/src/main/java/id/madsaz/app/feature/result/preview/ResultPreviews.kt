@@ -56,6 +56,7 @@ private fun PreviewResult(state: ResultUiState) {
             onBack = {},
             onRefresh = {},
             onFeedback = {},
+            onOpenCue = {},
         )
     }
 }

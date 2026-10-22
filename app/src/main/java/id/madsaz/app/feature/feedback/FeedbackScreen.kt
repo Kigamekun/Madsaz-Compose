@@ -44,6 +44,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.Icons
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.Ink
@@ -59,6 +63,7 @@ fun FeedbackScreen(
     state: FeedbackUiState,
     onSubmit: (rating: Int, topic: FeedbackTopic, note: String) -> Unit,
     onSubmitted: () -> Unit,
+    onBack: () -> Unit,
 ) {
     var rating by rememberSaveable { mutableIntStateOf(0) }
     var topic by rememberSaveable { mutableStateOf<FeedbackTopic?>(null) }
@@ -69,7 +74,11 @@ fun FeedbackScreen(
 
     CompactContainer {
         Column(Modifier.fillMaxSize().background(Color.White).windowInsetsPadding(WindowInsets.safeDrawing).imePadding().verticalScroll(rememberScrollState())) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp)) {
+            // Masukan bersifat opsional: tombol tutup yang terlihat, bukan hanya tombol kembali sistem.
+            IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 4.dp)) {
+                Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = Ink)
+            }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
                 Text(stringResource(R.string.feedback_eyebrow), color = FeedbackBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 Text(
                     stringResource(R.string.feedback_title),
@@ -130,13 +139,19 @@ fun FeedbackScreen(
                 Text(stringResource(R.string.feedback_note_hint), style = MaterialTheme.typography.bodySmall, color = MutedInk, modifier = Modifier.padding(top = 6.dp))
                 Text(stringResource(R.string.feedback_note_counter, note.length, MAX_NOTE_LENGTH), modifier = Modifier.fillMaxWidth(), color = MutedInk, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.End)
                 Spacer(Modifier.height(24.dp))
+                val complete = rating > 0 && topic != null && note.isNotBlank()
+                // BE mewajibkan penilaian, topik, dan catatan; beri tahu alasannya selama tombol kirim belum aktif.
+                if (!complete) {
+                    Text(stringResource(R.string.feedback_requirements), color = MutedInk, style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(10.dp))
+                }
                 if (state is FeedbackUiState.Error) {
                     Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(10.dp))
                 }
                 Button(
                     onClick = { topic?.let { onSubmit(rating, it, note) } },
-                    enabled = !submitting && rating > 0 && topic != null && note.isNotBlank(),
+                    enabled = !submitting && complete,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = FeedbackBlue),

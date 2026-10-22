@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.NotificationsNone
@@ -272,11 +273,24 @@ private fun DeleteAccountDialog(state: DeleteAccountState, onConfirm: (String) -
     )
 }
 
+/** Foto profil yang bisa diketuk untuk diganti; lencana kamera menandai bahwa foto ini adalah tombol. */
+@Composable
+private fun EditableAvatar(account: AccountProfile, saving: Boolean, changePhoto: String, onPhoto: () -> Unit) {
+    Box(Modifier.size(60.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto)) {
+        ProfileAvatar(account.avatarUrl, account.name, Modifier.size(56.dp).align(Alignment.TopStart))
+        Surface(Modifier.size(24.dp).align(Alignment.BottomEnd), shape = CircleShape, color = BrandBlueDark, border = BorderStroke(2.dp, Color.White)) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+            }
+        }
+    }
+}
+
 @Composable
 private fun ProfileCard(account: AccountProfile, saving: Boolean, onEdit: () -> Unit, onPhoto: () -> Unit) {
     val changePhoto = stringResource(R.string.profile_change_photo)
     Row(Modifier.fillMaxWidth().padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        ProfileAvatar(account.avatarUrl, account.name, Modifier.size(56.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto))
+        EditableAvatar(account, saving, changePhoto, onPhoto)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(account.name, style = MaterialTheme.typography.titleLarge, color = Ink)
             Text(account.email, style = MaterialTheme.typography.bodySmall, color = MutedInk)
@@ -345,10 +359,7 @@ private fun AccountEditSheet(
                 }
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                ProfileAvatar(
-                    account.avatarUrl, account.name,
-                    Modifier.size(56.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto),
-                )
+                EditableAvatar(account, saving, changePhoto, onPhoto)
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(account.name, color = Ink, style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.profile_tap_photo), color = MutedInk, fontSize = 12.sp)

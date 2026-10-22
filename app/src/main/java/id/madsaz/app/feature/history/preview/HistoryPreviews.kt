@@ -15,8 +15,7 @@ private fun EmptyHistoryPreview() {
     MadsazTheme {
         MadsazScaffold(
             selected = MainDestination.HISTORY,
-            onHome = {},
-            onHistory = {},
+            onNavigate = {},
             onRecord = {},
         ) { padding ->
             HistoryScreen(
@@ -38,8 +37,7 @@ private fun FilledHistoryPreview() {
     MadsazTheme {
         MadsazScaffold(
             selected = MainDestination.HISTORY,
-            onHome = {},
-            onHistory = {},
+            onNavigate = {},
             onRecord = {},
         ) { padding ->
             HistoryScreen(

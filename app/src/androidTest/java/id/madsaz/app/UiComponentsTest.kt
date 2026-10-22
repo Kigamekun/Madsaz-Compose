@@ -164,14 +164,17 @@ class UiComponentsTest {
         var records = 0
         compose.setContent {
             MadsazTheme {
-                MadsazScaffold(selected, { selected = MainDestination.HOME }, { selected = MainDestination.HISTORY }, { records++ }) {
+                MadsazScaffold(selected, { selected = it }, { records++ }) {
                     Box(Modifier.fillMaxSize())
                 }
             }
         }
+        // Lima slot terlihat berlabel: empat tujuan plus aksi Rekam.
         compose.onNodeWithText(context.getString(R.string.nav_home)).assertIsSelected()
         compose.onNodeWithText(context.getString(R.string.nav_history)).performClick().assertIsSelected()
-        compose.onNodeWithContentDescription(context.getString(R.string.nav_record)).performClick()
-        compose.runOnIdle { assertEquals(MainDestination.HISTORY, selected); assertEquals(1, records) }
+        compose.onNodeWithText(context.getString(R.string.nav_cues)).performClick().assertIsSelected()
+        compose.onNodeWithText(context.getString(R.string.nav_profile)).performClick().assertIsSelected()
+        compose.onNodeWithText(context.getString(R.string.nav_record_label)).performClick()
+        compose.runOnIdle { assertEquals(MainDestination.PROFILE, selected); assertEquals(1, records) }
     }
 }
