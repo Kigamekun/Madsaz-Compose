@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
@@ -239,7 +240,7 @@ private fun SignedInApp(
             val historyState = historyViewModel.uiState
             val content = historyState as? HistoryUiState.Content
             val recent = remember(content) { content?.recordings.orEmpty().take(3) }
-            MainDestinationScaffold(MainDestination.HOME, ::navigateMain, openRecorder) { padding ->
+            MainDestinationScaffold(MainDestination.HOME, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
                 HomeScreen(
                     latestRecording = recent.firstOrNull(),
                     recentRecordings = recent,
@@ -256,7 +257,7 @@ private fun SignedInApp(
             }
         }
         composable(Routes.HISTORY) {
-            MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder) { padding ->
+            MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
                 HistoryScreen(
                     state = historyViewModel.uiState,
                     onRecord = openRecorder,
@@ -277,7 +278,7 @@ private fun SignedInApp(
                 key = "privacy:$policyLanguage",
             ) { PrivacyViewModel(container.policyApi, policyLanguage) }
             val content = historyViewModel.uiState as? HistoryUiState.Content
-            MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder) { padding ->
+            MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
                 ProfileScreen(
                     state = profileViewModel.uiState,
                     recordingCount = content?.recordings?.size,
@@ -314,7 +315,6 @@ private fun SignedInApp(
                 viewModel = recordingViewModel,
                 onBack = { navController.popBackStack() },
                 onRecordingSaved = { recordingId ->
-                    historyViewModel.refresh()
                     navController.navigate(Routes.result(recordingId)) {
                         popUpTo(Routes.RECORDING) { inclusive = true }
                     }
@@ -386,8 +386,15 @@ private fun MainDestinationScaffold(
     selected: MainDestination,
     navigateMain: (String) -> Unit,
     onRecord: () -> Unit,
+    onShown: () -> Unit,
     content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
+    // Daftar rekaman dimuat ulang setiap layar utama tampil (berpindah tab, kembali dari hasil, atau app dibuka lagi): analisis
+    // selesai di BE setelah daftar dimuat, dan akun yang sama bisa menambah rekaman dari perangkat lain.
+    LifecycleResumeEffect(Unit) {
+        onShown()
+        onPauseOrDispose { }
+    }
     MadsazScaffold(
         selected = selected,
         onHome = { navigateMain(Routes.HOME) },

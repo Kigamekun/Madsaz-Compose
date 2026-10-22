@@ -32,8 +32,7 @@ class HistoryViewModel(private val api: RecordingApi) : ViewModel() {
 
     private var loadJob: Job? = null
 
-    init { refresh() }
-
+    /** Dipanggil setiap layar utama tampil (lihat MainDestinationScaffold); daftar yang sudah tampil dipertahankan selama memuat. */
     fun refresh() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
