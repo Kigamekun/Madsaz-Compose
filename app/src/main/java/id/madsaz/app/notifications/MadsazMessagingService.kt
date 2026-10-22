@@ -1,5 +1,6 @@
 package id.madsaz.app.notifications
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
@@ -33,6 +34,8 @@ class MadsazMessagingService : FirebaseMessagingService() {
 
     // Hanya dipanggil saat app di foreground; saat background FCM menampilkan notifikasinya sendiri
     // (ikon, warna, dan kanal dari meta-data manifest) dan data `destination` sampai sebagai extra intent.
+    // Lint tidak melihat ke dalam canPostNotifications(): ia mencakup izin POST_NOTIFICATIONS (Android 13+) dan pengaturan notifikasi (Android 8-12).
+    @SuppressLint("MissingPermission")
     override fun onMessageReceived(message: RemoteMessage) {
         val title = message.notification?.title ?: return
         val body = message.notification?.body.orEmpty()
@@ -49,7 +52,7 @@ class MadsazMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
-        if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        if (canPostNotifications()) {
             NotificationManagerCompat.from(this).notify(message.messageId?.hashCode() ?: 1, notification)
         }
     }

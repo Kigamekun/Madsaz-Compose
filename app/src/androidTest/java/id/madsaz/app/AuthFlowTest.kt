@@ -32,9 +32,7 @@ class AuthFlowTest {
 
     // Build ini berisi google-services.json, jadi setelah masuk app meminta izin notifikasi; dialog sistem itu akan menutupi UI yang diuji.
     @Before
-    fun grantNotificationPermission() {
-        InstrumentationRegistry.getInstrumentation().uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
-    }
+    fun grantNotificationPermission() = grantRuntimePermissions(Manifest.permission.POST_NOTIFICATIONS)
 
     private fun AndroidComposeTestRule<*, *>.waitForTag(tag: String, timeoutMs: Long = 20_000) =
         waitUntil(timeoutMs) { onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }

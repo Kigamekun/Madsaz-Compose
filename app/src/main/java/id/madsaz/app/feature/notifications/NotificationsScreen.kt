@@ -3,13 +3,11 @@ package id.madsaz.app.feature.notifications
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -50,9 +48,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import id.madsaz.app.BuildConfig
 import id.madsaz.app.R
+import id.madsaz.app.notifications.canPostNotifications
+import id.madsaz.app.notifications.canRequestNotificationPermission
+import id.madsaz.app.notifications.notificationSettingsIntent
 import id.madsaz.app.ui.theme.Border
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
@@ -69,6 +69,8 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
     var permissionSettingsRequired by remember { mutableStateOf(false) }
     var tokenError by remember { mutableStateOf<Int?>(null) }
 
+    // Launcher ini hanya dijalankan di Android 13+ (canRequestNotificationPermission); konstanta izinnya sendiri hanya string, aman di versi lama.
+    @SuppressLint("InlinedApi")
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             permissionSettingsRequired = false
@@ -83,8 +85,13 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
     fun setEnabled(checked: Boolean) {
         if (!checked) {
             viewModel.disable()
-        } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else if (!context.canPostNotifications()) {
+            if (canRequestNotificationPermission) {
+                permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.showError(R.string.notifications_permission_denied)
+                permissionSettingsRequired = true
+            }
         } else {
             viewModel.enable()
         }
@@ -154,12 +161,7 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
             ) { Text("Salin token uji FCM") }
             (state.errorRes ?: tokenError)?.let { message -> Text(stringResource(message), color = MaterialTheme.colorScheme.error) }
             if (permissionSettingsRequired) OutlinedButton(
-                onClick = {
-                    context.startActivity(
-                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
-                    )
-                },
+                onClick = { context.startActivity(context.notificationSettingsIntent()) },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(stringResource(R.string.notifications_open_settings)) }
         }

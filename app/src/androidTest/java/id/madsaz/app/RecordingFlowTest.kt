@@ -20,10 +20,7 @@ class RecordingFlowTest {
 
     @Before fun prepare() {
         assumeTrue(BuildConfig.API_BASE_URL.startsWith("http://localhost"))
-        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        listOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS).forEach {
-            automation.grantRuntimePermission(context.packageName, it)
-        }
+        grantRuntimePermissions(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun waitForTag(tag: String) = compose.waitUntil(30_000) {
@@ -41,7 +38,10 @@ class RecordingFlowTest {
         compose.onNodeWithText(context.getString(R.string.nav_history)).performClick()
         compose.onNodeWithTag("empty_record").performScrollTo().performClick()
         waitForTag("recording_start")
-        compose.onNodeWithTag("recording_switch").performClick()
+        // The switch button only exists on devices with both a front and a back camera.
+        if (compose.onAllNodesWithTag("recording_switch").fetchSemanticsNodes().isNotEmpty()) {
+            compose.onNodeWithTag("recording_switch").performClick()
+        }
         // Camera binding happens asynchronously; allow the selected lens to become ready.
         Thread.sleep(1500)
         compose.onNodeWithTag("recording_start").performClick()

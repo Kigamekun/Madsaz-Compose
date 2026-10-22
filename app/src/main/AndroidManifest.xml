@@ -37,6 +37,15 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/notification_channel_plan_id" />
+        <!-- Menyimpan pilihan bahasa per-aplikasi di Android 7-12 (Android 13+ disimpan sistem). -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
         <service
             android:name=".notifications.MadsazMessagingService"
             android:exported="false">

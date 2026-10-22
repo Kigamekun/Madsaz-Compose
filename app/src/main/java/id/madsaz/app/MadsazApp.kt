@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import android.Manifest
-import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,7 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -60,6 +58,8 @@ import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.result.ResultScreen
 import id.madsaz.app.feature.result.ResultViewModel
 import id.madsaz.app.data.local.AppLanguage
+import id.madsaz.app.notifications.canPostNotifications
+import id.madsaz.app.notifications.canRequestNotificationPermission
 import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.components.MadsazScaffold
 import id.madsaz.app.ui.components.MainDestination
@@ -181,11 +181,16 @@ private fun SignedInApp(
         // Mendaftarkan perangkat untuk akun ini (token berputar atau akun berganti), lalu meminta izin notifikasi sekali saja.
         withContext(Dispatchers.IO) { runLoggingFailure("FCM refresh") { fcm.refresh() } }
         if (!fcm.configured() || fcm.permissionPrompted()) return@LaunchedEffect
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+        if (context.canPostNotifications()) {
             withContext(Dispatchers.IO) { runLoggingFailure("FCM enable") { fcm.onPermissionResult(true) } }
         } else {
             fcm.markPermissionPrompted()
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            if (canRequestNotificationPermission) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                // Android 7-12 tidak punya dialog izin; notifikasi yang dimatikan di pengaturan dicatat sebagai ditolak.
+                withContext(Dispatchers.IO) { runLoggingFailure("notification permission result") { fcm.onPermissionResult(false) } }
+            }
         }
     }
 

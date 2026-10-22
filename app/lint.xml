@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Indonesia adalah bahasa default (values/), jadi values-b+id sengaja hanya berisi satu string yang mendaftarkan locale-nya
+         (lihat komentar di values-b+id/locale.xml). Semua string lain memang tidak diterjemahkan ulang di sana. -->
+    <issue id="MissingTranslation">
+        <ignore regexp="is not translated in &quot;id&quot; \(Indonesian\)" />
+    </issue>
+    <!-- Android 12 ke bawah dan AGP localeFilters ("id") mengenali values-b+id; values-in dibuang oleh localeFilters (dicoba dan diperiksa lewat aapt2 dump configurations). -->
+    <issue id="LocaleFolder">
+        <ignore path="src/main/res/values-b+id" />
+    </issue>
+</lint>

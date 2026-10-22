@@ -71,7 +71,7 @@ fun LanguageScreen(onBack: () -> Unit) {
                     else -> null
                 }
                 Surface(
-                    onClick = { AppLanguage.select(context, tag) },
+                    onClick = { AppLanguage.select(tag) },
                     modifier = Modifier.fillMaxWidth().semantics { role = Role.RadioButton; this.selected = tag == selected },
                     shape = RoundedCornerShape(16.dp),
                     color = Color.White,

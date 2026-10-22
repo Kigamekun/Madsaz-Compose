@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Indonesia adalah bahasa default (values/), jadi hampir tidak ada yang diterjemahkan di sini. Folder ini hanya mendaftarkan "id" sebagai
+  bahasa yang didukung APK: Android 12 ke bawah hanya menganggap bahasa yang punya folder values-xx sebagai didukung dan memindahkan bahasa
+  lain ke depan daftar locale (res/resources.properties unqualifiedResLocale baru dibaca Android 13+). Semua string lain jatuh ke values/.
+  Nilai string di bawah harus sama dengan values/strings.xml (dijaga IndonesianLocaleMarkerTest).
+-->
+<resources>
+    <string name="language_title">Bahasa</string>
+</resources>

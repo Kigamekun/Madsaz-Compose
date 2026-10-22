@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -48,7 +48,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,7 +79,6 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
     CompactContainer {
         BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFEFF8FC)).imePadding()) {
             val heroHeight = maxHeight * 0.42f
-            val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
             Image(
                 painter = painterResource(R.drawable.madsaz_login_regis_v5),
                 contentDescription = null,
@@ -134,10 +132,13 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .fillMaxHeight()
+                    // Kartu berhenti di atas bilah navigasi sistem (3 tombol) agar baris "sudah punya akun" tidak tertimpa.
+                    .navigationBarsPadding()
                     .padding(top = heroHeight - 20.dp, bottom = 12.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(Color.White)
-                    .verticalScroll(rememberScrollState(), enabled = keyboardVisible)
+                    // Selalu bisa digulir: mode daftar (tiga kolom) lebih tinggi dari kartu di layar pendek, dan tanpa keyboard tombol kirim terpotong.
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
                     .padding(top = 25.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),

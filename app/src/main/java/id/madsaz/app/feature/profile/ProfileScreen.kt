@@ -4,12 +4,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.content.ContentResolver
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.os.Build
 import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.exifinterface.media.ExifInterface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -391,16 +395,9 @@ private const val AVATAR_MAX_PX = 1024
 private const val AVATAR_JPEG_QUALITY = 82
 private const val AVATAR_MAX_BYTES = 5 * 1024 * 1024
 
-// ImageDecoder menerapkan orientasi EXIF sendiri, sehingga foto kamera tidak tampil miring.
 private fun compressAvatar(resolver: ContentResolver, uri: Uri): ByteArray {
     val bitmap = try {
-        ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
-            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-            val longest = max(info.size.width, info.size.height)
-            if (longest > AVATAR_MAX_PX) {
-                decoder.setTargetSize(info.size.width * AVATAR_MAX_PX / longest, info.size.height * AVATAR_MAX_PX / longest)
-            }
-        }
+        decodeAvatar(resolver, uri)
     } catch (_: IOException) {
         throw PhotoException(R.string.profile_photo_unreadable)
     }
@@ -409,4 +406,45 @@ private fun compressAvatar(resolver: ContentResolver, uri: Uri): ByteArray {
         bitmap.recycle()
         output.toByteArray().also { if (it.size > AVATAR_MAX_BYTES) throw PhotoException(R.string.profile_photo_too_large) }
     }
+}
+
+/** Bitmap dengan sisi terpanjang paling banyak [AVATAR_MAX_PX] dan orientasi EXIF sudah diterapkan, sehingga foto kamera tidak tampil miring. */
+private fun decodeAvatar(resolver: ContentResolver, uri: Uri): Bitmap {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        return ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val longest = max(info.size.width, info.size.height)
+            if (longest > AVATAR_MAX_PX) {
+                decoder.setTargetSize(info.size.width * AVATAR_MAX_PX / longest, info.size.height * AVATAR_MAX_PX / longest)
+            }
+        }
+    }
+    // ImageDecoder baru ada di Android 9. Android 7-8: BitmapFactory (di-sample ke bawah), lalu putar sesuai EXIF dan kecilkan ke batas tepat.
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    (resolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")).use { BitmapFactory.decodeStream(it, null, bounds) }
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw IOException("Not an image: $uri")
+    var sample = 1
+    while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= AVATAR_MAX_PX) sample *= 2
+    val options = BitmapFactory.Options().apply { inSampleSize = sample }
+    val decoded = (resolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")).use { BitmapFactory.decodeStream(it, null, options) }
+        ?: throw IOException("Cannot decode $uri")
+    val orientation = (resolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")).use {
+        ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+    }
+    val matrix = Matrix().apply {
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> postRotate(270f)
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> postScale(-1f, 1f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> postScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> { postRotate(90f); postScale(-1f, 1f) }
+            ExifInterface.ORIENTATION_TRANSVERSE -> { postRotate(270f); postScale(-1f, 1f) }
+        }
+    }
+    // inSampleSize hanya pangkat dua, jadi hasilnya bisa sampai dua kali batas; kecilkan di langkah yang sama dengan rotasi.
+    val longest = max(decoded.width, decoded.height)
+    if (longest > AVATAR_MAX_PX) AVATAR_MAX_PX.toFloat().div(longest).let { matrix.postScale(it, it) }
+    if (matrix.isIdentity) return decoded
+    return Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true).also { decoded.recycle() }
 }

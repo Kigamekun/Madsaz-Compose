@@ -1,5 +1,6 @@
 package id.madsaz.app.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -31,8 +32,10 @@ val Border = Color(0xFFDEEAF2)
 val Success = Color(0xFF2E6E54)
 val SuccessSoft = Color(0xFFE7F5FA)
 
-private val Fredoka = variableFont(R.font.fredoka)
-private val Quicksand = variableFont(R.font.quicksand)
+// Harus dideklarasikan sebelum Fredoka/Quicksand: properti top-level diinisialisasi berurutan.
+private val FontWeights = listOf(400, 500, 600, 700)
+private val Fredoka = fontFamily(R.font.fredoka, listOf(R.font.fredoka_400, R.font.fredoka_500, R.font.fredoka_600, R.font.fredoka_700))
+private val Quicksand = fontFamily(R.font.quicksand, listOf(R.font.quicksand_400, R.font.quicksand_500, R.font.quicksand_600, R.font.quicksand_700))
 private val Body = TextStyle(fontFamily = Quicksand, fontWeight = FontWeight.Normal, platformStyle = PlatformTextStyle(includeFontPadding = false))
 private val Heading = Body.copy(fontFamily = Fredoka, fontWeight = FontWeight.Medium)
 
@@ -91,9 +94,18 @@ fun MadsazTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = MadsazColors, typography = MadsazTypography, shapes = MadsazShapes, content = content)
 }
 
+/**
+ * Android 8+ memakai satu berkas font variabel. Font variabel hanya didukung Android 8 ke atas (dokumentasi Compose),
+ * jadi Android 7.x memakai instans statis per bobot ([staticFonts], urutan sama dengan [FontWeights]) yang dibuat dari berkas variabel yang sama.
+ */
 @OptIn(ExperimentalTextApi::class)
-private fun variableFont(resourceId: Int): FontFamily = FontFamily(
-    listOf(400, 500, 600, 700).map { weight ->
-        Font(resourceId, weight = FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
-    },
-)
+private fun fontFamily(variableFont: Int, staticFonts: List<Int>): FontFamily =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        FontFamily(
+            FontWeights.map { weight ->
+                Font(variableFont, weight = FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
+            },
+        )
+    } else {
+        FontFamily(FontWeights.zip(staticFonts) { weight, font -> Font(font, weight = FontWeight(weight)) })
+    }

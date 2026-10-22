@@ -2,6 +2,9 @@
 agp = "9.4.0"
 kotlin = "2.4.20"
 coreKtx = "1.19.0"
+appcompat = "1.7.1"
+exifinterface = "1.4.2"
+desugarJdkLibs = "2.1.5"
 composeBom = "2026.08.00"
 activityCompose = "1.13.0"
 navigationCompose = "2.10.0"
@@ -14,6 +17,9 @@ testRunner = "1.6.2"
 testExtJunit = "1.2.1"
 
 [libraries]
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }

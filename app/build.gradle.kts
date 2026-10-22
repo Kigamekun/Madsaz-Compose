@@ -12,7 +12,7 @@ android {
     defaultConfig {
         // Memperbarui app yang sudah terbit di Play (com.madsaz); kode tetap di namespace id.madsaz.app.
         applicationId = "com.madsaz"
-        minSdk = 33
+        minSdk = 24
         targetSdk = 37
         // Harus di atas versionCode app lama (14, versi 1.2.1). CI mengirim -PversionCode=<nomor naik>; build lokal memakai nilai ini.
         versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(100).get()
@@ -60,12 +60,14 @@ android {
     }
 
     compileOptions {
+        // java.time (Instant, LocalDate, DateTimeFormatter) baru ada di Android 8 (API 26); minSdk 24 membutuhkan desugaring.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     // Bahasa yang dikirim: Indonesia (default values/), Inggris, Arab. LocaleConfig dibuat otomatis dari folder values-*;
-    // res/resources.properties menyebut bahasa default. Pengguna memilih lewat Pengaturan > Bahasa aplikasi (Android 13+).
+    // res/resources.properties menyebut bahasa default. Pengguna memilih lewat layar Bahasa di aplikasi atau Pengaturan > Bahasa aplikasi (Android 13+).
     androidResources {
         generateLocaleConfig = true
         localeFilters += listOf("id", "en", "ar")
@@ -86,7 +88,10 @@ dependencies {
     implementation("com.android.billingclient:billing:9.1.0")
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-messaging")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.exifinterface)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
