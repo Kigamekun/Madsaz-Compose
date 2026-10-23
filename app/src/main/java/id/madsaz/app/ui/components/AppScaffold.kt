@@ -27,15 +27,10 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -44,6 +39,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -61,7 +58,6 @@ import id.madsaz.app.R
 import id.madsaz.app.ui.theme.AppBackground
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.BrandBlueDark
-import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.MutedInk
 
 /** Empat tujuan utama di navigasi bawah; slot tengah adalah aksi Rekam, bukan tujuan. */
@@ -77,6 +73,10 @@ private val RecordRingSize = 64.dp
 private val RecordButtonSize = 52.dp
 private val ItemVerticalPadding = 8.dp
 private val FloatGap = 12.dp
+private val NavShape = RoundedCornerShape(28.dp)
+
+/** Ikon tujuan yang tidak aktif: abu-biru lembut, lebih pucat dari teks label. */
+private val NavIdleTint = Color(0xFF8AA0B0)
 
 /**
  * Kerangka tujuan utama dengan navigasi melayang: Beranda, Riwayat, [Rekam], Petunjuk, Profil (pedoman Material:
@@ -126,23 +126,21 @@ private fun FloatingNav(
         modifier.fillMaxWidth().padding(horizontal = 12.dp).widthIn(max = 420.dp).height(navHeight),
         contentAlignment = Alignment.BottomCenter,
     ) {
+        // Lembut: bayangan lebar dan pucat berwarna biru-abu (bukan bayangan gelap Material), tepi tipis nyaris tak terlihat.
         Surface(
-            modifier = Modifier.fillMaxWidth().height(pillHeight),
-            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier.fillMaxWidth().height(pillHeight)
+                .shadow(14.dp, NavShape, ambientColor = Color(0x143C6E8C), spotColor = Color(0x1F3C6E8C)),
+            shape = NavShape,
             color = Color.White,
-            border = BorderStroke(1.dp, Color(0xFFDFE3F2)),
-            shadowElevation = 2.dp,
+            border = BorderStroke(1.dp, Color(0xFFEEF3F8)),
         ) {
             // Lima kolom sama lebar; kolom tengah dikosongkan untuk tombol Rekam. Row ikut mencerminkan di RTL.
             Row(Modifier.fillMaxSize().selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-                NavItem(MainDestination.HOME, selected, Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home, "nav_home", onNavigate)
-                NavItem(MainDestination.HISTORY, selected, Icons.Filled.History, Icons.Outlined.History, R.string.nav_history, "nav_history", onNavigate)
+                NavItem(MainDestination.HOME, selected, Icons.Outlined.Home, R.string.nav_home, "nav_home", onNavigate)
+                NavItem(MainDestination.HISTORY, selected, Icons.Outlined.History, R.string.nav_history, "nav_history", onNavigate)
                 Spacer(Modifier.weight(1f))
-                NavItem(
-                    MainDestination.CUES, selected, Icons.AutoMirrored.Filled.MenuBook, Icons.AutoMirrored.Outlined.MenuBook,
-                    R.string.nav_cues, "nav_cues", onNavigate,
-                )
-                NavItem(MainDestination.PROFILE, selected, Icons.Filled.Person, Icons.Outlined.Person, R.string.nav_profile, "nav_profile", onNavigate)
+                NavItem(MainDestination.CUES, selected, Icons.AutoMirrored.Outlined.MenuBook, R.string.nav_cues, "nav_cues", onNavigate)
+                NavItem(MainDestination.PROFILE, selected, Icons.Outlined.Person, R.string.nav_profile, "nav_profile", onNavigate)
             }
         }
         RecordAction(onRecord, Modifier.align(Alignment.BottomCenter).padding(bottom = recordBottomPadding))
@@ -153,14 +151,12 @@ private fun FloatingNav(
 private fun RowScope.NavItem(
     destination: MainDestination,
     selected: MainDestination,
-    selectedIcon: ImageVector,
     icon: ImageVector,
     labelRes: Int,
     tag: String,
     onNavigate: (MainDestination) -> Unit,
 ) {
     val isSelected = destination == selected
-    val tint = if (isSelected) BrandBlueDark else MutedInk
     Column(
         modifier = Modifier
             .weight(1f)
@@ -172,18 +168,12 @@ private fun RowScope.NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
     ) {
-        // Indikator aktif Material: pill di belakang ikon tujuan terpilih, ikon terisi untuk terpilih dan garis untuk lainnya.
-        Box(
-            Modifier.width(48.dp).height(24.dp).clip(CircleShape).background(if (isSelected) BrandBlueSoft else Color.Transparent),
-            contentAlignment = Alignment.Center,
-        ) {
-            // Label sudah dibaca TalkBack sebagai teks tab; ikon dekoratif.
-            Icon(if (isSelected) selectedIcon else icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
-        }
+        // Tujuan aktif hanya ditandai warna ikon (tanpa latar atau bentuk lain); label tetap netral dan dibaca TalkBack sebagai teks tab.
+        Icon(icon, contentDescription = null, tint = if (isSelected) BrandBlueDark else NavIdleTint, modifier = Modifier.size(24.dp))
         Text(
             text = stringResource(labelRes),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
-            color = tint,
+            color = MutedInk,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -209,19 +199,19 @@ private fun RecordAction(onRecord: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier.size(RecordRingSize),
             shape = CircleShape,
             color = Color.White,
-            border = BorderStroke(1.dp, Color(0xFFC7D9F5)),
+            border = BorderStroke(1.dp, Color(0xFFDCE8F6)),
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Surface(modifier = Modifier.size(RecordButtonSize), shape = CircleShape, color = BrandBlue) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Videocam, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                        Icon(painterResource(R.drawable.phosphor_camera), contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
                     }
                 }
             }
         }
         Text(
             stringResource(R.string.nav_record_label),
-            color = BrandBlueDark,
+            color = MutedInk,
             textAlign = TextAlign.Center,
             maxLines = 1,
             style = navLabelStyle(),

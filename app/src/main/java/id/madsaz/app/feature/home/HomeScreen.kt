@@ -48,6 +48,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -167,8 +169,8 @@ private fun HomeHero(
 ) {
     val latestScore = latestRecording?.scores?.firstOrNull()
     val latestCode = latestRecording?.let { CryCue.fromCode(it.category ?: latestScore?.code)?.code ?: it.category ?: latestScore?.code }
-    // Tinggi mengikuti kartu (minimal sama dengan desain), sehingga teks besar atau bahasa panjang tidak terpotong.
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
+    val openLabel = stringResource(if (latestRecording == null) R.string.home_latest_start else R.string.home_latest_open)
+    Box(Modifier.fillMaxWidth().height(366.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
             painter = painterResource(R.drawable.madsaz_home_nursery),
             contentDescription = null,
@@ -187,66 +189,67 @@ private fun HomeHero(
             name = accountName,
         )
         Surface(
-            // Tanpa rekaman kartu ini mengajak merekam; dengan rekaman ia membuka hasilnya. Ajakannya tertulis di kartu.
+            // Tanpa rekaman kartu ini mengajak merekam; dengan rekaman ia membuka hasilnya.
             onClick = { if (latestRecording == null) onRecord() else onOpenRecording(latestRecording) },
-            modifier = Modifier.padding(top = 241.dp).padding(horizontal = 16.dp).fillMaxWidth().heightIn(min = 125.dp),
+            modifier = Modifier.align(Alignment.TopCenter).offset(y = 241.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp)
+                .semantics { onClick(openLabel) { false } },
             shape = RoundedCornerShape(23.dp),
             color = BrandBlue,
         ) {
-            Row(Modifier.padding(start = 18.dp, end = 16.dp, top = 14.dp, bottom = 12.dp), verticalAlignment = Alignment.Bottom) {
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.home_latest_cry),
-                            modifier = Modifier.weight(1f),
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
+            Box(Modifier.fillMaxSize()) {
+                Text(
+                    text = stringResource(R.string.home_latest_cry),
+                    modifier = Modifier.offset(x = 18.dp, y = 14.dp),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = latestCode ?: latestRecording?.let { stringResource(it.status.labelRes) } ?: "—",
+                    modifier = Modifier.offset(x = 18.dp, y = 39.dp),
+                    color = Color.White,
+                    fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 40.sp,
+                )
+                Text(
+                    text = when {
+                        latestRecording == null -> stringResource(R.string.home_latest_empty)
+                        latestScore != null -> stringResource(
+                            R.string.home_result_with_confidence,
+                            cryCueLabel(latestScore.code, latestScore.label),
+                            formatPercent(latestScore.confidence),
                         )
-                        if (latestRecording != null) Text(
-                            text = formatTime(latestRecording.recordedAtEpochMillis),
-                            color = Color.White.copy(alpha = 0.88f),
-                            fontSize = 11.sp,
+                        else -> stringResource(
+                            when (latestRecording.status) {
+                                RecordingStatus.PROCESSING -> R.string.home_status_waiting
+                                RecordingStatus.FAILED -> R.string.home_status_failed
+                                RecordingStatus.COMPLETED -> R.string.home_status_result
+                            },
                         )
-                    }
-                    Text(
-                        text = latestCode ?: latestRecording?.let { stringResource(it.status.labelRes) } ?: "—",
-                        color = Color.White,
-                        fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
-                        fontSize = 34.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 40.sp,
-                    )
-                    Text(
-                        text = when {
-                            latestRecording == null -> stringResource(R.string.home_latest_empty)
-                            latestScore != null -> stringResource(
-                                R.string.home_result_with_confidence,
-                                cryCueLabel(latestScore.code, latestScore.label),
-                                formatPercent(latestScore.confidence),
-                            )
-                            else -> stringResource(
-                                when (latestRecording.status) {
-                                    RecordingStatus.PROCESSING -> R.string.home_status_waiting
-                                    RecordingStatus.FAILED -> R.string.home_status_failed
-                                    RecordingStatus.COMPLETED -> R.string.home_status_result
-                                },
-                            )
-                        },
-                        color = Color.White.copy(alpha = 0.88f),
-                        fontSize = 12.sp,
-                    )
-                    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(if (latestRecording == null) R.string.home_latest_start else R.string.home_latest_open),
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    }
-                }
-                if (latestRecording != null) CryCueIcon(latestCode, Modifier.padding(start = 12.dp).size(64.dp))
+                    },
+                    modifier = Modifier.offset(x = 18.dp, y = 89.dp),
+                    color = Color.White.copy(alpha = 0.88f),
+                    fontSize = 12.sp,
+                )
+                Text(
+                    text = latestRecording?.let { formatTime(it.recordedAtEpochMillis) } ?: "",
+                    modifier = Modifier.align(Alignment.TopEnd).offset(x = (-18).dp, y = 14.dp),
+                    color = Color.White.copy(alpha = 0.88f),
+                    fontSize = 11.sp,
+                )
+                // Penanda bahwa kartu bisa diketuk (tata letak lama tidak berubah); dekoratif, aksinya dibaca lewat semantics kartu.
+                Icon(
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.align(Alignment.TopEnd).offset(x = (-14).dp, y = 30.dp).size(22.dp),
+                )
+                if (latestRecording != null) CryCueIcon(
+                    latestCode,
+                    Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 10.dp).size(64.dp),
+                )
             }
         }
     }
