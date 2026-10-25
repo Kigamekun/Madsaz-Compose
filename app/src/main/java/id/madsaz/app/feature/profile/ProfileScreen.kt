@@ -45,6 +45,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.PrivacyTip
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material.icons.rounded.Close
@@ -84,6 +85,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.ripple
 import id.madsaz.app.R
 import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.feature.auth.DeleteAccountState
@@ -116,6 +119,8 @@ fun ProfileScreen(
     onDeleteAccount: (String) -> Unit,
     onDismissDeleteAccount: () -> Unit,
     onPlan: () -> Unit,
+    @StringRes plusSubtitleRes: Int,
+    onChangePassword: () -> Unit,
     onNotifications: () -> Unit,
     onPrivacy: () -> Unit,
     onLanguage: () -> Unit,
@@ -170,7 +175,8 @@ fun ProfileScreen(
                 val shownError = photoErrorRes ?: (state as? ProfileUiState.Content)?.errorRes
                 if (shownError != null && !editing) item { Text(stringResource(shownError), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 item { Text(stringResource(R.string.profile_account), Modifier.padding(top = 20.dp, bottom = 8.dp), style = MaterialTheme.typography.labelLarge, color = MutedInk) }
-                item { ProfileRow(Icons.Rounded.WorkspacePremium, stringResource(R.string.plan_plus_brand), stringResource(R.string.profile_plus_subtitle), onPlan) }
+                item { ProfileRow(Icons.Rounded.WorkspacePremium, stringResource(R.string.plan_plus_brand), stringResource(plusSubtitleRes), onPlan) }
+                item { ProfileRow(Icons.Rounded.Lock, stringResource(R.string.profile_password_title), stringResource(R.string.profile_password_subtitle), onChangePassword, tag = "profile_password") }
                 item { ProfileRow(Icons.Rounded.NotificationsNone, stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), onNotifications) }
                 item { ProfileRow(Icons.Rounded.PrivacyTip, stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle), onPrivacy) }
                 item { ProfileRow(Icons.Rounded.Language, stringResource(R.string.profile_language_title), stringResource(R.string.profile_language_subtitle), onLanguage) }
@@ -276,9 +282,19 @@ private fun DeleteAccountDialog(state: DeleteAccountState, onConfirm: (String) -
 /** Foto profil yang bisa diketuk untuk diganti; lencana kamera menandai bahwa foto ini adalah tombol. */
 @Composable
 private fun EditableAvatar(account: AccountProfile, saving: Boolean, changePhoto: String, onPhoto: () -> Unit) {
-    Box(Modifier.size(60.dp).clip(CircleShape).clickable(enabled = !saving, role = Role.Button, onClickLabel = changePhoto, onClick = onPhoto)) {
-        ProfileAvatar(account.avatarUrl, account.name, Modifier.size(56.dp).align(Alignment.TopStart))
-        Surface(Modifier.size(24.dp).align(Alignment.BottomEnd), shape = CircleShape, color = BrandBlueDark, border = BorderStroke(2.dp, Color.White)) {
+    // Kontainer tidak dipotong bulat: lencana kamera menimpa tepi foto dan harus utuh. Riak ketukan berbentuk lingkaran tak terpotong.
+    Box(
+        Modifier.size(64.dp).clickable(
+            enabled = !saving,
+            interactionSource = remember { MutableInteractionSource() },
+            indication = ripple(bounded = false, radius = 32.dp),
+            role = Role.Button,
+            onClickLabel = changePhoto,
+            onClick = onPhoto,
+        ),
+    ) {
+        ProfileAvatar(account.avatarUrl, account.name, Modifier.size(60.dp).align(Alignment.TopStart), initialSize = 24.sp)
+        Surface(Modifier.size(26.dp).align(Alignment.BottomEnd), shape = CircleShape, color = BrandBlueDark, border = BorderStroke(2.dp, Color.White)) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
             }

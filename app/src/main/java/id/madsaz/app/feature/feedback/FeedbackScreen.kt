@@ -43,6 +43,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material.icons.rounded.SentimentDissatisfied
+import androidx.compose.material.icons.rounded.SentimentNeutral
+import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import id.madsaz.app.R
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
@@ -61,7 +71,7 @@ private val FeedbackBlue = BrandBlueDark
 @Composable
 fun FeedbackScreen(
     state: FeedbackUiState,
-    onSubmit: (rating: Int, topic: FeedbackTopic, note: String) -> Unit,
+    onSubmit: (rating: Int, topic: FeedbackTopic?, note: String) -> Unit,
     onSubmitted: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -92,41 +102,45 @@ fun FeedbackScreen(
                 Spacer(Modifier.height(24.dp))
 
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = Color.White,
                     border = BorderStroke(1.dp, FeedbackBorder),
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                        Text(stringResource(R.string.feedback_question), color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(16.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(R.string.feedback_rating_1, R.string.feedback_rating_2, R.string.feedback_rating_3).forEachIndexed { index, labelRes ->
-                                FeedbackChoice(
-                                    label = stringResource(labelRes),
-                                    selected = rating == index + 1,
-                                    onClick = { rating = index + 1 },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text(stringResource(R.string.feedback_question), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(14.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.selectableGroup()) {
+                            listOf(
+                                Icons.Rounded.SentimentDissatisfied to R.string.feedback_rating_1,
+                                Icons.Rounded.SentimentNeutral to R.string.feedback_rating_2,
+                                Icons.Rounded.SentimentSatisfied to R.string.feedback_rating_3,
+                            ).forEachIndexed { index, (icon, labelRes) ->
+                                RatingCard(icon, stringResource(labelRes), rating == index + 1, { rating = index + 1 }, Modifier.weight(1f).testTag("feedback_rating_${index + 1}"))
                             }
                         }
                     }
                 }
                 Spacer(Modifier.height(24.dp))
-                Text(
-                    stringResource(R.string.feedback_improve_title),
-                    color = Ink,
-                    fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(R.string.feedback_improve_title),
+                        color = Ink,
+                        fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Text(stringResource(R.string.feedback_optional), color = MutedInk, style = MaterialTheme.typography.labelMedium)
+                }
                 Spacer(Modifier.height(10.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.selectableGroup()) {
                     FeedbackTopic.entries.forEach { option ->
+                        // Mengetuk topik yang sudah dipilih membatalkannya: topik opsional.
                         FeedbackChoice(
                             label = stringResource(option.labelRes),
                             selected = topic == option,
-                            onClick = { topic = option },
-                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { topic = if (topic == option) null else option },
+                            modifier = Modifier.weight(1f),
                             filled = true,
                         )
                     }
@@ -139,9 +153,8 @@ fun FeedbackScreen(
                 Text(stringResource(R.string.feedback_note_hint), style = MaterialTheme.typography.bodySmall, color = MutedInk, modifier = Modifier.padding(top = 6.dp))
                 Text(stringResource(R.string.feedback_note_counter, note.length, MAX_NOTE_LENGTH), modifier = Modifier.fillMaxWidth(), color = MutedInk, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.End)
                 Spacer(Modifier.height(24.dp))
-                val complete = rating > 0 && topic != null && note.isNotBlank()
-                // BE mewajibkan penilaian, topik, dan catatan; beri tahu alasannya selama tombol kirim belum aktif.
-                if (!complete) {
+                // Hanya penilaian yang wajib; topik dan catatan boleh dikosongkan.
+                if (rating == 0) {
                     Text(stringResource(R.string.feedback_requirements), color = MutedInk, style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(10.dp))
                 }
@@ -150,13 +163,16 @@ fun FeedbackScreen(
                     Spacer(Modifier.height(10.dp))
                 }
                 Button(
-                    onClick = { topic?.let { onSubmit(rating, it, note) } },
-                    enabled = !submitting && complete,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    onClick = { onSubmit(rating, topic, note) },
+                    enabled = !submitting && rating > 0,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("feedback_send"),
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = FeedbackBlue),
                 ) {
                     Text(stringResource(if (submitting) R.string.feedback_sending else R.string.feedback_send), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+                TextButton(onClick = onBack, enabled = !submitting, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("feedback_skip")) {
+                    Text(stringResource(R.string.feedback_skip), color = MutedInk)
                 }
             }
         }
@@ -180,6 +196,22 @@ private fun FeedbackChoice(
     ) {
         Box(Modifier.padding(horizontal = 8.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
             Text(label, color = if (selected) Color.White else FeedbackBlue, fontSize = 14.sp, textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+private fun RatingCard(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 84.dp).semantics { role = Role.RadioButton; this.selected = selected },
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) FeedbackBlue else Color(0xFFF3F8FC),
+        border = if (selected) null else BorderStroke(1.dp, FeedbackBorder),
+    ) {
+        Column(Modifier.padding(horizontal = 6.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
+            Icon(icon, contentDescription = null, tint = if (selected) Color.White else FeedbackBlue, modifier = Modifier.size(28.dp))
+            Text(label, color = if (selected) Color.White else Ink, fontSize = 13.sp, textAlign = TextAlign.Center)
         }
     }
 }

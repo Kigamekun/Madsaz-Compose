@@ -68,18 +68,35 @@ class AuthFlowTest {
             BuildConfig.API_BASE_URL.startsWith("http://localhost"),
         )
         val email = "ui+${System.currentTimeMillis()}@example.test"
-        val password = "password-uji-1"
+        var password = "password-uji-1"
 
         // Daftar
         compose.tap("auth_toggle")
         compose.type("auth_name", "Bayi Uji")
         compose.type("auth_email", email)
         compose.type("auth_password", password)
+        compose.type("auth_confirm", password)
+        // Tanpa persetujuan S&K, daftar ditolak sebelum menghubungi BE.
+        compose.tap("auth_submit")
+        compose.waitUntil(15_000) { compose.onAllNodesWithText(context.getString(R.string.error_terms_required)).fetchSemanticsNodes().isNotEmpty() }
+        compose.tap("auth_terms")
         compose.tap("auth_submit")
         compose.waitForTag("home_screen")
 
-        // Keluar
+        // Ubah kata sandi: kata sandi lama yang salah ditolak, yang benar berhasil dan sesi tetap aktif.
         openProfile()
+        compose.tap("profile_password")
+        compose.type("password_current", "salah-salah")
+        compose.type("password_new", "password-uji-2")
+        compose.type("password_confirm", "password-uji-2")
+        compose.tap("password_save", scroll = false)
+        compose.waitUntil(15_000) { compose.onAllNodesWithText(context.getString(R.string.error_current_password)).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("password_current").performTextReplacement(password)
+        compose.tap("password_save", scroll = false)
+        compose.waitUntil(15_000) { compose.onAllNodesWithTag("password_save").fetchSemanticsNodes().isEmpty() }
+        password = "password-uji-2"
+
+        // Keluar (lembar ubah kata sandi sudah tertutup, Profil masih tampil)
         compose.tap("profile_logout")
         compose.waitForTag("auth_email")
 

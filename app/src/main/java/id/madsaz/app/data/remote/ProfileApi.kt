@@ -1,5 +1,6 @@
 package id.madsaz.app.data.remote
 
+import id.madsaz.app.data.local.AuthSession
 import org.json.JSONObject
 
 data class AccountProfile(val id: String, val name: String, val email: String, val avatarUrl: String?)
@@ -9,6 +10,10 @@ class ProfileApi(private val client: ApiClient) {
 
     fun updateName(name: String): AccountProfile =
         parse(client.requestJson("PUT", "/profile", JSONObject().put("name", name)).obj("data"))
+
+    /** Mengganti kata sandi; BE mencabut sesi lain dan mengembalikan sesi baru untuk perangkat ini. 401 `invalid_credentials` bila kata sandi lama salah. */
+    fun changePassword(current: String, new: String): AuthSession =
+        parseAuthSession(client.requestJson("POST", "/auth/change-password", JSONObject().put("current_password", current).put("new_password", new)))
 
     /** upload-url -> PUT ke penyimpanan -> baca ulang profil untuk mendapat URL avatar yang baru. */
     fun uploadAvatar(jpeg: ByteArray): AccountProfile {

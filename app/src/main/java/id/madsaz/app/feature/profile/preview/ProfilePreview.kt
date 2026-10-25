@@ -32,6 +32,8 @@ private fun ProfilePreview() {
                 onDeleteAccount = {},
                 onDismissDeleteAccount = {},
                 onPlan = {},
+                plusSubtitleRes = id.madsaz.app.R.string.home_upgrade_cta,
+                onChangePassword = {},
                 onNotifications = {},
                 onPrivacy = {},
                 onLanguage = {},

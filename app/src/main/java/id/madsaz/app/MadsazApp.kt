@@ -35,7 +35,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import id.madsaz.app.feature.auth.AuthScreen
+import id.madsaz.app.feature.auth.SignedOutApp
 import id.madsaz.app.feature.auth.AuthUiState
 import id.madsaz.app.feature.auth.AuthViewModel
 import id.madsaz.app.feature.feedback.FeedbackScreen
@@ -47,7 +47,11 @@ import id.madsaz.app.feature.home.HomeScreen
 import id.madsaz.app.feature.notifications.NotificationsScreen
 import id.madsaz.app.feature.notifications.NotificationsViewModel
 import id.madsaz.app.feature.plan.PlanScreen
+import id.madsaz.app.feature.plan.PlanSummaryViewModel
 import id.madsaz.app.feature.plan.PlanViewModel
+import id.madsaz.app.feature.plan.UpgradeDialog
+import id.madsaz.app.feature.profile.ChangePasswordSheet
+import id.madsaz.app.feature.profile.ChangePasswordViewModel
 import id.madsaz.app.feature.profile.LanguageScreen
 import id.madsaz.app.feature.profile.PrivacyScreen
 import id.madsaz.app.feature.profile.PrivacyViewModel
@@ -101,6 +105,7 @@ private enum class AppSheet {
     PLAN,
     NOTIFICATIONS,
     LANGUAGE,
+    PASSWORD,
 }
 
 internal fun usesDetailTransition(from: String?, to: String?): Boolean {
@@ -134,13 +139,7 @@ fun MadsazApp(
             notificationDestination = notificationDestination,
             onNotificationDestinationHandled = onNotificationDestinationHandled,
         )
-        else -> AuthScreen(
-            state = auth,
-            onSubmit = authViewModel::authenticate,
-            onForgotPassword = {
-                Toast.makeText(context, R.string.auth_forgot_unavailable, Toast.LENGTH_SHORT).show()
-            },
-        )
+        else -> SignedOutApp(auth, authViewModel, container)
     }
 }
 
@@ -161,16 +160,22 @@ private fun SignedInApp(
     DisposableEffect(sessionOwner) { onDispose { sessionOwner.viewModelStore.clear() } }
     val historyViewModel: HistoryViewModel = viewModel(sessionOwner) { HistoryViewModel(container.recordingApi) }
     val profileViewModel: ProfileViewModel = viewModel(sessionOwner) { ProfileViewModel(container.profileApi) }
-    // Kebijakan tersedia dalam bahasa Indonesia dan Inggris; bahasa lain memakai teks Inggris.
-    val policyLanguage = if (AppLanguage.current(context) == "id") "id" else "en"
+    val planSummary: PlanSummaryViewModel = viewModel(sessionOwner) { PlanSummaryViewModel(container.planApi) }
+    val passwordViewModel: ChangePasswordViewModel = viewModel(sessionOwner) { ChangePasswordViewModel(container.profileApi, container.sessionManager) }
+    var showUpgrade by remember { mutableStateOf(false) }
+    val freePlan = planSummary.status as? PlanStatus.Free
+    // Daftar rekaman dan sisa kuota dimuat ulang bersamaan setiap layar utama tampil.
+    val onMainShown: () -> Unit = { historyViewModel.refresh(); planSummary.refresh() }
+    // Kebijakan privasi tersedia dalam id, en, dan ar: sama dengan bahasa aplikasi yang sedang dipakai.
+    val policyLanguage = AppLanguage.current(context)
     val accountProfile = (profileViewModel.uiState as? ProfileUiState.Content)?.account
-    // Kuota Free habis: arahkan ke layar Paket alih-alih membiarkan pengguna merekam lalu ditolak BE setelah mengunggah.
+    // Jatah harian habis: tampilkan ajakan upgrade alih-alih membiarkan pengguna merekam lalu ditolak BE setelah mengunggah.
     val openRecorder: () -> Unit = {
         scope.launch {
             try {
                 val plan = withContext(Dispatchers.IO) { container.planApi.status() }
                 val quotaExhausted = plan is PlanStatus.Free && plan.remaining == 0
-                if (quotaExhausted) appSheet = AppSheet.PLAN
+                if (quotaExhausted) showUpgrade = true
                 else navController.navigate(Routes.RECORDING) { launchSingleTop = true }
             } catch (error: CancellationException) {
                 throw error
@@ -246,7 +251,7 @@ private fun SignedInApp(
             val historyState = historyViewModel.uiState
             val content = historyState as? HistoryUiState.Content
             val recent = remember(content) { content?.recordings.orEmpty().take(3) }
-            MainDestinationScaffold(MainDestination.HOME, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
+            MainDestinationScaffold(MainDestination.HOME, ::navigateMain, openRecorder, onMainShown) { padding ->
                 HomeScreen(
                     latestRecording = recent.firstOrNull(),
                     recentRecordings = recent,
@@ -258,13 +263,15 @@ private fun SignedInApp(
                     onProfile = { navigateMain(Routes.PROFILE) },
                     onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
                     contentPadding = padding,
+                    freeQuota = freePlan,
+                    onUpgrade = { appSheet = AppSheet.PLAN },
                     avatarUrl = accountProfile?.avatarUrl,
                     accountName = accountProfile?.name,
                 )
             }
         }
         composable(Routes.HISTORY) {
-            MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
+            MainDestinationScaffold(MainDestination.HISTORY, ::navigateMain, openRecorder, onMainShown) { padding ->
                 HistoryScreen(
                     state = historyViewModel.uiState,
                     onRecord = openRecorder,
@@ -279,7 +286,7 @@ private fun SignedInApp(
             }
         }
         composable(Routes.CUES) {
-            MainDestinationScaffold(MainDestination.CUES, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
+            MainDestinationScaffold(MainDestination.CUES, ::navigateMain, openRecorder, onMainShown) { padding ->
                 CryCuesScreen(
                     onOpenCue = { navController.navigate(Routes.cue(it.code)) },
                     onProfile = { navigateMain(Routes.PROFILE) },
@@ -302,9 +309,9 @@ private fun SignedInApp(
             val privacyViewModel: PrivacyViewModel = viewModel(
                 viewModelStoreOwner = sessionOwner,
                 key = "privacy:$policyLanguage",
-            ) { PrivacyViewModel(container.policyApi, policyLanguage) }
+            ) { PrivacyViewModel { container.policyApi.privacyPolicy(policyLanguage) } }
             val content = historyViewModel.uiState as? HistoryUiState.Content
-            MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder, historyViewModel::refresh) { padding ->
+            MainDestinationScaffold(MainDestination.PROFILE, ::navigateMain, openRecorder, onMainShown) { padding ->
                 ProfileScreen(
                     state = profileViewModel.uiState,
                     recordingCount = content?.recordings?.size,
@@ -319,6 +326,8 @@ private fun SignedInApp(
                     onDeleteAccount = authViewModel::deleteAccount,
                     onDismissDeleteAccount = authViewModel::resetDeleteState,
                     onPlan = { appSheet = AppSheet.PLAN },
+                    plusSubtitleRes = if (freePlan != null) R.string.home_upgrade_cta else R.string.profile_plus_subtitle,
+                    onChangePassword = { passwordViewModel.reset(); appSheet = AppSheet.PASSWORD },
                     onNotifications = { appSheet = AppSheet.NOTIFICATIONS },
                     onPrivacy = { navController.navigate(Routes.PRIVACY) },
                     onLanguage = { appSheet = AppSheet.LANGUAGE },
@@ -330,12 +339,12 @@ private fun SignedInApp(
             val privacyViewModel: PrivacyViewModel = viewModel(
                 viewModelStoreOwner = sessionOwner,
                 key = "privacy:$policyLanguage",
-            ) { PrivacyViewModel(container.policyApi, policyLanguage) }
+            ) { PrivacyViewModel { container.policyApi.privacyPolicy(policyLanguage) } }
             PrivacyScreen(privacyViewModel.uiState, onRetry = privacyViewModel::load, onBack = { navController.popBackStack() })
         }
         composable(Routes.RECORDING) {
             val recordingViewModel: RecordingViewModel = viewModel {
-                RecordingViewModel(container.recordingStore(auth.userId), container.recordingApi)
+                RecordingViewModel(container.recordingStore(auth.userId)) { file, duration -> container.recordingApi.upload(file, duration) }
             }
             RecordingRoute(
                 viewModel = recordingViewModel,
@@ -388,7 +397,8 @@ private fun SignedInApp(
             }
             PlanScreen(
                 state = planViewModel.uiState,
-                onBack = { appSheet = null },
+                // Pembelian bisa mengubah paket: perbarui petunjuk kuota saat lembar ditutup.
+                onBack = { appSheet = null; planSummary.refresh() },
                 onRetry = planViewModel::refresh,
                 onPurchase = planViewModel::purchase,
             )
@@ -398,8 +408,14 @@ private fun SignedInApp(
             NotificationsScreen(notificationsViewModel, onBack = { appSheet = null })
         }
         AppSheet.LANGUAGE -> LanguageScreen(onBack = { appSheet = null })
+        AppSheet.PASSWORD -> ChangePasswordSheet(passwordViewModel.state, onSubmit = passwordViewModel::submit, onDismiss = { appSheet = null })
         null -> Unit
     }
+
+    if (showUpgrade) UpgradeDialog(
+        onUpgrade = { showUpgrade = false; appSheet = AppSheet.PLAN },
+        onDismiss = { showUpgrade = false },
+    )
 
     LaunchedEffect(notificationDestination) {
         if (notificationDestination == DESTINATION_PLAN) {

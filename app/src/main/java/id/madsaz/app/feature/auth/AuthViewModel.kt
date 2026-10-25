@@ -58,7 +58,7 @@ class AuthViewModel(
         }
     }
 
-    fun authenticate(register: Boolean, name: String, email: String, password: String) {
+    fun authenticate(register: Boolean, name: String, email: String, password: String, confirmPassword: String, acceptTerms: Boolean) {
         // BE hanya mewajibkan 8 karakter saat mendaftar; saat masuk cukup tidak kosong.
         if (!register && (email.isBlank() || password.isBlank())) {
             uiState = AuthUiState.Error(R.string.error_login_incomplete)
@@ -68,11 +68,19 @@ class AuthViewModel(
             uiState = AuthUiState.Error(R.string.error_invalid_input)
             return
         }
+        if (register && password != confirmPassword) {
+            uiState = AuthUiState.Error(R.string.error_password_mismatch)
+            return
+        }
+        if (register && !acceptTerms) {
+            uiState = AuthUiState.Error(R.string.error_terms_required)
+            return
+        }
         viewModelScope.launch {
             uiState = AuthUiState.Submitting
             try {
                 withContext(Dispatchers.IO) {
-                    val session = if (register) authApi.register(name.trim(), email.trim(), password) else authApi.login(email.trim(), password)
+                    val session = if (register) authApi.register(name.trim(), email.trim(), password, acceptTerms) else authApi.login(email.trim(), password)
                     sessionManager.signIn(session)
                 }
             } catch (error: CancellationException) {

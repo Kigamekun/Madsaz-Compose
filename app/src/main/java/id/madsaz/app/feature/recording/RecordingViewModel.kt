@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import id.madsaz.app.R
 import id.madsaz.app.data.local.RecordingStore
 import id.madsaz.app.data.remote.ApiException
-import id.madsaz.app.data.remote.RecordingApi
 import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.userMessageRes
 import java.io.File
@@ -19,11 +18,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-const val MAX_RECORDING_SECONDS = 30
+const val MAX_RECORDING_SECONDS = 5
 
+/**
+ * [upload] mengirim [File] (dan durasinya) lalu mengembalikan id hasil: akun memakai `RecordingApi.upload`, Coba Gratis memakai
+ * `GuestApi.analyze`. Keduanya menolak dengan kode batas harian yang sama-sama berarti "jangan ulangi".
+ */
 class RecordingViewModel(
     private val store: RecordingStore,
-    private val api: RecordingApi,
+    private val upload: (File, Int?) -> String,
 ) : ViewModel() {
     var uiState: RecordingUiState by mutableStateOf(RecordingUiState.PermissionRequired)
         private set
@@ -79,7 +82,7 @@ class RecordingViewModel(
         uploadJob = viewModelScope.launch {
             uiState = RecordingUiState.Analyzing
             uiState = try {
-                val recordingId = withContext(Dispatchers.IO) { api.upload(file, store.durationSeconds(file)) }
+                val recordingId = withContext(Dispatchers.IO) { upload(file, store.durationSeconds(file)) }
                 try {
                     withContext(Dispatchers.IO) { store.delete(file) }
                     pendingFile = null
@@ -90,7 +93,7 @@ class RecordingViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: ApiException) {
-                if (error.code == FREE_LIMIT_REACHED) {
+                if (error.code in LIMIT_CODES) {
                     // Mengulang tidak akan berhasil dan BE sudah membuang videonya; jangan biarkan file menghalangi rekaman baru.
                     withContext(Dispatchers.IO) { store.delete(file) }
                     pendingFile = null
@@ -130,6 +133,6 @@ class RecordingViewModel(
     }
 
     private companion object {
-        const val FREE_LIMIT_REACHED = "free_limit_reached"
+        val LIMIT_CODES = setOf("free_limit_reached", "guest_limit_reached")
     }
 }

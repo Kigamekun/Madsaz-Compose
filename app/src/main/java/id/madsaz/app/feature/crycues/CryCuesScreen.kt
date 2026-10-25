@@ -45,6 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
+import id.madsaz.app.ui.components.BulletLine
+import id.madsaz.app.ui.components.SolutionList
+import id.madsaz.app.ui.components.cueTitle
 import id.madsaz.app.model.CryCue
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
@@ -114,7 +117,7 @@ private fun CueRow(cue: CryCue, onClick: () -> Unit, modifier: Modifier = Modifi
             CryCueIcon(cue.code, Modifier.size(52.dp))
             Column(Modifier.weight(1f).padding(horizontal = 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    "${cue.code} · ${stringResource(cue.label)}",
+                    cueTitle(cue.code, stringResource(cue.label)),
                     color = Ink,
                     fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
                     fontSize = 17.sp,
@@ -172,9 +175,10 @@ fun CryCueDetailScreen(cue: CryCue, onBack: () -> Unit, modifier: Modifier = Mod
                 ) { CryCueIcon(cue.code, Modifier.size(44.dp)) }
                 DetailSection(
                     title = stringResource(R.string.cry_cues_actions),
-                    items = cue.actions,
+                    items = cue.solution,
                     background = Color(0xFFFFF0D2),
                     tint = Color(0xFFE6A02C),
+                    firstIsHeading = true,
                 ) { Icon(painterResource(R.drawable.phosphor_heartbeat), null, tint = Color(0xFFE6A02C), modifier = Modifier.padding(9.dp)) }
                 Spacer(Modifier.height(4.dp))
                 Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
@@ -189,6 +193,7 @@ private fun DetailSection(
     items: List<Int>,
     background: Color,
     tint: Color,
+    firstIsHeading: Boolean = false,
     illustration: @Composable () -> Unit,
 ) {
     Surface(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), background.copy(alpha = 0.34f), border = BorderStroke(1.dp, background)) {
@@ -196,12 +201,8 @@ private fun DetailSection(
             Surface(Modifier.size(48.dp), CircleShape, background) { Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { illustration() } }
             Column(Modifier.padding(start = 12.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp).semantics { heading() })
-                items.forEach { item ->
-                    Row(verticalAlignment = Alignment.Top) {
-                        Box(Modifier.padding(top = 8.dp).size(5.dp).background(tint, CircleShape))
-                        Text(stringResource(item), Modifier.padding(start = 10.dp), MutedInk, fontSize = 14.sp, lineHeight = 20.sp)
-                    }
-                }
+                if (firstIsHeading) SolutionList(items, tint)
+                else items.forEach { BulletLine(stringResource(it), tint) }
             }
         }
     }

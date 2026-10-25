@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import id.madsaz.app.data.remote.PolicyApi
 import id.madsaz.app.data.remote.PrivacyPolicy
 import id.madsaz.app.ui.userMessageRes
 import kotlinx.coroutines.CancellationException
@@ -20,7 +19,8 @@ sealed interface PrivacyUiState {
     data class Error(@StringRes val messageRes: Int) : PrivacyUiState
 }
 
-class PrivacyViewModel(private val api: PolicyApi, private val language: String) : ViewModel() {
+/** [fetch] memuat satu dokumen hukum (kebijakan privasi atau S&K) dalam bahasa yang dipilih pemanggil. */
+class PrivacyViewModel(private val fetch: () -> PrivacyPolicy) : ViewModel() {
     var uiState: PrivacyUiState by mutableStateOf(PrivacyUiState.Loading)
         private set
 
@@ -30,7 +30,7 @@ class PrivacyViewModel(private val api: PolicyApi, private val language: String)
         viewModelScope.launch {
             uiState = PrivacyUiState.Loading
             uiState = try {
-                PrivacyUiState.Content(withContext(Dispatchers.IO) { api.privacyPolicy(language) })
+                PrivacyUiState.Content(withContext(Dispatchers.IO) { fetch() })
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

@@ -33,6 +33,8 @@ class RecordingFlowTest {
         compose.onNodeWithTag("auth_name").performScrollTo().performTextInput("Orang Tua Uji")
         compose.onNodeWithTag("auth_email").performScrollTo().performTextInput("recording+${System.currentTimeMillis()}@example.test")
         compose.onNodeWithTag("auth_password").performScrollTo().performTextInput("local-ui-test-123")
+        compose.onNodeWithTag("auth_confirm").performScrollTo().performTextInput("local-ui-test-123")
+        compose.onNodeWithTag("auth_terms").performScrollTo().performClick()
         compose.onNodeWithTag("auth_submit").performScrollTo().performClick()
         waitForTag("home_screen")
         compose.onNodeWithText(context.getString(R.string.nav_history)).performClick()
@@ -51,7 +53,7 @@ class RecordingFlowTest {
         compose.waitUntil(15_000) {
             compose.onAllNodesWithTag("recording_timer").fetchSemanticsNodes().any {
                 val timer = it.config[SemanticsProperties.Text].first().text
-                timer.substringAfter(':').toInt() >= 3
+                timer.substringBefore(" /").substringAfter(':').toInt() >= 2
             }
         }
         compose.onNodeWithTag("recording_stop").performClick()

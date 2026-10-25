@@ -27,8 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import id.madsaz.app.R
+import id.madsaz.app.ui.components.SolutionList
+import id.madsaz.app.ui.components.cueTitle
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -127,25 +130,32 @@ private fun CompletedContent(
     if (showLog || recording.scores.isEmpty()) {
         RecordingLog(recording, loadVideoUrl, onBack, onRefresh, onOpenCue, startInLog) { showLog = false }
     } else {
-        PatternResult(recording, onDone = onBack, onOpenCue = onOpenCue) { onFeedback(recording.id) }
+        PatternResult(recording.scores, onDone = onBack, onOpenCue = onOpenCue) {
+            OutlinedButton(onClick = { onFeedback(recording.id) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.result_feedback))
+            }
+            Button(onClick = onBack, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.result_done))
+            }
+        }
     }
 }
 
 @Composable
-private fun PatternResult(recording: RecordingItem, onDone: () -> Unit, onOpenCue: (CryCue) -> Unit, onFeedback: () -> Unit) {
-    val leading = recording.scores.first()
-    Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
+fun PatternResult(
+    scores: List<CryScore>,
+    onDone: () -> Unit,
+    onOpenCue: (CryCue) -> Unit,
+    modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit,
+) {
+    val leading = scores.first()
+    Column(modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
         // Jalan keluar yang terlihat (selain tombol kembali sistem): tutup kembali ke layar asal.
         IconButton(onClick = onDone, modifier = Modifier.padding(start = 8.dp, top = 4.dp)) {
             Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = Ink)
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-            Image(
-                painter = painterResource(R.drawable.madsaz_result_baby_halo),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp).align(Alignment.CenterHorizontally),
-            )
-            Spacer(Modifier.height(12.dp))
             Text(stringResource(R.string.result_title), style = MaterialTheme.typography.headlineMedium, color = Ink, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(14.dp))
             Surface(
@@ -156,8 +166,7 @@ private fun PatternResult(recording: RecordingItem, onDone: () -> Unit, onOpenCu
             ) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 13.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                        Text(stringResource(R.string.result_most_likely), color = BrandBlueDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Text("${leading.code} · ${cryCueLabel(leading.code, leading.label)}", color = Ink, fontSize = 16.sp)
+                        Text(cueTitle(leading.code, cryCueLabel(leading.code, leading.label)), color = Ink, fontSize = 16.sp)
                     }
                     Surface(shape = RoundedCornerShape(18.dp), color = BrandBlueDark) {
                         Text(formatPercent(leading.confidence), Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = Color.White, fontSize = 12.sp)
@@ -168,23 +177,11 @@ private fun PatternResult(recording: RecordingItem, onDone: () -> Unit, onOpenCu
             Text(stringResource(R.string.result_confidence_title), color = Ink, fontSize = 13.sp)
             Spacer(Modifier.height(10.dp))
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                recording.scores.forEachIndexed { index, score -> ScoreBar(score, index == 0) }
+                scores.forEachIndexed { index, score -> ScoreBar(score, index == 0) }
             }
-            Spacer(Modifier.height(18.dp))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFD5E6EE)),
-            ) {
-                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CryCueIcon(leading.code, Modifier.size(48.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.result_suggested_action), color = Color(0xFF387A67), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.result_what_to_try), color = Ink, fontSize = 15.sp)
-                        Text(recording.solution.orEmpty(), color = MutedInk, fontSize = 14.sp, lineHeight = 21.sp)
-                    }
-                }
+            CryCue.fromCode(leading.code)?.let { cue ->
+                Spacer(Modifier.height(18.dp))
+                SolutionCard(cue)
             }
             LearnCueLink(leading.code, onOpenCue)
             Spacer(Modifier.height(16.dp))
@@ -192,12 +189,25 @@ private fun PatternResult(recording: RecordingItem, onDone: () -> Unit, onOpenCu
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedButton(onClick = onFeedback, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.result_feedback))
-            }
-            Button(onClick = onDone, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.result_done))
+            content = actions,
+        )
+    }
+}
+
+/** Saran penanganan untuk pola ini, dengan teks yang sama dengan Madsaz lama (satu butir per baris). */
+@Composable
+private fun SolutionCard(cue: CryCue) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, Color(0xFFD5E6EE)),
+    ) {
+        Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            CryCueIcon(cue.code, Modifier.size(48.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.result_suggested_action), color = Color(0xFF387A67), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                SolutionList(cue.solution, tint = BrandBlueDark)
             }
         }
     }
@@ -209,7 +219,6 @@ private fun LearnCueLink(code: String, onOpenCue: (CryCue) -> Unit) {
     val cue = CryCue.fromCode(code) ?: return
     TextButton(onClick = { onOpenCue(cue) }, modifier = Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) {
         Text(stringResource(R.string.result_learn_cue, cue.code), color = BrandBlueDark, fontWeight = FontWeight.SemiBold)
-        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = BrandBlueDark)
     }
 }
 
@@ -218,7 +227,7 @@ private fun ScoreBar(score: CryScore, leading: Boolean) {
     Column(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CryCueIcon(score.code, Modifier.size(30.dp))
-            Text("${score.code} · ${cryCueLabel(score.code, score.label)}", color = if (leading) Ink else MutedInk, fontSize = 14.sp, modifier = Modifier.weight(1f))
+            Text(cueTitle(score.code, cryCueLabel(score.code, score.label)), color = if (leading) Ink else MutedInk, fontSize = 14.sp, modifier = Modifier.weight(1f))
             Text(formatPercent(score.confidence), color = if (leading) BrandBlueDark else MutedInk, fontSize = 14.sp)
         }
         Box(Modifier.fillMaxWidth().height(7.dp).background(Color(0xFFE2EBF0), RoundedCornerShape(4.dp))) {
@@ -321,11 +330,11 @@ private fun RecordingLog(
                     }
                 }
                 LearnCueLink(recording.scores.first().code, onOpenCue)
-                recording.solution?.let { solution ->
+                CryCue.fromCode(recording.scores.first().code)?.let { cue ->
                     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = Color(0xFFEAF5FB)) {
                         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(stringResource(R.string.result_advice_title), style = MaterialTheme.typography.titleMedium, color = Ink, fontWeight = FontWeight.Bold)
-                            Text(solution, color = MutedInk)
+                            SolutionList(cue.solution, tint = BrandBlueDark)
                         }
                     }
                 }

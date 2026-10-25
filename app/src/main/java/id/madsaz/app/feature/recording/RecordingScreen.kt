@@ -96,7 +96,7 @@ fun RecordingScreen(
                             Text(stringResource(R.string.recording_keep_baby_in_view), Modifier.weight(1f).padding(horizontal = 12.dp), style = MaterialTheme.typography.titleMedium, color = Ink)
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(stringResource(if (recording) R.string.recording_status_rec else R.string.recording_status_ready), style = MaterialTheme.typography.labelMedium, color = if (recording) MaterialTheme.colorScheme.error else MutedInk)
-                                if (elapsedSeconds != null) Text(formatTimer(elapsedSeconds), style = MaterialTheme.typography.titleMedium, color = Ink, modifier = Modifier.testTag("recording_timer"))
+                                if (elapsedSeconds != null) Text(stringResource(R.string.recording_timer, formatTimer(elapsedSeconds), formatTimer(MAX_RECORDING_SECONDS)), style = MaterialTheme.typography.titleMedium, color = Ink, modifier = Modifier.testTag("recording_timer"))
                             }
                         }
                         Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp)).background(Color.Black).testTag("camera_preview")) {

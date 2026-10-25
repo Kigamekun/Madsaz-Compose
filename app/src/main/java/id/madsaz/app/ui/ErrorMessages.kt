@@ -17,6 +17,9 @@ fun Throwable.userMessageRes(): Int = when (this) {
         "email_taken" -> R.string.error_email_taken
         "invalid_input" -> R.string.error_invalid_input
         "free_limit_reached" -> R.string.error_free_limit
+        "guest_limit_reached" -> R.string.error_guest_limit
+        "terms_required" -> R.string.error_terms_required
+        "email_unavailable" -> R.string.error_email_unavailable
         "analysis_in_progress" -> R.string.error_analysis_in_progress
         "upload_invalid" -> R.string.error_upload_invalid
         "storage_unavailable", "storage_rejected" -> R.string.error_storage

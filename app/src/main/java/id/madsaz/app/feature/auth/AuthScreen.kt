@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,6 +40,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +62,21 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
 import id.madsaz.app.R
 import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.LightStatusBarIcons
@@ -65,20 +86,44 @@ import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
 
+/** Kartu menimpa tepi bawah hero sebesar ini. */
+private val CardOverlap = 20.dp
+private val MinHeroHeight = 150.dp
+
+/** Logo dan tombol bahasa di header hero sama besar, seperti logo di header Beranda. */
+private val HeaderControlSize = 40.dp
+
 @Composable
-fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -> Unit, onForgotPassword: () -> Unit) {
-    var register by remember { mutableStateOf(false) }
+fun AuthScreen(
+    state: AuthUiState,
+    startInRegister: Boolean,
+    onSubmit: (register: Boolean, name: String, email: String, password: String, confirmPassword: String, acceptTerms: Boolean) -> Unit,
+    onForgotPassword: () -> Unit,
+    onTryFree: () -> Unit,
+    onOpenTerms: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+    onLanguage: () -> Unit,
+) {
+    var register by rememberSaveable(startInRegister) { mutableStateOf(startInRegister) }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var acceptTerms by remember { mutableStateOf(false) }
+    var showGuestInfo by remember { mutableStateOf(false) }
+    // Tinggi isi kartu per mode (px), diukur setelah tata letak; nilai awal 0 membuat hero maksimal sampai pengukuran pertama.
+    var cardContentPx by remember(register) { mutableIntStateOf(0) }
     val submitting = state is AuthUiState.Submitting
     val focus = LocalFocusManager.current
-    val submit = { if (!submitting) { focus.clearFocus(); onSubmit(register, name, email, password) } }
+    val submit = { if (!submitting) { focus.clearFocus(); onSubmit(register, name, email, password, confirmPassword, acceptTerms) } }
 
     LightStatusBarIcons()
     CompactContainer {
         BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFEFF8FC)).imePadding()) {
-            val heroHeight = maxHeight * 0.42f
+            // Tinggi hero = sisa layar di atas kartu: kartu pas mengisi layar (tanpa sisa kosong di bawah dan tanpa digulir di layar
+            // umum). Bila formulir lebih tinggi dari itu (layar pendek, keyboard, huruf besar), hero berhenti mengecil dan kartu digulir.
+            val density = LocalDensity.current
+            val heroHeight = (maxHeight - with(density) { cardContentPx.toDp() } + CardOverlap).coerceIn(MinHeroHeight, maxHeight * 0.45f)
             Image(
                 painter = painterResource(R.drawable.madsaz_login_regis_v5),
                 contentDescription = null,
@@ -94,7 +139,7 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = RoundedCornerShape(14.dp), color = Color.White, modifier = Modifier.size(44.dp)) {
+                    Surface(shape = RoundedCornerShape(13.dp), color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
                         Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.55f))
                     }
                     Text(
@@ -105,25 +150,18 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                     )
-                }
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        stringResource(if (register) R.string.auth_headline_register else R.string.auth_headline_login),
-                        color = Color.White,
-                        fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                        fontSize = 24.sp,
-                        lineHeight = 30.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        stringResource(if (register) R.string.auth_sub_register else R.string.auth_sub_login),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp,
-                            lineHeight = 21.sp,
-                            fontWeight = FontWeight.Medium,
-                        ),
-                    )
+                    // Bahasa bisa diganti sebelum masuk; layar ini dan dokumen S&K/privasi langsung mengikuti.
+                    // Area sentuh 48dp (standar aksesibilitas) berisi lingkaran visual seukuran logo.
+                    Box(
+                        Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onLanguage).testTag("auth_language"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.Language, stringResource(R.string.language_title), tint = BrandBlueDark, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                    }
                 }
             }
 
@@ -132,16 +170,19 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    // Kartu berhenti di atas bilah navigasi sistem (3 tombol) agar baris "sudah punya akun" tidak tertimpa.
-                    .navigationBarsPadding()
-                    .padding(top = heroHeight - 20.dp, bottom = 12.dp)
-                    .clip(RoundedCornerShape(28.dp))
+                    // Kartu menempel ke tepi bawah layar seperti sheet; hanya sudut atas yang membulat.
+                    .padding(top = heroHeight - CardOverlap)
+                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                     .background(Color.White)
-                    // Selalu bisa digulir: mode daftar (tiga kolom) lebih tinggi dari kartu di layar pendek, dan tanpa keyboard tombol kirim terpotong.
+                    // Selalu bisa digulir: mode daftar lebih tinggi dari kartu di layar pendek, dan tanpa keyboard tombol kirim terpotong.
                     .verticalScroll(rememberScrollState())
+                    // Diukur sebelum padding: tinggi seluruh isi kartu termasuk padding dan inset bilah navigasi.
+                    .onSizeChanged { cardContentPx = it.height }
                     .padding(horizontal = 20.dp)
-                    .padding(top = 25.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(top = 25.dp, bottom = 20.dp)
+                    // Ruang bawah untuk bilah navigasi sistem ada di dalam kartu, bukan celah di bawahnya.
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(if (register) 8.dp else 12.dp),
             ) {
                 Text(
                     stringResource(if (register) R.string.auth_register_title else R.string.auth_login_title),
@@ -150,7 +191,7 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     fontSize = 30.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodyMedium)
+                if (!register) Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodyMedium)
 
                 if (register) MadsazTextField(
                     name,
@@ -183,11 +224,27 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     enabled = !submitting,
                     isError = state is AuthUiState.Error,
                     secret = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { submit() }),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = if (register) ImeAction.Next else ImeAction.Done),
+                    keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }, onDone = { submit() }),
                     placeholder = stringResource(R.string.auth_placeholder_password),
                     leadingIcon = Icons.Rounded.Lock,
                 )
+                if (register) {
+                    MadsazTextField(
+                        confirmPassword,
+                        { confirmPassword = it },
+                        stringResource(R.string.auth_field_confirm),
+                        Modifier.testTag("auth_confirm"),
+                        enabled = !submitting,
+                        isError = state is AuthUiState.Error && state.messageRes == R.string.error_password_mismatch,
+                        secret = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { submit() }),
+                        placeholder = stringResource(R.string.auth_placeholder_confirm),
+                        leadingIcon = Icons.Rounded.Lock,
+                    )
+                    TermsAgreement(acceptTerms, { acceptTerms = it }, !submitting, onOpenTerms, onOpenPrivacy)
+                }
                 if (state is AuthUiState.Error) {
                     Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
@@ -206,6 +263,15 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
                     if (submitting) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     else Text(stringResource(if (register) R.string.auth_submit_register else R.string.auth_submit_login))
                 }
+                if (!register) OutlinedButton(
+                    onClick = { showGuestInfo = true },
+                    enabled = !submitting,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("auth_try_free"),
+                    shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(1.dp, BrandBlueDark),
+                ) {
+                    Text(stringResource(R.string.auth_try_free), color = BrandBlueDark)
+                }
                 Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(if (register) R.string.auth_prompt_have_account else R.string.auth_prompt_new), color = MutedInk, style = MaterialTheme.typography.bodySmall)
                     TextButton(onClick = { register = !register }, enabled = !submitting, modifier = Modifier.testTag("auth_toggle")) {
@@ -215,4 +281,48 @@ fun AuthScreen(state: AuthUiState, onSubmit: (Boolean, String, String, String) -
             }
         }
     }
+    if (showGuestInfo) AlertDialog(
+        onDismissRequest = { showGuestInfo = false },
+        title = { Text(stringResource(R.string.guest_info_title)) },
+        text = { Text(stringResource(R.string.guest_info_body)) },
+        confirmButton = {
+            TextButton(onClick = { showGuestInfo = false; onTryFree() }, modifier = Modifier.testTag("guest_info_start")) {
+                Text(stringResource(R.string.guest_info_start), color = BrandBlueDark)
+            }
+        },
+        dismissButton = { TextButton(onClick = { showGuestInfo = false }) { Text(stringResource(R.string.common_cancel)) } },
+    )
 }
+
+/** Persetujuan wajib saat mendaftar: tautan membuka dokumen penuh tanpa kehilangan isian formulir. */
+@Composable
+private fun TermsAgreement(
+    accepted: Boolean,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean,
+    onOpenTerms: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+) {
+    val linkStyle = SpanStyle(color = BrandBlueDark, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+    val termsLabel = stringResource(R.string.auth_terms_link)
+    val privacyLabel = stringResource(R.string.profile_privacy_title)
+    val template = stringResource(R.string.auth_terms_agree)
+    // %1$s = S&K dan %2$s = kebijakan privasi; urutannya mengikuti terjemahan masing-masing bahasa.
+    val text = buildAnnotatedString {
+        var cursor = 0
+        Regex("%([12])[$]s").findAll(template).forEach { match ->
+            append(template.substring(cursor, match.range.first))
+            val terms = match.groupValues[1] == "1"
+            withLink(LinkAnnotation.Clickable("terms-or-privacy", TextLinkStyles(linkStyle)) { if (terms) onOpenTerms() else onOpenPrivacy() }) {
+                append(if (terms) termsLabel else privacyLabel)
+            }
+            cursor = match.range.last + 1
+        }
+        append(template.substring(cursor))
+    }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(accepted, onChange, enabled = enabled, modifier = Modifier.testTag("auth_terms"))
+        Text(text, color = Ink, style = MaterialTheme.typography.bodySmall)
+    }
+}
+

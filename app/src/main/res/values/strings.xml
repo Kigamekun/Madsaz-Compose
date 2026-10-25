@@ -19,7 +19,7 @@
     <string name="nav_cues">Petunjuk</string>
     <string name="nav_profile">Profil</string>
     <string name="nav_record_label">Rekam</string>
-    <string name="cues_intro">Lima pola tangisan bayi usia 0–3 bulan (Dunstan Baby Language). Ketuk salah satu untuk melihat ciri-ciri dan cara menenangkannya.</string>
+    <string name="cues_intro">Aplikasi Madsaz ini digunakan untuk menerjemahkan tangis bayi usia 0-3 bulan. Terdapat lima bahasa bayi versi DBL yaitu: neh berarti lapar, owh berarti lelah yang mengindikasikan bayi sudah mulai mengantuk, eh berarti ingin bersendawa, eairh berarti masuk angin (perut kembung), dan heh berarti tidak nyaman (bisa karena popoknya basah, udara terlalu panas atau dingin, atau hal lainnya)</string>
     <string name="cue_open_detail">Lihat detail</string>
     <string name="home_latest_open">Lihat hasil</string>
     <string name="home_latest_start">Mulai merekam</string>
@@ -32,11 +32,6 @@
     <!-- Masuk dan daftar -->
     <string name="auth_brand" translatable="false">madsaz</string>
     <string name="auth_login_title">Masuk</string>
-    <string name="auth_register_title">Daftar</string>
-    <string name="auth_headline_login">Cara yang lebih tenang\nuntuk mendengarkan</string>
-    <string name="auth_headline_register">Cara yang lebih tenang\nuntuk memulai</string>
-    <string name="auth_sub_login">Lanjutkan dengan petunjuk terbaru\nbayi Anda.</string>
-    <string name="auth_sub_register">Buat akun untuk menyimpan\npetunjuk terbaru bayi Anda.</string>
     <string name="auth_privacy_note">Rekaman Anda tetap privat untuk akun Anda.</string>
     <string name="auth_field_name">Nama</string>
     <string name="auth_field_email">Alamat email</string>
@@ -45,7 +40,6 @@
     <string name="auth_placeholder_email">nama@email.com</string>
     <string name="auth_placeholder_password">Masukkan kata sandi</string>
     <string name="auth_forgot">Lupa kata sandi?</string>
-    <string name="auth_forgot_unavailable">Fitur lupa kata sandi belum tersedia.</string>
     <string name="auth_submit_login">Masuk</string>
     <string name="auth_submit_register">Buat akun</string>
     <string name="auth_prompt_have_account">Sudah punya akun?</string>
@@ -113,10 +107,8 @@
     <string name="result_processing_title">Menganalisis rekaman</string>
     <string name="result_processing_body">Hasil akan muncul otomatis.</string>
     <string name="result_title">Hasil pola tangisan</string>
-    <string name="result_most_likely">PALING MUNGKIN</string>
     <string name="result_confidence_title">Tingkat keyakinan petunjuk tangisan</string>
     <string name="result_suggested_action">SARAN TINDAKAN</string>
-    <string name="result_what_to_try">Yang bisa dicoba</string>
     <string name="result_feedback">Masukan</string>
     <string name="result_log_title">Riwayat rekaman</string>
     <string name="result_log_failed">Analisis gagal. Video tetap tersimpan.</string>
@@ -128,20 +120,20 @@
     <!-- Paket -->
     <string name="plan_title">Paket Anda</string>
     <string name="plan_free_title">Paket gratis</string>
-    <string name="plan_monthly_analyses">Analisis bulanan</string>
+    <string name="plan_monthly_analyses">Analisis harian</string>
     <string name="plan_used_of">%1$d dari %2$d terpakai</string>
     <plurals name="plan_remaining_month">
-        <item quantity="other">Sisa %d rekaman bulan ini</item>
+        <item quantity="other">Sisa %d rekaman hari ini</item>
     </plurals>
     <string name="plan_included_title">Termasuk paket gratis</string>
     <plurals name="plan_benefit_analyses">
-        <item quantity="other">%d analisis tangisan setiap bulan</item>
+        <item quantity="other">%d analisis tangisan setiap hari</item>
     </plurals>
     <string name="plan_benefit_cues">Interpretasi dasar petunjuk tangisan</string>
     <string name="plan_benefit_recent">Rekaman terbaru tersimpan</string>
     <string name="plan_explore_plus">Jelajahi Madsaz Plus</string>
     <string name="plan_continue_free">Lanjut dengan paket gratis</string>
-    <string name="plan_limit_reset">Batas penggunaan direset pada awal setiap bulan.</string>
+    <string name="plan_limit_reset">Batas penggunaan direset setiap hari pukul 00.00 WIB.</string>
     <string name="plan_plus_brand" translatable="false">Madsaz Plus</string>
     <string name="plan_plus_tagline">Lebih tenang, lebih memahami.</string>
     <string name="plan_plus_benefit_unlimited">Rekaman tanpa batas</string>
@@ -196,7 +188,7 @@
     <string name="feedback_note_hint">Tulis catatan Anda di sini…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Kirim masukan</string>
-    <string name="feedback_requirements">Pilih penilaian dan topik, lalu tulis catatan singkat untuk mengirim.</string>
+    <string name="feedback_requirements">Pilih penilaian untuk mengirim. Topik dan catatan boleh dikosongkan.</string>
     <string name="feedback_sending">Mengirim…</string>
 
     <!-- Notifikasi -->
@@ -209,50 +201,35 @@
     <string name="cry_cues_signs">Ciri-ciri</string>
     <string name="cry_cues_actions">Yang bisa dilakukan</string>
     <string name="cue_neh_meaning">Lapar</string>
-    <string name="cue_neh_description">Tangisan ini biasanya menandakan bayi merasa lapar dan ingin menyusu.</string>
+    <string name="cue_neh_description">Bayi merasa lapar</string>
     <string name="cue_neh_metric_detail">Ingin menyusu</string>
     <string name="cue_neh_feature_1">Suara tangisan seperti ‘neh neh neh’</string>
     <string name="cue_neh_feature_2">Biasanya berulang dan semakin kuat</string>
     <string name="cue_neh_feature_3">Mencari puting atau membuka mulut</string>
-    <string name="cue_neh_action_1">Segera berikan ASI atau susu formula</string>
-    <string name="cue_neh_action_2">Pastikan posisi menyusu nyaman</string>
-    <string name="cue_neh_action_3">Perhatikan tanda kenyang pada bayi</string>
     <string name="cue_owh_meaning">Lelah</string>
-    <string name="cue_owh_description">Suara ini bisa menjadi tanda bayi mulai lelah dan membutuhkan waktu untuk beristirahat.</string>
+    <string name="cue_owh_description">Bayi merasa lelah yang mengindikasikan bayi sudah mulai mengantuk</string>
     <string name="cue_owh_metric_detail">Mulai mengantuk</string>
     <string name="cue_owh_feature_1">Suara seperti ‘owh’ dengan nada panjang</string>
     <string name="cue_owh_feature_2">Menguap atau menggosok mata</string>
     <string name="cue_owh_feature_3">Gerakan bayi mulai melambat</string>
-    <string name="cue_owh_action_1">Pindahkan bayi ke tempat yang tenang</string>
-    <string name="cue_owh_action_2">Redupkan cahaya dan kurangi suara</string>
-    <string name="cue_owh_action_3">Bantu bayi tidur dengan rutinitas lembut</string>
     <string name="cue_eh_meaning">Ingin bersendawa</string>
-    <string name="cue_eh_description">Bayi mungkin sedang memberi tahu bahwa ada udara yang perlu dikeluarkan setelah menyusu.</string>
+    <string name="cue_eh_description">Bayi ingin bersendawa</string>
     <string name="cue_eh_metric_detail">Sendawakan bayi</string>
     <string name="cue_eh_feature_1">Suara pendek seperti ‘eh’</string>
     <string name="cue_eh_feature_2">Muncul setelah bayi menyusu</string>
     <string name="cue_eh_feature_3">Bayi terlihat menggeliat atau tidak nyaman</string>
-    <string name="cue_eh_action_1">Tegakkan tubuh bayi dengan lembut</string>
-    <string name="cue_eh_action_2">Usap atau tepuk punggung perlahan</string>
-    <string name="cue_eh_action_3">Berhenti jika bayi sudah terlihat nyaman</string>
     <string name="cue_heh_meaning">Tidak nyaman</string>
-    <string name="cue_heh_description">Bayi mungkin sedang merasa kurang nyaman dan membutuhkan pemeriksaan sederhana.</string>
+    <string name="cue_heh_description">Bayi merasa tidak nyaman (bisa karena popoknya basah, udara terlalu panas atau dingin, atau hal lainnya)</string>
     <string name="cue_heh_metric_detail">Popok, suhu, atau posisi</string>
     <string name="cue_heh_feature_1">Suara seperti ‘heh’ dengan jeda pendek</string>
     <string name="cue_heh_feature_2">Bayi banyak bergerak atau merengek</string>
     <string name="cue_heh_feature_3">Ekspresi wajah tampak tidak nyaman</string>
-    <string name="cue_heh_action_1">Periksa popok dan pakaian bayi</string>
-    <string name="cue_heh_action_2">Pastikan suhu ruangan nyaman</string>
-    <string name="cue_heh_action_3">Gendong dan tenangkan bayi perlahan</string>
     <string name="cue_eairh_meaning">Masuk angin</string>
-    <string name="cue_eairh_description">Suara ini bisa menandakan bayi merasa tidak nyaman karena gas di perut.</string>
+    <string name="cue_eairh_description">Bayi sedang masuk angin (perut kembung)</string>
     <string name="cue_eairh_metric_detail">Perut kembung</string>
     <string name="cue_eairh_feature_1">Suara seperti ‘eairh’ dengan tekanan</string>
     <string name="cue_eairh_feature_2">Bayi menekuk kaki ke arah perut</string>
     <string name="cue_eairh_feature_3">Perut terasa penuh atau bayi sulit tenang</string>
-    <string name="cue_eairh_action_1">Bantu bayi bersendawa</string>
-    <string name="cue_eairh_action_2">Gerakkan kaki bayi seperti mengayuh sepeda</string>
-    <string name="cue_eairh_action_3">Pijat perut dengan sangat lembut</string>
 
     <!-- Pesan error (dipetakan dari status/kode BE; teks `error` BE tidak ditampilkan) -->
     <string name="error_network">Tidak dapat terhubung ke server. Periksa koneksi internet lalu coba lagi.</string>
@@ -263,7 +240,7 @@
     <string name="error_invalid_credentials">Email atau kata sandi salah.</string>
     <string name="error_email_taken">Email ini sudah terdaftar.</string>
     <string name="error_invalid_input">Lengkapi data dengan benar. Kata sandi minimal 8 karakter.</string>
-    <string name="error_free_limit">Batas analisis gratis bulan ini sudah tercapai. Upgrade ke Madsaz Plus atau tunggu bulan depan.</string>
+    <string name="error_free_limit">Jatah rekaman gratis hari ini sudah habis. Upgrade ke Madsaz Plus atau coba lagi besok.</string>
     <string name="error_analysis_in_progress">Analisis sebelumnya masih berjalan. Coba lagi sebentar lagi.</string>
     <string name="error_upload_invalid">Video belum diterima server. Coba unggah lagi.</string>
     <string name="error_storage">Penyimpanan video sedang tidak tersedia. Coba lagi nanti.</string>
@@ -277,7 +254,7 @@
     <string name="history_yesterday">Kemarin</string>
     <string name="history_processing">Sedang diproses</string>
     <string name="history_analysis_unavailable">Hasil analisis belum tersedia</string>
-    <string name="home_result_with_confidence">%1$s · %2$s keyakinan</string>
+    <string name="home_result_with_confidence">%1$s - %2$s keyakinan</string>
     <string name="home_confidence_chip">%1$s keyakinan</string>
     <string name="error_name_invalid">Nama harus berisi 1–80 karakter.</string>
     <string name="profile_account_row_title">Profil akun</string>
@@ -297,4 +274,73 @@
     <string name="result_advice_title">Saran</string>
     <string name="recording_switch_camera">Ganti kamera</string>
     <string name="home_latest_empty">Belum ada hasil</string>
+    <string name="auth_field_confirm">Ulangi kata sandi</string>
+    <string name="auth_placeholder_confirm">Ketik ulang kata sandi</string>
+    <string name="auth_password_hint">Minimal 8 karakter</string>
+    <string name="error_password_mismatch">Kata sandi tidak sama.</string>
+    <string name="auth_terms_agree">Saya menyetujui %1$s dan %2$s.</string>
+    <string name="auth_terms_link">Syarat &amp; Ketentuan</string>
+    <string name="error_terms_required">Centang persetujuan Syarat &amp; Ketentuan untuk mendaftar.</string>
+    <string name="auth_try_free">Coba Gratis tanpa akun</string>
+    <string name="guest_info_title">Coba Gratis</string>
+    <string name="guest_info_body">Rekam 5 detik dan lihat hasilnya tanpa akun. Video dianalisis lalu dihapus dari server, hasil hanya tampil sekali dan tidak ada riwayat. Batas 2 kali per hari. Daftar untuk menyimpan video dan riwayat.</string>
+    <string name="guest_info_start">Mulai coba</string>
+    <string name="guest_limit_title">Coba gratis hari ini sudah habis</string>
+    <string name="guest_limit_body">Daftar gratis untuk lanjut merekam, menyimpan video, dan melihat riwayat Anda.</string>
+    <string name="guest_limit_register">Daftar gratis</string>
+    <string name="guest_limit_login">Sudah punya akun? Masuk</string>
+    <string name="error_guest_limit">Batas coba gratis hari ini tercapai. Daftar gratis untuk lanjut.</string>
+    <string name="forgot_title">Lupa kata sandi</string>
+    <string name="forgot_body">Masukkan email akun Anda. Kami kirim tautan untuk membuat kata sandi baru.</string>
+    <string name="forgot_send">Kirim tautan</string>
+    <string name="forgot_sent_title">Cek email Anda</string>
+    <string name="forgot_sent_body">Jika email terdaftar, tautan untuk mengatur ulang kata sandi sudah dikirim dan berlaku 30 menit. Periksa juga folder spam.</string>
+    <string name="forgot_back">Kembali ke masuk</string>
+    <string name="error_email_unavailable">Pengiriman email belum tersedia. Coba lagi nanti.</string>
+    <string name="profile_password_title">Ubah kata sandi</string>
+    <string name="profile_password_subtitle">Perlu kata sandi lama</string>
+    <string name="password_current">Kata sandi lama</string>
+    <string name="password_new">Kata sandi baru</string>
+    <string name="password_save">Simpan kata sandi</string>
+    <string name="password_changed">Kata sandi berhasil diubah.</string>
+    <string name="home_upgrade_cta">Upgrade ke Plus</string>
+    <plurals name="home_quota_left">
+        <item quantity="other">Sisa %d rekaman hari ini</item>
+    </plurals>
+    <string name="upgrade_dialog_title">Jatah hari ini sudah dipakai</string>
+    <string name="upgrade_dialog_body">Paket gratis menyimpan 2 rekaman per hari. Upgrade ke Madsaz Plus untuk merekam tanpa batas, atau coba lagi besok.</string>
+    <string name="upgrade_dialog_cta">Upgrade ke Plus</string>
+    <string name="upgrade_dialog_later">Nanti saja</string>
+    <string name="plan_cancel_sub">Berhenti berlangganan</string>
+    <string name="plan_cancel_note">Pembatalan dilakukan di Google Play. Plus tetap aktif sampai %1$s.</string>
+    <string name="feedback_skip">Lewati</string>
+    <string name="cue_neh_sol_1">Menyusui bayi anda atau memberi makan</string>
+    <string name="cue_neh_sol_2">Tidak mengganggu waktu makan bayi anda</string>
+    <string name="cue_neh_sol_3">Tidak mencoba membuat bayi anda bersendawa ketika sedang di tengah kegiatan makan atau menyusu</string>
+    <string name="cue_neh_sol_4">Membiarkan bayi anda makan atau menyusu sesuai keinginan bayi, kecuali mereka mengatakan \"Eh\" di tengah-tengah proses menyusui/makan</string>
+    <string name="cue_owh_sol_1">Membantu bayi agar tertidur lelap</string>
+    <string name="cue_owh_sol_2">Jika bayi anda masuk angin, anda dianjurkan memposisikan bayi anda agar tidur dengan posisi dengan benar</string>
+    <string name="cue_owh_sol_3">Pastikan bayi anda telah bersendawa, sehingga bayi anda akan tertidur lebih mudah</string>
+    <string name="cue_owh_sol_4">Tidak ada cara yang lebih baik dari menimang bayi anda hingga tertidur, saat itu adalah waktu terbaik dalam proses membentuk sebuah ikatan batin.</string>
+    <string name="cue_eh_sol_1">Sendawakan bayi anda</string>
+    <string name="cue_eh_sol_2">Anda mungkin menemukan bayi anda ingin disendawakan di sepanjang hari, tidak hanya setelah diberi makan</string>
+    <string name="cue_eh_sol_3">Jika bayi anda mengatakan kata \"eh\" sebelum waktu makan, pertama-tama anda harus mebuat bayi anda bersendawa. Jangan memberi makan ketika bayi anda ingin bersendawa</string>
+    <string name="cue_eh_sol_4">Jika anda mendengar suara sendawa yang keras, bukan berarti udara yang ada di dalam tubuh bayi keluar, anda akan tahu ketika bayi anda berhenti mengatakan \"eh\"</string>
+    <string name="cue_eh_sol_5">Ketika bayi anda tertidur lalu anda mendengar kata \"eh\" cobalah untuk membuat bayi anda bersendawa terlebih dahulu, kemudian tidurkan kembali untuk menyelesaikan tidurnya</string>
+    <string name="cue_eh_sol_6">Ketika anda akan membalut bayi yang sedang masuk angin, lebih baik membalut mereka di sekitar perut dengan erat, bila memungkinkan kaki dan tangan mereka dapat bergerak bebas.</string>
+    <string name="cue_eairh_sol_1">Menggunakan pijatan untuk mengeluarkan angin dari perut bayi. Salah satu tekniknya adalah dengan cara duduk kemudian menyilangkan kaki anda, kemudian posisikan bayi anda di atas paha. Dengan adanya tekanan dari lutut anda, akan membuat angin keluar dari perut bayi.</string>
+    <string name="cue_eairh_sol_2">Metode lainnya adalah dengan cara meletakkan bayi anda di atas bahu anda, pegang erat-erat tubuh bayi anda lalu cobalah untuk berjalan-jalan kecil dengan memegang bayi anda menggunakan lengan anda.</string>
+    <string name="cue_eairh_sol_3">Menempatkan bayi anda secara telungkup, sambil menggosok punggung bayi anda</string>
+    <string name="cue_eairh_sol_4">Metode selanjutnya adalah memijat perut bayi anda untuk membantu mengeluarkan angin yang ada di perut bayi anda</string>
+    <string name="cue_eairh_sol_5">Sendawakan bayi anda ketika mereka mengatakan \"eh\" untuk mencegah angin masuk lebih rendah ke dalam tubuh</string>
+    <string name="cue_eairh_sol_6">Jangan pernah mencoba menidurkan bayi anda ketika mereka mengatakan \"eh\"</string>
+    <string name="cue_heh_sol_1">Jika bayi merasa terlalu panas, anda dapat melepaskan baju atau selimut dari bayi tersebut, jika bayi merasa terlalu dingin anda dapat menambahkan baju atau selimut</string>
+    <string name="cue_heh_sol_2">Jika popok basah, anda dapat menggantinya</string>
+    <string name="cue_heh_sol_3">Cobalah untuk menghampiri bayi anda untuk sekedar mengubah posisi bayi anda</string>
+    <string name="recording_timer">%1$s / %2$s</string>
+    <string name="error_email_required">Isi email Anda.</string>
+    <string name="error_password_short">Kata sandi baru minimal 8 karakter.</string>
+    <string name="error_current_password">Kata sandi lama salah.</string>
+    <string name="feedback_optional">Opsional</string>
+    <string name="auth_register_title">Daftar</string>
 </resources>

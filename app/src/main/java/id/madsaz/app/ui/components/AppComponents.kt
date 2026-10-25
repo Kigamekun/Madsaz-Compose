@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
 import id.madsaz.app.ui.theme.BrandBlue
@@ -134,7 +135,7 @@ fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier, avatarUrl
 
 /** Foto profil dari URL avatar; tanpa foto (atau gagal dimuat) tampil huruf pertama nama. Dekoratif: pemanggil memberi deskripsi aksesibilitas. */
 @Composable
-fun ProfileAvatar(url: String?, name: String?, modifier: Modifier = Modifier) {
+fun ProfileAvatar(url: String?, name: String?, modifier: Modifier = Modifier, initialSize: TextUnit = 13.sp) {
     val image by produceState<ImageBitmap?>(null, url) {
         value = if (url == null) null else withContext(Dispatchers.IO) {
             runCatching { URL(url).openStream().use(BitmapFactory::decodeStream)?.asImageBitmap() }.getOrNull()
@@ -146,7 +147,7 @@ fun ProfileAvatar(url: String?, name: String?, modifier: Modifier = Modifier) {
             Text(
                 name?.firstOrNull()?.uppercase() ?: stringResource(R.string.header_profile_initial),
                 color = BrandBlueDark,
-                fontSize = 13.sp,
+                fontSize = initialSize,
                 fontWeight = FontWeight.Bold,
             )
         } else {

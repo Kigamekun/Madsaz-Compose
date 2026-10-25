@@ -12,7 +12,6 @@ object PreviewData {
         sizeBytes = 8_400_000L,
         status = RecordingStatus.COMPLETED,
         category = "Neh",
-        solution = "Periksa tanda lapar dan tawarkan ASI atau susu sesuai kebutuhan bayi.",
         source = "mock",
         scores = listOf(
             CryScore("Neh", "Lapar", 0.68),
@@ -34,7 +33,6 @@ object PreviewData {
             sizeBytes = 11_700_000L,
             status = RecordingStatus.COMPLETED,
             category = "Owh",
-            solution = null,
             source = null,
             scores = emptyList(),
             videoWidth = null,
@@ -47,7 +45,6 @@ object PreviewData {
             sizeBytes = 6_200_000L,
             status = RecordingStatus.COMPLETED,
             category = "Heh",
-            solution = null,
             source = null,
             scores = emptyList(),
             videoWidth = null,

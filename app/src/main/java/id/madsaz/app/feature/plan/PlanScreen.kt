@@ -8,6 +8,7 @@ import android.net.Uri
 import java.text.NumberFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -357,6 +358,22 @@ private fun SubscriptionContent(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) { Text(stringResource(R.string.plan_manage)) }
+                // Pembatalan hanya bisa dilakukan di Google Play (BE tidak membatalkan langganan Play), jadi tombol ini membuka halaman yang sama.
+                OutlinedButton(
+                    onClick = onManage,
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp).heightIn(min = 52.dp).testTag("plan_cancel"),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                ) { Text(stringResource(R.string.plan_cancel_sub), color = MaterialTheme.colorScheme.error) }
+                (state.status as? PlanStatus.Plus)?.let { plus ->
+                    Text(
+                        stringResource(R.string.plan_cancel_note, formatDate(plus.expiresAt.toEpochMilli())),
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                        color = MutedInk,
+                        fontSize = 12.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
             } else {
                 Button(
                     onClick = onPurchase,

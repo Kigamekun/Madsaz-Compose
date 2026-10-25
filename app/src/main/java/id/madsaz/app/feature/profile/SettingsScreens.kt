@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.profile
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -94,7 +95,7 @@ fun LanguageScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit) {
+fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit, @StringRes titleRes: Int = R.string.profile_privacy_title) {
     CompactContainer {
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(20.dp),
@@ -104,7 +105,7 @@ fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit
             when (state) {
                 PrivacyUiState.Loading -> {
                     Text(
-                        stringResource(R.string.profile_privacy_title),
+                        stringResource(titleRes),
                         color = Ink,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
@@ -115,7 +116,7 @@ fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit
                 }
                 is PrivacyUiState.Error -> {
                     Text(
-                        stringResource(R.string.profile_privacy_title),
+                        stringResource(titleRes),
                         color = Ink,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,

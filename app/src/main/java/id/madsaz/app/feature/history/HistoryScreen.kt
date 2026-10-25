@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
+import id.madsaz.app.ui.components.cueTitle
 import id.madsaz.app.model.CryCue
 import id.madsaz.app.ui.components.cryCueLabel
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -175,7 +176,7 @@ private fun HistoryRecordingRow(
         CryCueIcon(code, Modifier.size(48.dp))
         Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                score?.let { "${code ?: it.code} · ${cryCueLabel(it.code, it.label)}" }
+                score?.let { cueTitle(code ?: it.code, cryCueLabel(it.code, it.label)) }
                     ?: stringResource(if (recording.status == RecordingStatus.PROCESSING) R.string.history_processing else R.string.history_analysis_unavailable),
                 color = Color(0xFF17343B),
                 style = MaterialTheme.typography.titleMedium,

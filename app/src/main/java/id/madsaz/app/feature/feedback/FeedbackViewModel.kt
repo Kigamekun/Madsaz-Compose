@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Nilai kawat yang diwajibkan BE (feedback.js); label tampilannya boleh dilokalkan tanpa merusak API. */
+/** Nilai kawat yang diterima BE (feedback.js); label tampilannya boleh dilokalkan tanpa merusak API. */
 enum class FeedbackTopic(val wire: String, @StringRes val labelRes: Int) {
     ACCURACY("Accuracy", R.string.feedback_topic_accuracy),
     USABILITY("Usability", R.string.feedback_topic_usability),
@@ -35,12 +35,13 @@ class FeedbackViewModel(
     var uiState: FeedbackUiState by mutableStateOf(FeedbackUiState.Idle)
         private set
 
-    fun submit(rating: Int, topic: FeedbackTopic, note: String) {
+    /** Hanya [rating] yang wajib; topik dan catatan boleh kosong (BE menyimpan null). */
+    fun submit(rating: Int, topic: FeedbackTopic?, note: String) {
         if (uiState is FeedbackUiState.Submitting) return
         uiState = FeedbackUiState.Submitting
         viewModelScope.launch {
             uiState = try {
-                withContext(Dispatchers.IO) { api.sendFeedback(recordingId, rating, topic.wire, note.trim()) }
+                withContext(Dispatchers.IO) { api.sendFeedback(recordingId, rating, topic?.wire, note.trim()) }
                 FeedbackUiState.Sent
             } catch (error: CancellationException) {
                 throw error

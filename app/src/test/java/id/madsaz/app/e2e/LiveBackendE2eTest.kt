@@ -5,6 +5,7 @@ import id.madsaz.app.data.local.SessionStorage
 import id.madsaz.app.data.remote.ApiClient
 import id.madsaz.app.data.remote.ApiException
 import id.madsaz.app.data.remote.AuthApi
+import id.madsaz.app.data.remote.GuestApi
 import id.madsaz.app.data.remote.PlanApi
 import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.data.remote.ProfileApi
@@ -70,7 +71,7 @@ class LiveBackendE2eTest {
     }
 
     private fun registerAndSignIn() {
-        sessionManager.signIn(authApi.register("Bayi Uji", email, password))
+        sessionManager.signIn(authApi.register("Bayi Uji", email, password, acceptTerms = true))
     }
 
     private fun video(label: String): File =
@@ -89,7 +90,7 @@ class LiveBackendE2eTest {
     fun `register, profile update and a fresh plan`() {
         registerAndSignIn()
 
-        assertEquals(PlanStatus.Free(used = 0, limit = 5, remaining = 5), plans.status())
+        assertEquals(PlanStatus.Free(used = 0, limit = 2, remaining = 2), plans.status())
         assertEquals("Bayi Uji", profiles.get().name)
 
         assertEquals("Pandu", profiles.updateName("Pandu").name)
@@ -145,17 +146,17 @@ class LiveBackendE2eTest {
         assertEquals(VIDEO_SIZE.second, result.videoHeight)
         assertEquals(5, result.scores.size)
         assertTrue(result.sizeBytes > 0)
-        assertEquals(PlanStatus.Free(used = 1, limit = 5, remaining = 4), plans.status())
+        assertEquals(PlanStatus.Free(used = 1, limit = 2, remaining = 1), plans.status())
 
         // Mengulang upload dengan id yang sama idempoten: tidak membuat rekaman ganda dan tidak memakai kuota.
         assertEquals(id, recordings.upload(first, durationSeconds = 5))
         assertEquals(1, plans.status().used)
 
-        repeat(4) { waitForResult(recordings.upload(video("more-$it"), durationSeconds = 3)) }
-        assertEquals(PlanStatus.Free(used = 5, limit = 5, remaining = 0), plans.status())
-        assertEquals(5, recordings.list().size)
+        waitForResult(recordings.upload(video("second"), durationSeconds = 3))
+        assertEquals(PlanStatus.Free(used = 2, limit = 2, remaining = 0), plans.status())
+        assertEquals(2, recordings.list().size)
 
-        val blocked = assertThrows(ApiException::class.java) { recordings.upload(video("sixth"), durationSeconds = 3) }
+        val blocked = assertThrows(ApiException::class.java) { recordings.upload(video("third"), durationSeconds = 3) }
         assertEquals(403, blocked.status)
         assertEquals("free_limit_reached", blocked.code)
     }
@@ -168,6 +169,8 @@ class LiveBackendE2eTest {
         waitForResult(id)
 
         recordings.sendFeedback(id, rating = 3, improvement = "Accuracy", comment = "Hasilnya membantu")
+        // Hanya penilaian yang wajib.
+        recordings.sendFeedback(id, rating = 2, improvement = null, comment = "")
 
         val connection = URL(recordings.presignedVideoUrl(id)).openConnection() as HttpURLConnection
         try {
@@ -176,6 +179,38 @@ class LiveBackendE2eTest {
         } finally {
             connection.disconnect()
         }
+    }
+
+    @Test
+    fun `changing the password returns a new session and the old password stops working`() {
+        registerAndSignIn()
+        val wrong = assertThrows(ApiException::class.java) { profiles.changePassword("salah-salah", "kata-sandi-baru-1") }
+        assertEquals("invalid_credentials", wrong.code)
+
+        sessionManager.signIn(profiles.changePassword(password, "kata-sandi-baru-1"))
+
+        assertEquals("invalid_credentials", assertThrows(ApiException::class.java) { authApi.login(email, password) }.code)
+        assertEquals(email, authApi.login(email, "kata-sandi-baru-1").email)
+        assertEquals("Bayi Uji", profiles.get().name)
+    }
+
+    @Test
+    fun `registering without accepting the terms is rejected`() {
+        val error = assertThrows(ApiException::class.java) { authApi.register("Bayi Uji", email, password, acceptTerms = false) }
+        assertEquals("terms_required", error.code)
+    }
+
+    @Test
+    fun `guest analysis returns scores without an account and is limited to two per device`() {
+        val device = UUID.randomUUID().toString()
+        val guest = GuestApi(ApiClient(baseUrl))
+        repeat(2) {
+            val result = guest.analyze(video("guest-$it"), device)
+            assertEquals(5, result.scores.size)
+        }
+        val blocked = assertThrows(ApiException::class.java) { guest.analyze(video("guest-3"), device) }
+        assertEquals(429, blocked.status)
+        assertEquals("guest_limit_reached", blocked.code)
     }
 
     @Test
@@ -215,8 +250,8 @@ class LiveBackendE2eTest {
     @Test
     fun `registering the same email twice and invalid input map to stable codes`() {
         registerAndSignIn()
-        assertEquals("email_taken", assertThrows(ApiException::class.java) { authApi.register("Bayi Lain", email, password) }.code)
-        assertEquals("invalid_input", assertThrows(ApiException::class.java) { authApi.register("", "bukan-email", "1") }.code)
+        assertEquals("email_taken", assertThrows(ApiException::class.java) { authApi.register("Bayi Lain", email, password, acceptTerms = true) }.code)
+        assertEquals("invalid_input", assertThrows(ApiException::class.java) { authApi.register("", "bukan-email", "1", acceptTerms = true) }.code)
     }
 
     private companion object {

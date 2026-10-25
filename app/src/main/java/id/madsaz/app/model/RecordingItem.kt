@@ -24,7 +24,6 @@ data class RecordingItem(
     val sizeBytes: Long,
     val status: RecordingStatus,
     val category: String?,
-    val solution: String?,
     val source: String?,
     /** Kosong selama BE belum punya hasil analisis (scores null). */
     val scores: List<CryScore>,

@@ -48,7 +48,7 @@ class RecordingApi(
     fun presignedVideoUrl(recordingId: String): String =
         client.requestJson("GET", "/records/$recordingId/video-url").obj("data").string("url")
 
-    fun sendFeedback(recordingId: String, rating: Int, improvement: String, comment: String) {
+    fun sendFeedback(recordingId: String, rating: Int, improvement: String?, comment: String) {
         client.requestJson(
             "POST",
             "/feedback",
@@ -63,7 +63,6 @@ class RecordingApi(
         sizeBytes = json.long("size_bytes"),
         status = RecordingStatus.fromWire(json.string("status")),
         category = json.stringOrNull("category"),
-        solution = json.stringOrNull("solution"),
         source = json.stringOrNull("source"),
         scores = json.arrayOrNull("scores")?.objects()
             ?.map { CryScore(it.string("code"), it.string("label"), it.double("confidence")) }

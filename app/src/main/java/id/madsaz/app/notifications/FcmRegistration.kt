@@ -1,5 +1,6 @@
 package id.madsaz.app.notifications
 
+import java.util.concurrent.TimeUnit
 import android.content.Context
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
@@ -57,12 +58,21 @@ class FcmRegistration(context: Context, private val api: NotificationApi) {
         try {
             api.unregister(token)
         } finally {
-            Tasks.await(FirebaseMessaging.getInstance().deleteToken())
+            awaitDeleteToken()
         }
     }
 
     /** Akun dihapus: token sudah tidak ada di BE, cukup lepaskan token di perangkat. */
     fun clearLocal() {
-        if (configured()) Tasks.await(FirebaseMessaging.getInstance().deleteToken())
+        if (configured()) awaitDeleteToken()
+    }
+
+    // Tanpa batas waktu, Play Services yang tidak merespons membuat logout dan hapus akun menggantung selamanya.
+    private fun awaitDeleteToken() {
+        Tasks.await(FirebaseMessaging.getInstance().deleteToken(), DELETE_TOKEN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    }
+
+    private companion object {
+        const val DELETE_TOKEN_TIMEOUT_SECONDS = 10L
     }
 }
