@@ -34,6 +34,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.feature.auth.*
 import id.madsaz.app.feature.feedback.*
+import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.feature.history.*
 import id.madsaz.app.feature.home.HomeScreen
 import id.madsaz.app.feature.profile.*
@@ -53,10 +54,10 @@ import java.util.Locale
 class UiLayoutTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun compact_and_large_text_layouts_in_all_supported_languages() {
+    @Test fun layouts_fit_small_medium_and_large_screens_in_all_languages() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val saveScreenshots = InstrumentationRegistry.getArguments().getString("uiScreenshots") == "true"
-        var spec by mutableStateOf(LayoutSpec("id", 1f, 360, "home"))
+        var spec by mutableStateOf(LayoutSpec("id", 1f, 360, "home_free"))
         compose.setContent {
             val registryOwner = LocalActivityResultRegistryOwner.current
             val backDispatcher = LocalOnBackPressedDispatcherOwner.current
@@ -78,7 +79,7 @@ class UiLayoutTest {
             ) {
                 MadsazTheme {
                     Box(Modifier.fillMaxSize().background(Color.White), contentAlignment = Alignment.TopCenter) {
-                        Box(Modifier.width(spec.width.dp).fillMaxHeight().testTag("layout")) {
+                        Box(Modifier.requiredWidth(spec.width.dp).fillMaxHeight().testTag("layout")) {
                             key(spec) { Screen(spec.screen) }
                         }
                     }
@@ -86,8 +87,9 @@ class UiLayoutTest {
             }
         }
         val overflows = mutableListOf<String>()
-        for (width in listOf(360, 411)) for (scale in listOf(1f, 1.3f, 2f)) {
-            for (language in listOf("id", "en", "ar")) for (screen in listOf("home", "history", "cues", "cue", "profile", "recording", "auth", "feedback")) {
+        // Tiga ukuran saja: kecil (360dp dengan huruf besar), sedang (411dp), besar (600dp, tablet kecil); layar inti di tiga bahasa.
+        for ((width, scale) in listOf(360 to 1.3f, 411 to 1f, 600 to 1f)) {
+            for (language in listOf("id", "en", "ar")) for (screen in listOf("home_free", "history", "cues", "cue", "profile", "recording", "auth", "register", "feedback")) {
                 val next = LayoutSpec(language, scale, width, screen)
                 compose.runOnIdle { spec = next }
                 compose.waitForIdle()
@@ -118,21 +120,30 @@ class UiLayoutTest {
 
     @Composable private fun Screen(screen: String) {
         when (screen) {
-            "home" -> MadsazScaffold(MainDestination.HOME, {}, {}) { padding ->
-                HomeScreen(null, historyLoading = false, historyError = false, onRecord = {}, onHistory = {}, onCryCues = {}, onProfile = {}, onOpenRecording = {}, contentPadding = padding)
+            "home_free" -> MadsazScaffold(MainDestination.HOME, {}, {}) { padding ->
+                HomeScreen(
+                    null, historyLoading = false, historyError = false, onRecord = {}, onHistory = {}, onCryCues = {}, onProfile = {}, onOpenRecording = {}, contentPadding = padding,
+                    freeQuota = PlanStatus.Free(used = 1, limit = 2, remaining = 1),
+                )
             }
             "history" -> MadsazScaffold(MainDestination.HISTORY, {}, {}) { padding ->
                 HistoryScreen(HistoryUiState.Content(emptyList()), {}, {}, {}, {}, {}, padding)
             }
             "profile" -> MadsazScaffold(MainDestination.PROFILE, {}, {}) { padding ->
-                ProfileScreen(ProfileUiState.Content(AccountProfile("fixture", "Orang Tua", "parent@example.test", null)), 0, 0, {}, {}, {}, {}, {}, DeleteAccountState.Idle, {}, {}, {}, {}, {}, {}, padding)
+                ProfileScreen(
+                    ProfileUiState.Content(AccountProfile("fixture", "Orang Tua", "parent@example.test", null)), 0, 0, {}, {}, {}, {}, {}, DeleteAccountState.Idle, {}, {},
+                    onPlan = {}, plusSubtitleRes = R.string.home_upgrade_cta, onChangePassword = {}, onNotifications = {}, onPrivacy = {}, onLanguage = {}, contentPadding = padding,
+                )
             }
             "cues" -> MadsazScaffold(MainDestination.CUES, {}, {}) { padding ->
                 CryCuesScreen(onOpenCue = {}, onProfile = {}, contentPadding = padding)
             }
             "cue" -> CryCueDetailScreen(CryCue.EAIRH, onBack = {})
             "recording" -> RecordingScreen(RecordingUiState.Ready, false, true, {}, {}, {}, {}, {}, {}, cameraPreview = { Box(it.background(Color(0xFF1C3A53))) })
-            "auth" -> AuthScreen(AuthUiState.SignedOut, { _, _, _, _ -> }, {})
+            "auth", "register" -> AuthScreen(
+                AuthUiState.SignedOut, startInRegister = screen == "register", onSubmit = { _, _, _, _, _, _ -> }, onForgotPassword = {},
+                onTryFree = {}, onOpenTerms = {}, onOpenPrivacy = {}, onLanguage = {},
+            )
             "feedback" -> FeedbackScreen(FeedbackUiState.Idle, { _, _, _ -> }, {}, {})
         }
     }
