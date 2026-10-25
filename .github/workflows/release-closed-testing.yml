@@ -1,7 +1,7 @@
-name: Release to Internal testing (com.madsaz)
+name: Release to Closed testing (com.madsaz)
 
-# Push ke branch release/closed-testing (nama historis) menguji, membangun AAB bertanda tangan, lalu mengunggahnya ke track internal
-# app com.madsaz. Dari internal, rilis dipromosikan ke production secara bertahap dari Play Console.
+# Push ke branch release/closed-testing menguji, membangun AAB bertanda tangan, lalu mengunggahnya ke track closed testing
+# (`alpha`, track tertutup bawaan Play) app com.madsaz. Dari sana, rilis dipromosikan ke production secara bertahap dari Play Console.
 # Secret dan langkah satu kali: lihat RELEASE.md. Tanpa secret itu workflow gagal di langkah penulisan berkas, bukan diam-diam.
 on:
   push:
@@ -59,7 +59,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.madsaz
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
-          track: internal
+          track: alpha
           status: completed
           whatsNewDirectory: distribution/whatsnew
 

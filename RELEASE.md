@@ -1,12 +1,12 @@
 # Rilis lewat GitHub Actions (app `com.madsaz`)
 
 Aplikasi ini memperbarui app yang sudah terbit di Play (`com.madsaz`, versi lama 1.2.1 / versionCode 14).
-Push ke branch **`release/closed-testing`** (nama historis) menjalankan `.github/workflows/release-closed-testing.yml`:
-test JVM, lint rilis, build AAB bertanda tangan, lalu unggah ke track **internal** (tanpa review Google).
+Push ke branch **`release/closed-testing`** menjalankan `.github/workflows/release-closed-testing.yml`:
+test JVM, lint rilis, build AAB bertanda tangan, lalu unggah ke track **closed testing** (`alpha`; Google meninjau rilis closed testing, dan daftar penguji harus sudah diisi di Play Console).
 `versionCode` otomatis `1000 + nomor run`, selalu di atas versi lama. `versionName` dari `app/build.gradle.kts`.
 Catatan rilis dari `distribution/whatsnew/` (maksimal 500 karakter per bahasa); ubah sebelum push.
 
-Dari track internal, promosikan ke **Production** dari Play Console dengan **staged rollout** (mis. 10% dulu).
+Dari closed testing, promosikan ke **Production** dari Play Console dengan **staged rollout** (mis. 10% dulu).
 Production selalu melalui review Google.
 
 ## Kunci penandatangan: wajib kunci unggah app lama
@@ -38,4 +38,4 @@ minta **upload key reset** di Play Console (butuh beberapa hari).
 ```bash
 git checkout -B release/closed-testing main && git push -f origin release/closed-testing
 ```
-Setujui run di tab Actions; AAB masuk ke track internal. Uji dari HP penguji internal, lalu promosikan ke production bertahap.
+Setujui run di tab Actions; AAB masuk ke track closed testing. Uji dari HP penguji, lalu promosikan ke production bertahap.

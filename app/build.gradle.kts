@@ -16,7 +16,7 @@ android {
         targetSdk = 37
         // Harus di atas versionCode app lama (14, versi 1.2.1). CI mengirim -PversionCode=<nomor naik>; build lokal memakai nilai ini.
         versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(100).get()
-        versionName = "2.0.0"
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
