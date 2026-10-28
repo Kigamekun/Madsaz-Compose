@@ -308,7 +308,7 @@
         <item quantity="other">Sisa %d rekaman hari ini</item>
     </plurals>
     <string name="upgrade_dialog_title">Jatah hari ini sudah dipakai</string>
-    <string name="upgrade_dialog_body">Paket gratis menyimpan 4 rekaman per hari. Upgrade ke Madsaz Plus untuk merekam tanpa batas, atau coba lagi besok.</string>
+    <string name="upgrade_dialog_body">Jatah rekaman paket gratis hari ini sudah habis. Upgrade ke Madsaz Plus untuk merekam tanpa batas, atau coba lagi besok.</string>
     <string name="upgrade_dialog_cta">Upgrade ke Plus</string>
     <string name="upgrade_dialog_later">Nanti saja</string>
     <string name="plan_cancel_sub">Berhenti berlangganan</string>

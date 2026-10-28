@@ -308,7 +308,7 @@
         <item quantity="other">%d recordings left today</item>
     </plurals>
     <string name="upgrade_dialog_title">You\'ve used today\'s recordings</string>
-    <string name="upgrade_dialog_body">The Free plan saves 4 recordings a day. Upgrade to Madsaz Plus to record without limits, or try again tomorrow.</string>
+    <string name="upgrade_dialog_body">Today\'s Free plan recordings are used up. Upgrade to Madsaz Plus to record without limits, or try again tomorrow.</string>
     <string name="upgrade_dialog_cta">Upgrade to Plus</string>
     <string name="upgrade_dialog_later">Not now</string>
     <string name="plan_cancel_sub">Cancel subscription</string>
