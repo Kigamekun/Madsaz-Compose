@@ -259,7 +259,6 @@ private fun RecordingLog(
             setMediaController(controls)
             setOnCompletionListener { playing = false }
             setOnErrorListener { _, _, _ -> playbackError = true; playing = false; loadingVideo = false; true }
-            setBackgroundColor(android.graphics.Color.BLACK)
         }
     }
     DisposableEffect(player) { onDispose { player.stopPlayback() } }
