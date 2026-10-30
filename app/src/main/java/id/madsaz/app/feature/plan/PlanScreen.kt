@@ -35,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -226,12 +227,28 @@ private fun FreePlanContent(
             }
         }
         item {
+            HorizontalDivider(Modifier.padding(top = 20.dp, bottom = 18.dp), color = Border)
             Button(
                 onClick = onExplorePlus,
-                modifier = Modifier.fillMaxWidth().padding(top = 22.dp).heightIn(min = 52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-            ) { Text(stringResource(R.string.plan_explore_plus), fontWeight = FontWeight.SemiBold) }
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(stringResource(R.string.plan_explore_plus), modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.2f)) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(painterResource(R.drawable.ic_crown), contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            Text(stringResource(R.string.plan_plus_promo_price), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
         item {
             Surface(
@@ -252,7 +269,7 @@ private fun FreePlanContent(
             }
             Text(
                 stringResource(R.string.plan_limit_reset),
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 24.dp),
                 color = MutedInk,
                 fontSize = 12.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,

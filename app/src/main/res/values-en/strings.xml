@@ -131,6 +131,7 @@
     <string name="plan_benefit_cues">Basic cue interpretation</string>
     <string name="plan_benefit_recent">Recent recordings saved</string>
     <string name="plan_explore_plus">Explore Madsaz Plus</string>
+    <string name="plan_plus_promo_price">Only Rp15,000</string>
     <string name="plan_continue_free">Continue with free plan</string>
     <string name="plan_limit_reset">Your limit resets every day at 00:00 WIB.</string>
     <string name="plan_plus_tagline">More calm, more context.</string>
