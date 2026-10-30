@@ -63,10 +63,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.rounded.Language
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import id.madsaz.app.data.local.AppLanguage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.text.LinkAnnotation
@@ -114,6 +116,8 @@ fun AuthScreen(
     // Tinggi isi kartu per mode (px), diukur setelah tata letak; nilai awal 0 membuat hero maksimal sampai pengukuran pertama.
     var cardContentPx by remember(register) { mutableIntStateOf(0) }
     val submitting = state is AuthUiState.Submitting
+    val language = LocalConfiguration.current.locales[0].language
+    val languageDescription = stringResource(R.string.language_title)
     val focus = LocalFocusManager.current
     val submit = { if (!submitting) { focus.clearFocus(); onSubmit(register, name, email, password, confirmPassword, acceptTerms) } }
 
@@ -158,7 +162,12 @@ fun AuthScreen(
                     ) {
                         Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Rounded.Language, stringResource(R.string.language_title), tint = BrandBlueDark, modifier = Modifier.size(22.dp))
+                                Text(
+                                    AppLanguage.flag(language),
+                                    fontSize = 24.sp,
+                                    lineHeight = 28.sp,
+                                    modifier = Modifier.semantics { contentDescription = languageDescription },
+                                )
                             }
                         }
                     }

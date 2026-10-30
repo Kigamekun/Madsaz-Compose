@@ -8,7 +8,13 @@ import androidx.core.os.LocaleListCompat
 object AppLanguage {
     val supported = listOf("id" to "Bahasa Indonesia", "en" to "English", "ar" to "العربية")
 
-    /** Bahasa yang sedang dipakai aplikasi: pilihan per-aplikasi bila ada, bila tidak bahasa sistem. */
+    fun flag(languageTag: String): String = when (languageTag) {
+        "en" -> "🇬🇧"
+        "ar" -> "🇸🇦"
+        else -> "🇮🇩"
+    }
+
+    /** Bahasa dari konfigurasi Activity, termasuk pilihan per-aplikasi. */
     fun current(context: Context): String =
         context.resources.configuration.locales[0].toLanguageTag().substringBefore('-')
 

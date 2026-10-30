@@ -65,12 +65,7 @@ fun LanguageScreen(onBack: () -> Unit) {
                 IconButton(onClick = onBack) { Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk) }
             }
             AppLanguage.supported.forEach { (tag, name) ->
-                val flag = when (tag) {
-                    "id" -> "🇮🇩"
-                    "en" -> "🇬🇧"
-                    "ar" -> "🇸🇦"
-                    else -> null
-                }
+                val flag = AppLanguage.flag(tag)
                 Surface(
                     onClick = { AppLanguage.select(tag) },
                     modifier = Modifier.fillMaxWidth().semantics { role = Role.RadioButton; this.selected = tag == selected },
@@ -81,7 +76,7 @@ fun LanguageScreen(onBack: () -> Unit) {
                     Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Surface(Modifier.size(44.dp, 34.dp), RoundedCornerShape(8.dp), Color(0xFFF6F9FB)) {
                             Box(contentAlignment = Alignment.Center) {
-                                if (flag != null) Text(flag, fontSize = 22.sp, lineHeight = 26.sp)
+                                Text(flag, fontSize = 22.sp, lineHeight = 26.sp)
                             }
                         }
                         Spacer(Modifier.width(12.dp))

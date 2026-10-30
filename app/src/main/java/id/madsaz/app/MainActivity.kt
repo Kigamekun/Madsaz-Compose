@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import id.madsaz.app.data.local.AppLanguage
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.NotificationChannelCompat
@@ -24,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppLanguage.select("id")
+        }
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT), navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, NavigationBarDarkScrim))
         // FCM menampilkan push background tanpa memanggil service, jadi kanal harus sudah ada sebelum pesan tiba.
         // Kanal baru ada di Android 8; NotificationChannelCompat tidak melakukan apa-apa di bawahnya.
