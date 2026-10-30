@@ -90,7 +90,7 @@ class LiveBackendE2eTest {
     fun `register, profile update and a fresh plan`() {
         registerAndSignIn()
 
-        assertEquals(PlanStatus.Free(used = 0, limit = 2, remaining = 2), plans.status())
+        assertEquals(PlanStatus.Free(used = 0, limit = 4, remaining = 4), plans.status())
         assertEquals("Bayi Uji", profiles.get().name)
 
         assertEquals("Pandu", profiles.updateName("Pandu").name)
@@ -146,17 +146,19 @@ class LiveBackendE2eTest {
         assertEquals(VIDEO_SIZE.second, result.videoHeight)
         assertEquals(5, result.scores.size)
         assertTrue(result.sizeBytes > 0)
-        assertEquals(PlanStatus.Free(used = 1, limit = 2, remaining = 1), plans.status())
+        assertEquals(PlanStatus.Free(used = 1, limit = 4, remaining = 3), plans.status())
 
         // Mengulang upload dengan id yang sama idempoten: tidak membuat rekaman ganda dan tidak memakai kuota.
         assertEquals(id, recordings.upload(first, durationSeconds = 5))
         assertEquals(1, plans.status().used)
 
-        waitForResult(recordings.upload(video("second"), durationSeconds = 3))
-        assertEquals(PlanStatus.Free(used = 2, limit = 2, remaining = 0), plans.status())
-        assertEquals(2, recordings.list().size)
+        for (number in 2..4) {
+            waitForResult(recordings.upload(video("recording-$number"), durationSeconds = 3))
+        }
+        assertEquals(PlanStatus.Free(used = 4, limit = 4, remaining = 0), plans.status())
+        assertEquals(4, recordings.list().size)
 
-        val blocked = assertThrows(ApiException::class.java) { recordings.upload(video("third"), durationSeconds = 3) }
+        val blocked = assertThrows(ApiException::class.java) { recordings.upload(video("fifth"), durationSeconds = 3) }
         assertEquals(403, blocked.status)
         assertEquals("free_limit_reached", blocked.code)
     }

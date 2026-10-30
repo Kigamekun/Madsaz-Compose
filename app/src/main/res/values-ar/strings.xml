@@ -328,7 +328,7 @@
         <item quantity="other">%d تسجيل متبقٍ اليوم</item>
     </plurals>
     <string name="upgrade_dialog_title">استخدمت تسجيلات اليوم</string>
-    <string name="upgrade_dialog_body">تحفظ الباقة المجانية تسجيلين يوميًا. رقِّ إلى مدساز بلس للتسجيل دون حدود، أو حاول غدًا.</string>
+    <string name="upgrade_dialog_body">انتهت تسجيلات الباقة المجانية لهذا اليوم. رقِّ إلى مدساز بلس للتسجيل دون حدود، أو حاول غدًا.</string>
     <string name="upgrade_dialog_cta">الترقية إلى بلس</string>
     <string name="upgrade_dialog_later">ليس الآن</string>
     <string name="plan_cancel_sub">إلغاء الاشتراك</string>

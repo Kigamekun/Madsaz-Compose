@@ -26,6 +26,7 @@ export JWT_SECRET="$(openssl rand -hex 32)"
 export OBJECT_STORAGE_ENDPOINT=http://localhost:58333 OBJECT_STORAGE_PUBLIC_ENDPOINT=http://localhost:58333
 export OBJECT_STORAGE_ACCESS_KEY_ID=e2e OBJECT_STORAGE_SECRET_ACCESS_KEY=e2e-secret
 export ACCESS_TOKEN_TTL=3s MOCK_ANALYSIS_ENABLED=true ML_SERVICE_URL=
+export FREE_BILLING_RECORD=4
 
 (cd "$BE_DIR" && npm run --silent migrate >/dev/null)
 (cd "$BE_DIR" && exec node src/server.js >"$LOG" 2>&1) &
