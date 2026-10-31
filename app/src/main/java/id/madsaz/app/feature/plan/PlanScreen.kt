@@ -368,7 +368,7 @@ private fun SubscriptionContent(
             }
         }
         item {
-            if (isPlus) {
+            if (isPlus && (state.status as? PlanStatus.Plus)?.expiresAt != null) {
                 Button(
                     onClick = onManage,
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp).heightIn(min = 52.dp),
@@ -384,14 +384,14 @@ private fun SubscriptionContent(
                 ) { Text(stringResource(R.string.plan_cancel_sub), color = MaterialTheme.colorScheme.error) }
                 (state.status as? PlanStatus.Plus)?.let { plus ->
                     Text(
-                        stringResource(R.string.plan_cancel_note, formatDate(plus.expiresAt.toEpochMilli())),
+                        stringResource(R.string.plan_cancel_note, formatDate(requireNotNull(plus.expiresAt).toEpochMilli())),
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp),
                         color = MutedInk,
                         fontSize = 12.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                 }
-            } else {
+            } else if (!isPlus) {
                 Button(
                     onClick = onPurchase,
                     enabled = state.purchaseEnabled && selectedPrice != null && !state.purchasing,
@@ -418,7 +418,7 @@ private fun SubscriptionContent(
 
 @Composable
 private fun PlusStatus(plus: PlanStatus.Plus) {
-    val date = formatDate(plus.expiresAt.toEpochMilli())
+    val date = plus.expiresAt?.let { formatDate(it.toEpochMilli()) }
     Surface(
         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 20.dp),
         shape = RoundedCornerShape(22.dp),
@@ -428,7 +428,8 @@ private fun PlusStatus(plus: PlanStatus.Plus) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.plan_plus_active), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                stringResource(if (plus.autoRenewing) R.string.plan_plus_renews else R.string.plan_plus_ends, date),
+                if (date == null) stringResource(R.string.plan_plus_benefit_unlimited)
+                else stringResource(if (plus.autoRenewing) R.string.plan_plus_renews else R.string.plan_plus_ends, date),
                 color = MutedInk,
                 fontSize = 12.sp,
             )

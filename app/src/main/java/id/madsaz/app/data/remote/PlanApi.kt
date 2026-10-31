@@ -8,7 +8,7 @@ sealed interface PlanStatus {
     val used: Int
 
     data class Free(override val used: Int, val limit: Int, val remaining: Int) : PlanStatus
-    data class Plus(override val used: Int, val expiresAt: Instant, val autoRenewing: Boolean) : PlanStatus
+    data class Plus(override val used: Int, val expiresAt: Instant?, val autoRenewing: Boolean) : PlanStatus
 }
 
 /** Id produk Google Play dari BE; app tidak menebak id sendiri. */
@@ -29,7 +29,7 @@ class PlanApi(private val client: ApiClient) {
         val plan = client.requestJson("GET", "/plan").obj("data")
         val used = plan.int("used")
         return when (val code = plan.string("code")) {
-            "plus" -> PlanStatus.Plus(used, Instant.parse(plan.string("expires_at")), plan.boolean("auto_renewing"))
+            "plus" -> PlanStatus.Plus(used, plan.stringOrNull("expires_at")?.let(Instant::parse), plan.boolean("auto_renewing"))
             "free" -> PlanStatus.Free(used, limit = plan.int("limit"), remaining = plan.int("remaining"))
             else -> throw ContractException("Unknown plan code '$code'")
         }

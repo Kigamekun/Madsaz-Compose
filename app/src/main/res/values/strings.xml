@@ -283,8 +283,10 @@
     <string name="auth_terms_link">Syarat &amp; Ketentuan</string>
     <string name="error_terms_required">Centang persetujuan Syarat &amp; Ketentuan untuk mendaftar.</string>
     <string name="auth_try_free">Coba Gratis tanpa akun</string>
+    <string name="auth_try_free_daily">Coba Gratis tanpa akun %1$dx/hari</string>
+    <string name="guest_info_daily_limit">Batas %1$d kali per hari.</string>
     <string name="guest_info_title">Coba Gratis</string>
-    <string name="guest_info_body">Rekam 5 detik dan lihat hasilnya tanpa akun. Video dianalisis lalu dihapus dari server, hasil hanya tampil sekali dan tidak ada riwayat. Batas 2 kali per hari. Daftar untuk menyimpan video dan riwayat.</string>
+    <string name="guest_info_body">Rekam 5 detik dan lihat hasilnya tanpa akun. Video dianalisis lalu dihapus dari server, hasil hanya tampil sekali dan tidak ada riwayat. Daftar untuk menyimpan video dan riwayat.</string>
     <string name="guest_info_start">Mulai coba</string>
     <string name="guest_limit_title">Coba gratis hari ini sudah habis</string>
     <string name="guest_limit_body">Daftar gratis untuk lanjut merekam, menyimpan video, dan melihat riwayat Anda.</string>

@@ -282,8 +282,10 @@
     <string name="auth_terms_link">Terms &amp; Conditions</string>
     <string name="error_terms_required">Tick the Terms &amp; Conditions to sign up.</string>
     <string name="auth_try_free">Try for free without an account</string>
+    <string name="auth_try_free_daily">Try for free without an account %1$dx/day</string>
+    <string name="guest_info_daily_limit">Limit: %1$d per day.</string>
     <string name="guest_info_title">Try for free</string>
-    <string name="guest_info_body">Record 5 seconds and see the result without an account. The video is analysed and then deleted from the server; the result shows once and there is no history. Limit: 2 per day. Sign up to keep videos and history.</string>
+    <string name="guest_info_body">Record 5 seconds and see the result without an account. The video is analysed and then deleted from the server; the result shows once and there is no history. Sign up to keep videos and history.</string>
     <string name="guest_info_start">Start</string>
     <string name="guest_limit_title">Today\'s free tries are used up</string>
     <string name="guest_limit_body">Sign up for free to keep recording, saving videos and seeing your history.</string>

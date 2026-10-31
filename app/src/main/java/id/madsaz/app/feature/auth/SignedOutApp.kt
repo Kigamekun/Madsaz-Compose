@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,6 @@ import id.madsaz.app.AppContainer
 import id.madsaz.app.R
 import id.madsaz.app.appContainer
 import id.madsaz.app.data.local.AppLanguage
-import id.madsaz.app.data.local.GUEST_DAILY_LIMIT
 import id.madsaz.app.data.local.GUEST_STORE_ID
 import id.madsaz.app.data.remote.PrivacyPolicy
 import id.madsaz.app.feature.profile.LanguageScreen
@@ -42,6 +42,9 @@ import id.madsaz.app.feature.recording.RecordingRoute
 import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.result.PatternResult
 import id.madsaz.app.ui.theme.BrandBlueDark
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Halaman sebelum masuk. Masuk, lupa kata sandi, S&K, dan privasi ditumpuk di atas [AuthScreen] yang tetap tersusun
@@ -58,6 +61,16 @@ fun SignedOutApp(auth: AuthUiState, authViewModel: AuthViewModel, container: App
     var registerRequested by rememberSaveable { mutableStateOf(false) }
     var showLanguage by rememberSaveable { mutableStateOf(false) }
     var showGuestLimit by rememberSaveable { mutableStateOf(false) }
+    var guestDailyLimit by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(container) {
+        try {
+            guestDailyLimit = withContext(Dispatchers.IO) { container.guestApi.dailyLimit() }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            android.util.Log.w("GuestQuota", "Could not load guest daily limit", error)
+        }
+    }
     // Bahasa dibaca setiap komposisi: setelah pengguna berganti bahasa Activity dibuat ulang dan dokumen dimuat ulang dalam bahasa baru.
     val language = AppLanguage.current(context)
 
@@ -89,10 +102,12 @@ fun SignedOutApp(auth: AuthUiState, authViewModel: AuthViewModel, container: App
             Box(if (page == Page.AUTH) Modifier else Modifier.clearAndSetSemantics {}) { AuthScreen(
                 state = auth,
                 startInRegister = registerRequested,
+                guestDailyLimit = guestDailyLimit,
                 onSubmit = authViewModel::authenticate,
                 onForgotPassword = { page = Page.FORGOT },
                 onTryFree = {
-                    if (container.guestDevice.analysesToday() >= GUEST_DAILY_LIMIT) showGuestLimit = true else page = Page.GUEST_RECORD
+                    val limit = guestDailyLimit
+                    if (limit != null && container.guestDevice.analysesToday() >= limit) showGuestLimit = true else page = Page.GUEST_RECORD
                 },
                 onOpenTerms = { page = Page.TERMS },
                 onOpenPrivacy = { page = Page.PRIVACY },

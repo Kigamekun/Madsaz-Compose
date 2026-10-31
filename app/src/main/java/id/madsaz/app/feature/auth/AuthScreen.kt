@@ -105,6 +105,7 @@ fun AuthScreen(
     onOpenTerms: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onLanguage: () -> Unit,
+    guestDailyLimit: Int? = null,
 ) {
     var register by rememberSaveable(startInRegister) { mutableStateOf(startInRegister) }
     var name by remember { mutableStateOf("") }
@@ -279,7 +280,11 @@ fun AuthScreen(
                     shape = RoundedCornerShape(18.dp),
                     border = BorderStroke(1.dp, BrandBlueDark),
                 ) {
-                    Text(stringResource(R.string.auth_try_free), color = BrandBlueDark)
+                    Text(
+                        if (guestDailyLimit == null) stringResource(R.string.auth_try_free)
+                        else stringResource(R.string.auth_try_free_daily, guestDailyLimit),
+                        color = BrandBlueDark,
+                    )
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(if (register) R.string.auth_prompt_have_account else R.string.auth_prompt_new), color = MutedInk, style = MaterialTheme.typography.bodySmall)
@@ -293,7 +298,10 @@ fun AuthScreen(
     if (showGuestInfo) AlertDialog(
         onDismissRequest = { showGuestInfo = false },
         title = { Text(stringResource(R.string.guest_info_title)) },
-        text = { Text(stringResource(R.string.guest_info_body)) },
+        text = { Text(
+            stringResource(R.string.guest_info_body) +
+                (guestDailyLimit?.let { " " + stringResource(R.string.guest_info_daily_limit, it) } ?: ""),
+        ) },
         confirmButton = {
             TextButton(onClick = { showGuestInfo = false; onTryFree() }, modifier = Modifier.testTag("guest_info_start")) {
                 Text(stringResource(R.string.guest_info_start), color = BrandBlueDark)
