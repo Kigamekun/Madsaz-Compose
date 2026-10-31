@@ -143,6 +143,7 @@
     <string name="plan_benefit_cues">تفسير أساسي للإشارات</string>
     <string name="plan_benefit_recent">حفظ أحدث التسجيلات</string>
     <string name="plan_explore_plus">استكشف Madsaz Plus</string>
+    <string name="plan_plus_promo_price">فقط 15 ألف روبية</string>
     <string name="plan_continue_free">المتابعة بالباقة المجانية</string>
     <string name="plan_limit_reset">يُعاد ضبط الحد يوميًا عند الساعة 00:00 بتوقيت غرب إندونيسيا.</string>
     <string name="plan_plus_tagline">مزيد من الهدوء ومزيد من الفهم.</string>
