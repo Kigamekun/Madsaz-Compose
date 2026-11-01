@@ -298,8 +298,10 @@
     <string name="auth_terms_link">الشروط والأحكام</string>
     <string name="error_terms_required">وافق على الشروط والأحكام للتسجيل.</string>
     <string name="auth_try_free">جرّب مجانًا بلا حساب</string>
+    <string name="auth_try_free_daily">جرّب مجانًا بلا حساب %1$d مرات/يوم</string>
+    <string name="guest_info_daily_limit">الحد %1$d مرات يوميًا.</string>
     <string name="guest_info_title">جرّب مجانًا</string>
-    <string name="guest_info_body">سجّل 5 ثوانٍ واطّلع على النتيجة دون حساب. يُحلَّل الفيديو ثم يُحذف من الخادم، وتظهر النتيجة مرة واحدة دون سجل. الحد مرتان يوميًا. سجّل لحفظ الفيديوهات والسجل.</string>
+    <string name="guest_info_body">سجّل 5 ثوانٍ واطّلع على النتيجة دون حساب. يُحلَّل الفيديو ثم يُحذف من الخادم، وتظهر النتيجة مرة واحدة دون سجل. سجّل لحفظ الفيديوهات والسجل.</string>
     <string name="guest_info_start">ابدأ</string>
     <string name="guest_limit_title">انتهت التجارب المجانية لهذا اليوم</string>
     <string name="guest_limit_body">سجّل مجانًا لمواصلة التسجيل وحفظ الفيديوهات ومشاهدة سجلك.</string>

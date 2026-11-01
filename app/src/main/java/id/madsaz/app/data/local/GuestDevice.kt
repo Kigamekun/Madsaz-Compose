@@ -32,8 +32,5 @@ class GuestDevice(context: Context) {
     }
 }
 
-/** Batas Coba Gratis per perangkat per hari; sama dengan `guestDailyLimit` di BE. */
-const val GUEST_DAILY_LIMIT = 2
-
 /** Pengenal penyimpanan rekaman tamu; ID akun berupa UUID sehingga tidak bisa bentrok. */
 const val GUEST_STORE_ID = "guest"

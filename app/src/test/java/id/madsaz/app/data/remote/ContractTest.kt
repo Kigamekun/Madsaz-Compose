@@ -18,6 +18,14 @@ class ContractTest {
 
     private fun recordings() = RecordingApi(ApiClient(server.baseUrl), videoDimensions = { null })
 
+    @Test
+    fun `guest daily limit comes from the backend catalog`() {
+        server.on("GET", "/payments/plans") { Response(200, """{"data":{"guest":{"daily_analysis_limit":7}}}""") }
+        assertEquals(7, GuestApi(ApiClient(server.baseUrl)).dailyLimit())
+        server.on("GET", "/payments/plans") { Response(200, """{"data":{"guest":{"daily_analysis_limit":"7"}}}""") }
+        assertThrows(ContractException::class.java) { GuestApi(ApiClient(server.baseUrl)).dailyLimit() }
+    }
+
     private fun recordingJson(
         status: String = "completed",
         size: String = "1048576",
@@ -88,9 +96,9 @@ class ContractTest {
         }
         assertEquals(PlanStatus.Plus(used = 9, expiresAt = Instant.parse("2026-11-13T00:12:12.383Z"), autoRenewing = true), api.status())
 
-        // Plus tanpa masa aktif dari BE adalah pelanggaran kontrak, bukan "tanpa batas waktu".
+        // Akun testing mendapat Plus tanpa tanggal kedaluwarsa.
         server.on("GET", "/plan") { Response(200, """{"data":{"code":"plus","used":9,"limit":null,"remaining":null,"expires_at":null,"auto_renewing":false}}""") }
-        assertThrows(ContractException::class.java) { api.status() }
+        assertEquals(PlanStatus.Plus(used = 9, expiresAt = null, autoRenewing = false), api.status())
 
         server.on("GET", "/plan") { Response(200, """{"data":{"code":"free","used":3,"limit":null,"remaining":null}}""") }
         assertThrows(ContractException::class.java) { api.status() }

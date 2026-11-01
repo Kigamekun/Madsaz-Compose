@@ -9,6 +9,9 @@ data class GuestResult(val scores: List<CryScore>)
 
 /** Coba Gratis tanpa akun; [client] tanpa token. Video diunggah, dianalisis sekali, lalu dihapus BE. */
 class GuestApi(private val client: ApiClient) {
+    fun dailyLimit(): Int = client.requestJson("GET", "/payments/plans")
+        .obj("data").obj("guest").int("daily_analysis_limit")
+
     /** [deviceId] = `GuestDevice.id()`; BE membatasi analisis per perangkat dan per IP (429 `guest_limit_reached`). */
     fun analyze(file: File, deviceId: String): GuestResult {
         val slot = client.requestJson(
