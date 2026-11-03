@@ -51,8 +51,8 @@ jobs:
           printf 'madsazApiBaseUrl=%s\n' "$API_BASE_URL" > secrets.properties
 
       - name: Test, lint and build the signed bundle
-        # versionCode harus naik di tiap unggahan; run_number + 1000 selalu di atas versi yang sudah diunggah manual (1, 2).
-        run: ./gradlew :app:testDebugUnitTest :app:lintRelease :app:bundleRelease -PversionCode=$((1000 + GITHUB_RUN_NUMBER)) --no-daemon
+        # versionCode mengikuti menit sejak epoch; versionName menggunakan sumber di app/build.gradle.kts.
+        run: ./gradlew :app:testDebugUnitTest :app:lintRelease :app:bundleRelease -PversionCode=$(( $(date +%s) / 60 )) --no-daemon
 
       - uses: r0adkll/upload-google-play@v1
         with:
