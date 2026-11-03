@@ -3,7 +3,7 @@
 Aplikasi ini memperbarui app yang sudah terbit di Play (`com.madsaz`, versi lama 1.2.1 / versionCode 14).
 Push ke branch **`release/closed-testing`** menjalankan `.github/workflows/release-closed-testing.yml`:
 test JVM, lint rilis, build AAB bertanda tangan, lalu unggah ke track **closed testing** (`alpha`; Google meninjau rilis closed testing, dan daftar penguji harus sudah diisi di Play Console).
-`versionCode` otomatis `1000 + nomor run`, selalu di atas versi lama. `versionName` dari `app/build.gradle.kts`.
+`versionCode` memakai menit sejak epoch (`date +%s` / 60), mengikuti pola Ngepets. `versionName` tetap versi rilis di `app/build.gradle.kts`.
 Catatan rilis dari `distribution/whatsnew/` (maksimal 500 karakter per bahasa); ubah sebelum push.
 
 Dari closed testing, promosikan ke **Production** dari Play Console dengan **staged rollout** (mis. 10% dulu).

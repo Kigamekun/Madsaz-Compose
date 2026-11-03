@@ -299,8 +299,7 @@ fun AuthScreen(
         onDismissRequest = { showGuestInfo = false },
         title = { Text(stringResource(R.string.guest_info_title)) },
         text = { Text(
-            stringResource(R.string.guest_info_body) +
-                (guestDailyLimit?.let { " " + stringResource(R.string.guest_info_daily_limit, it) } ?: ""),
+            stringResource(R.string.guest_info_body, guestDailyLimit ?: 4),
         ) },
         confirmButton = {
             TextButton(onClick = { showGuestInfo = false; onTryFree() }, modifier = Modifier.testTag("guest_info_start")) {

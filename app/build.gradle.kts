@@ -14,7 +14,7 @@ android {
         applicationId = "com.madsaz"
         minSdk = 24
         targetSdk = 37
-        // Harus di atas versionCode app lama (14, versi 1.2.1). CI mengirim -PversionCode=<nomor naik>; build lokal memakai nilai ini.
+        // CI memberi versionCode berbasis menit sejak epoch, sama seperti Ngepets.
         versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(100).get()
         versionName = "2.1.0"
 
