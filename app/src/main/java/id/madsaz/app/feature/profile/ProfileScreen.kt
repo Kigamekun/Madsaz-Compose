@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.profile
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.content.ContentResolver
@@ -127,6 +128,8 @@ fun ProfileScreen(
     contentPadding: PaddingValues,
     loggingOut: Boolean = false,
     modifier: Modifier = Modifier,
+    refreshing: Boolean = false,
+    onPullRefresh: () -> Unit = {},
 ) {
     var editing by remember { mutableStateOf(false) }
     var confirmingDelete by remember { mutableStateOf(false) }
@@ -160,7 +163,7 @@ fun ProfileScreen(
 
     Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.statusBars) { padding ->
         CompactContainer(Modifier.padding(padding).consumeWindowInsets(padding)) {
-            LazyColumn(
+            PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { LazyColumn(
                 modifier = Modifier.fillMaxSize().testTag("profile_screen"),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
             ) {
@@ -199,7 +202,7 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 20.dp), style = MaterialTheme.typography.bodySmall, color = MutedInk, textAlign = TextAlign.Center,
                     )
                 }
-            }
+            } }
         }
     }
 

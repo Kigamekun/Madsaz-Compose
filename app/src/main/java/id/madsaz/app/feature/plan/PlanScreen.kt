@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +42,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -75,7 +78,9 @@ fun PlanScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onPurchase: (Activity, PlanInterval) -> Unit,
+    onPullRefresh: () -> Unit,
+    onPurchase: (Activity, PlanInterval, Boolean) -> Unit,
+    onDismissAccountInUse: () -> Unit,
 ) {
     val context = LocalContext.current
     var selectedPlan by remember { mutableStateOf(PlanInterval.YEARLY) }
@@ -99,7 +104,8 @@ fun PlanScreen(
                 onNavigateBack = if (showSubscription && !isPlus) ({ showSubscription = false }) else null,
                 onDismiss = onBack,
             )
-            when {
+            // Tarikan di puncak daftar memuat ulang (bukan menutup lembar); lembar tetap bisa ditutup lewat X, back, atau tap di luar.
+            PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = onPullRefresh) { when {
                 // Tanpa data paket yang berhasil dimuat, jangan menampilkan Free maupun Plus.
                 status == null -> PlanUnavailableContent(state, onRetry)
                 showSubscription -> SubscriptionContent(
@@ -108,7 +114,7 @@ fun PlanScreen(
                     selectedPrice = selectedPrice,
                     isPlus = isPlus,
                     onSelectPlan = { selectedPlan = it },
-                    onPurchase = { (context as? Activity)?.let { onPurchase(it, selectedPlan) } },
+                    onPurchase = { (context as? Activity)?.let { onPurchase(it, selectedPlan, false) } },
                     onManage = {
                         val uri = Uri.parse("https://play.google.com/store/account/subscriptions?package=${context.packageName}&sku=${state.productId}")
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -122,9 +128,40 @@ fun PlanScreen(
                     onContinue = onBack,
                     onRetry = onRetry,
                 )
-            }
+            } }
         }
     }
+
+    if (state.showAccountInUse) AccountInUseDialog(
+        onContinue = { (context as? Activity)?.let { onPurchase(it, selectedPlan, true) } },
+        onDismiss = onDismissAccountInUse,
+    )
+}
+
+/** Google hanya berkata "sudah berlangganan"; jelaskan dengan bahasa pengguna sebelum jendela pembayaran dibuka. */
+@Composable
+private fun AccountInUseDialog(onContinue: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("plan_account_in_use"),
+        containerColor = Color.White,
+        shape = RoundedCornerShape(28.dp),
+        title = { Text(stringResource(R.string.plan_account_in_use_title), color = Ink, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+        text = { Text(stringResource(R.string.plan_account_in_use_body), color = MutedInk, style = MaterialTheme.typography.bodyMedium) },
+        confirmButton = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Button(
+                    onClick = onContinue,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandBlueDark),
+                ) { Text(stringResource(R.string.plan_account_in_use_continue)) }
+                TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.common_close), color = MutedInk)
+                }
+            }
+        },
+    )
 }
 
 @Composable
@@ -375,14 +412,16 @@ private fun SubscriptionContent(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                 ) { Text(stringResource(R.string.plan_manage)) }
+                // Sudah dibatalkan (tidak diperpanjang): tombol dan catatan batal tidak relevan lagi; kartu status menyebut tanggal berakhir.
+                val renewing = (state.status as? PlanStatus.Plus)?.autoRenewing == true
                 // Pembatalan hanya bisa dilakukan di Google Play (BE tidak membatalkan langganan Play), jadi tombol ini membuka halaman yang sama.
-                OutlinedButton(
+                if (renewing) OutlinedButton(
                     onClick = onManage,
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp).heightIn(min = 52.dp).testTag("plan_cancel"),
                     shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                 ) { Text(stringResource(R.string.plan_cancel_sub), color = MaterialTheme.colorScheme.error) }
-                (state.status as? PlanStatus.Plus)?.let { plus ->
+                (state.status as? PlanStatus.Plus)?.takeIf { renewing }?.let { plus ->
                     Text(
                         stringResource(R.string.plan_cancel_note, formatDate(requireNotNull(plus.expiresAt).toEpochMilli())),
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp),
@@ -402,9 +441,16 @@ private fun SubscriptionContent(
                     if (state.purchasing) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
                     else Text(stringResource(R.string.plan_start))
                 }
+                Text(
+                    stringResource(R.string.plan_payment_account_hint),
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    color = MutedInk,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
-        item {
+        if ((state.status as? PlanStatus.Plus)?.autoRenewing != false) item {
             Text(
                 stringResource(R.string.plan_cancel_anytime),
                 modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 20.dp),

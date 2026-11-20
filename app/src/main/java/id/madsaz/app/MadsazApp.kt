@@ -267,6 +267,8 @@ private fun SignedInApp(
                     onUpgrade = { appSheet = AppSheet.PLAN },
                     avatarUrl = accountProfile?.avatarUrl,
                     accountName = accountProfile?.name,
+                    refreshing = historyViewModel.refreshing,
+                    onPullRefresh = { historyViewModel.refresh(pulled = true); planSummary.refresh(); profileViewModel.refresh() },
                 )
             }
         }
@@ -282,6 +284,8 @@ private fun SignedInApp(
                     contentPadding = padding,
                     avatarUrl = accountProfile?.avatarUrl,
                     accountName = accountProfile?.name,
+                    refreshing = historyViewModel.refreshing,
+                    onPullRefresh = { historyViewModel.refresh(pulled = true) },
                 )
             }
         }
@@ -332,6 +336,8 @@ private fun SignedInApp(
                     onPrivacy = { navController.navigate(Routes.PRIVACY) },
                     onLanguage = { appSheet = AppSheet.LANGUAGE },
                     contentPadding = padding,
+                    refreshing = profileViewModel.refreshing,
+                    onPullRefresh = { profileViewModel.refresh(pulled = true); historyViewModel.refresh() },
                 )
             }
         }
@@ -383,6 +389,8 @@ private fun SignedInApp(
                 loadVideoUrl = resultViewModel::videoUrl,
                 onBack = { navController.popBackStack() },
                 onRefresh = resultViewModel::load,
+                refreshing = resultViewModel.refreshing,
+                onPullRefresh = { resultViewModel.load(pulled = true) },
                 onFeedback = { navController.navigate(Routes.feedback(it)) },
                 onOpenCue = { navController.navigate(Routes.cue(it.code)) },
                 startInLog = entry.arguments?.getBoolean("log") == true,
@@ -395,12 +403,19 @@ private fun SignedInApp(
             val planViewModel: PlanViewModel = viewModel(sessionOwner) {
                 PlanViewModel(container.planApi, container.billing, auth.userId)
             }
+            // Muat ulang setiap lembar dibuka dan setiap kembali dari Play Store (mis. setelah membatalkan langganan).
+            LifecycleResumeEffect(planViewModel) {
+                planViewModel.refresh()
+                onPauseOrDispose { }
+            }
             PlanScreen(
                 state = planViewModel.uiState,
                 // Pembelian bisa mengubah paket: perbarui petunjuk kuota saat lembar ditutup.
                 onBack = { appSheet = null; planSummary.refresh() },
                 onRetry = planViewModel::refresh,
+                onPullRefresh = { planViewModel.refresh(pulled = true) },
                 onPurchase = planViewModel::purchase,
+                onDismissAccountInUse = planViewModel::dismissAccountInUse,
             )
         }
         AppSheet.NOTIFICATIONS -> {

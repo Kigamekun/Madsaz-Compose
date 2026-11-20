@@ -37,6 +37,12 @@ data class PlanUiState(
     /** Id produk dari BE, dipakai untuk tautan kelola langganan di Google Play. */
     val productId: String? = null,
     @StringRes val errorRes: Int? = null,
+    /** Hanya untuk indikator tarik-untuk-memuat-ulang; muat ulang otomatis tidak menampilkannya. */
+    val refreshing: Boolean = false,
+    /** Akun Google di Play Store perangkat ini sudah membayar Madsaz Plus untuk akun Madsaz lain (aturan Google: satu langganan per akun Google). */
+    val playAccountInUse: Boolean = false,
+    /** Penjelasan [playAccountInUse] sedang ditampilkan, menggantikan dialog Google yang hanya berkata "sudah berlangganan". */
+    val showAccountInUse: Boolean = false,
 ) {
     /** Persen hemat paket tahunan terhadap 12 bulan paket bulanan, dihitung dari harga Play; null bila tidak lebih murah. */
     val yearlySavingsPercent: Int?
@@ -59,33 +65,40 @@ class PlanViewModel(
     private var product: ProductDetails? = null
 
     init {
+        // Dimuat oleh layar setiap tampil (lihat MadsazApp), termasuk saat kembali dari Play Store setelah mengelola/membatalkan.
         viewModelScope.launch { billing.events.collect(::onBillingEvent) }
-        refresh()
     }
 
-    fun refresh() {
+    fun refresh(pulled: Boolean = false) {
         viewModelScope.launch {
-            uiState = uiState.copy(loading = true, errorRes = null)
+            uiState = uiState.copy(loading = true, refreshing = pulled, errorRes = null)
             try {
                 val (loadedCatalog, status) = coroutineScope {
                     val catalogRequest = async { billing.loadCatalog() }
-                    val statusRequest = async(Dispatchers.IO) { api.status() }
+                    // /plan memakai status langganan yang dicek ke Google paling lama sejam lalu; baca ulang dulu agar pembatalan langsung terlihat.
+                    val statusRequest = async(Dispatchers.IO) { api.refreshSubscription(); api.status() }
                     catalogRequest.await() to statusRequest.await()
                 }
                 catalog = loadedCatalog
-                uiState = uiState.copy(status = status, purchaseEnabled = loadedCatalog.purchaseEnabled, productId = loadedCatalog.productId, loading = false)
+                uiState = uiState.copy(status = status, purchaseEnabled = loadedCatalog.purchaseEnabled, productId = loadedCatalog.productId, loading = false, refreshing = false)
                 loadPrices(loadedCatalog)
                 // Pembelian yang sudah dimiliki akun Google tetapi belum diketahui BE (mis. aplikasi ditutup sebelum verifikasi).
-                billing.sync(userId)
+                uiState = uiState.copy(playAccountInUse = billing.sync(userId))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                uiState = uiState.copy(loading = false, errorRes = error.userMessageRes())
+                uiState = uiState.copy(loading = false, refreshing = false, errorRes = error.userMessageRes())
             }
         }
     }
 
-    fun purchase(activity: Activity, interval: PlanInterval) {
+    /** [despiteAccountInUse]: pengguna sudah membaca penjelasan dan tetap mencoba (jendela Google di sebagian perangkat bisa ganti akun). */
+    fun purchase(activity: Activity, interval: PlanInterval, despiteAccountInUse: Boolean = false) {
+        if (uiState.playAccountInUse && !despiteAccountInUse) {
+            uiState = uiState.copy(showAccountInUse = true, errorRes = null)
+            return
+        }
+        uiState = uiState.copy(showAccountInUse = false)
         val loadedCatalog = catalog
         val details = product
         val basePlanId = when (interval) {
@@ -124,10 +137,14 @@ class PlanViewModel(
         uiState = uiState.copy(prices = prices)
     }
 
+    fun dismissAccountInUse() {
+        uiState = uiState.copy(showAccountInUse = false)
+    }
+
     private fun restore() {
         viewModelScope.launch {
             try {
-                billing.sync(userId, force = true)
+                onAlreadyOwned(byOtherAccount = billing.sync(userId, force = true))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -144,7 +161,13 @@ class PlanViewModel(
             }
             BillingEvent.Pending -> uiState = uiState.copy(purchasing = false, errorRes = R.string.error_billing_pending)
             BillingEvent.Canceled -> uiState = uiState.copy(purchasing = false)
+            is BillingEvent.AlreadyOwned -> onAlreadyOwned(event.byOtherAccount)
             is BillingEvent.Failed -> uiState = uiState.copy(purchasing = false, errorRes = event.cause?.userMessageRes() ?: R.string.error_billing_failed)
         }
+    }
+
+    // Milik akun ini sudah diverifikasi ulang di dalam sync (Verified memuat ulang paket); milik akun lain dijelaskan.
+    private fun onAlreadyOwned(byOtherAccount: Boolean) {
+        uiState = uiState.copy(purchasing = false, playAccountInUse = byOtherAccount, showAccountInUse = byOtherAccount)
     }
 }

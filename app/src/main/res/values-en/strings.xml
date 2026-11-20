@@ -149,6 +149,10 @@
     <string name="plan_plus_ends">Ends on %1$s. It will not renew automatically.</string>
     <string name="plan_start">Start Madsaz Plus</string>
     <string name="plan_cancel_anytime">Cancel anytime. Your free plan stays available.</string>
+    <string name="plan_payment_account_hint">Payment uses the Google account signed in to Play Store on this phone, which may differ from your Madsaz email. Check the email at the top of the Google payment window.</string>
+    <string name="plan_account_in_use_title">This Google account is already in use</string>
+    <string name="plan_account_in_use_body">The Google account in Play Store on this phone already pays for Plus on another Madsaz account. One Google account can only pay for one Madsaz account.\n\nTo get Plus on this account, pay with another Google account: tap the email at the top of the payment window, or switch accounts in Play Store (profile picture at the top right).</string>
+    <string name="plan_account_in_use_continue">Continue to payment</string>
 
     <!-- Profile -->
     <string name="profile_account">Account</string>

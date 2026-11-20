@@ -28,18 +28,26 @@ class ProfileViewModel(private val api: ProfileApi) : ViewModel() {
     var uiState: ProfileUiState by mutableStateOf(ProfileUiState.Loading)
         private set
 
+    /** Hanya untuk indikator tarik-untuk-memuat-ulang. */
+    var refreshing by mutableStateOf(false)
+        private set
+
     init { refresh() }
 
-    fun refresh() {
+    /** Profil yang sudah tampil dipertahankan selama memuat ulang; gagal memuat ulang ditampilkan sebagai galat sesaat. */
+    fun refresh(pulled: Boolean = false) {
+        refreshing = pulled
         viewModelScope.launch {
-            uiState = ProfileUiState.Loading
+            val shown = uiState as? ProfileUiState.Content
+            if (shown == null) uiState = ProfileUiState.Loading
             uiState = try {
                 ProfileUiState.Content(withContext(Dispatchers.IO) { api.get() })
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                ProfileUiState.Error(error.userMessageRes())
+                shown?.copy(errorRes = error.userMessageRes()) ?: ProfileUiState.Error(error.userMessageRes())
             }
+            refreshing = false
         }
     }
 

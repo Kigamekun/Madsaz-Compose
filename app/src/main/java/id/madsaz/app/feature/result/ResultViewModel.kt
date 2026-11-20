@@ -35,6 +35,10 @@ class ResultViewModel(
     var uiState: ResultUiState by mutableStateOf(ResultUiState.Loading)
         private set
 
+    /** Hanya untuk indikator tarik-untuk-memuat-ulang; true sampai pengambilan pertama selesai, bukan selama polling. */
+    var refreshing by mutableStateOf(false)
+        private set
+
     private var job: Job? = null
 
     init { load() }
@@ -43,8 +47,9 @@ class ResultViewModel(
     suspend fun videoUrl(): String = withContext(Dispatchers.IO) { api.presignedVideoUrl(recordingId) }
 
     /** Memuat ulang dan melanjutkan polling; dipakai juga oleh tombol "Perbarui hasil". */
-    fun load() {
+    fun load(pulled: Boolean = false) {
         job?.cancel()
+        refreshing = pulled
         job = viewModelScope.launch {
             if (uiState is ResultUiState.Error) uiState = ResultUiState.Loading
             repeat(MAX_POLLS) { attempt ->
@@ -54,9 +59,11 @@ class ResultViewModel(
                     throw error
                 } catch (error: Exception) {
                     uiState = ResultUiState.Error(error.userMessageRes())
+                    refreshing = false
                     return@launch
                 }
                 uiState = ResultUiState.Content(recording)
+                refreshing = false
                 if (recording.status != RecordingStatus.PROCESSING) return@launch
                 if (attempt < MAX_POLLS - 1) delay(pollIntervalMs)
             }

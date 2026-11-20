@@ -30,11 +30,16 @@ class HistoryViewModel(private val api: RecordingApi) : ViewModel() {
     var uiState: HistoryUiState by mutableStateOf(HistoryUiState.Loading)
         private set
 
+    /** Hanya untuk indikator tarik-untuk-memuat-ulang; muat ulang otomatis saat layar tampil tidak menampilkannya. */
+    var refreshing by mutableStateOf(false)
+        private set
+
     private var loadJob: Job? = null
 
     /** Dipanggil setiap layar utama tampil (lihat MainDestinationScaffold); daftar yang sudah tampil dipertahankan selama memuat. */
-    fun refresh() {
+    fun refresh(pulled: Boolean = false) {
         loadJob?.cancel()
+        refreshing = pulled
         loadJob = viewModelScope.launch {
             val shown = uiState as? HistoryUiState.Content
             if (shown == null) uiState = HistoryUiState.Loading
@@ -45,6 +50,7 @@ class HistoryViewModel(private val api: RecordingApi) : ViewModel() {
             } catch (error: Exception) {
                 shown?.copy(noticeRes = error.userMessageRes()) ?: HistoryUiState.Error(error.userMessageRes())
             }
+            refreshing = false
         }
     }
 

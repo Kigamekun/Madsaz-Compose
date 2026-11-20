@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.home
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.border
@@ -92,9 +93,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     avatarUrl: String? = null,
     accountName: String? = null,
+    refreshing: Boolean = false,
+    onPullRefresh: () -> Unit = {},
 ) {
     CompactContainer(modifier = modifier) {
-        LazyColumn(
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { LazyColumn(
             modifier = Modifier.fillMaxSize().background(Color.White).testTag("home_screen"),
             contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp),
@@ -121,7 +124,7 @@ fun HomeScreen(
                     onRecord = onRecord,
                 )
             }
-        }
+        } }
     }
 }
 
