@@ -50,6 +50,14 @@ jobs:
             "$RUNNER_TEMP/upload.jks" "$UPLOAD_STORE_PASSWORD" "$UPLOAD_KEY_ALIAS" "$UPLOAD_KEY_PASSWORD" > keystore.properties
           printf 'madsazApiBaseUrl=%s\n' "$API_BASE_URL" > secrets.properties
 
+      # Diagnostik sementara: menunjukkan apa yang dilihat runner saat mengakses repositori Maven. Hapus setelah build stabil.
+      - name: Diagnose Maven access
+        continue-on-error: true
+        run: |
+          curl -sS -o /dev/null -w "central jdom2: %{http_code}\n" https://repo.maven.apache.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.pom
+          curl -sS -o /dev/null -w "plugins portal: %{http_code}\n" https://plugins.gradle.org/m2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.pom
+          curl -sS -o /dev/null -w "google maven: %{http_code}\n" https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/9.4.0/gradle-9.4.0.pom
+
       - name: Test, lint and build the signed bundle
         # versionCode mengikuti menit sejak epoch; versionName menggunakan sumber di app/build.gradle.kts.
         run: ./gradlew :app:testDebugUnitTest :app:lintRelease :app:bundleRelease -PversionCode=$(( $(date +%s) / 60 )) --no-daemon
