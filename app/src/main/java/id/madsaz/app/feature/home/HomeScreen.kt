@@ -200,7 +200,7 @@ private fun HomeHero(
     val openLabel = stringResource(if (latestRecording == null) R.string.home_latest_start else R.string.home_latest_open)
     Box(Modifier.fillMaxWidth().height(366.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
-            painter = painterResource(R.drawable.madsaz_home_nursery),
+            painter = painterResource(R.drawable.home_hero),
             contentDescription = null,
             modifier = Modifier.fillMaxWidth().height(342.dp).align(Alignment.TopCenter).offset(y = (-20).dp)
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
@@ -411,4 +411,3 @@ private fun ActivityContent(recording: RecordingItem) {
         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MutedInk)
     }
 }
-

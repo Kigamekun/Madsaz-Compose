@@ -132,7 +132,7 @@ fun AuthScreen(
             val density = LocalDensity.current
             val heroHeight = (maxHeight - with(density) { cardContentPx.toDp() } + CardOverlap).coerceIn(MinHeroHeight, maxHeight * 0.45f)
             Image(
-                painter = painterResource(R.drawable.madsaz_login_regis_v5),
+                painter = painterResource(R.drawable.auth_hero),
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth().height(heroHeight),
                 contentScale = ContentScale.Crop,
@@ -343,4 +343,3 @@ private fun TermsAgreement(
         Text(text, color = Ink, style = MaterialTheme.typography.bodySmall)
     }
 }
-
