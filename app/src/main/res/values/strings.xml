@@ -151,6 +151,10 @@
     <string name="plan_plus_ends">Berakhir pada %1$s. Tidak diperpanjang otomatis.</string>
     <string name="plan_start">Mulai Madsaz Plus</string>
     <string name="plan_cancel_anytime">Batalkan kapan saja. Fitur Paket gratis tetap tersedia.</string>
+    <string name="plan_payment_account_hint">Pembayaran memakai akun Google di Play Store HP ini, bisa berbeda dengan email Madsaz Anda. Cek email di bagian atas jendela pembayaran Google.</string>
+    <string name="plan_account_in_use_title">Akun Google ini sudah dipakai</string>
+    <string name="plan_account_in_use_body">Akun Google di Play Store HP ini sudah membayar Plus untuk akun Madsaz lain. Satu akun Google hanya bisa membayar satu akun Madsaz.\n\nUntuk akun ini, bayar dengan akun Google lain: ketuk email di bagian atas jendela pembayaran, atau ganti akun di Play Store (foto profil di kanan atas).</string>
+    <string name="plan_account_in_use_continue">Lanjut bayar</string>
 
     <!-- Profil -->
     <string name="profile_account">Akun</string>

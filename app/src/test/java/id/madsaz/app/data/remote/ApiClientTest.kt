@@ -56,6 +56,15 @@ class ApiClientTest {
     }
 
     @Test
+    fun `a 2xx body that is not JSON is a contract error that does not echo the body`() {
+        server.on("GET", "/plan") { Response(200, "<html>captive portal: token=SECRET</html>") }
+        val error = assertThrows(ContractException::class.java) { ApiClient(server.baseUrl).requestJson("GET", "/plan") }
+
+        assertTrue(error.message!!.contains("/plan"))
+        assertTrue(!error.message!!.contains("SECRET"))
+    }
+
+    @Test
     fun `204 returns no body and an empty body is rejected where JSON is required`() {
         server.on("DELETE", "/records/x") { Response(204) }
         server.on("GET", "/empty") { Response(200) }

@@ -37,7 +37,8 @@ class MainActivity : AppCompatActivity() {
                 .setName(getString(R.string.notification_channel_plan_name))
                 .build(),
         )
-        notificationDestination = intent.getStringExtra(EXTRA_DESTINATION)
+        // Hanya peluncuran baru: activity yang dibuat ulang (ganti bahasa, mode gelap, proses dimatikan) menerima intent yang sama lagi.
+        if (savedInstanceState == null) notificationDestination = intent.getStringExtra(EXTRA_DESTINATION)
         setContent {
             MadsazTheme {
                 MadsazApp(

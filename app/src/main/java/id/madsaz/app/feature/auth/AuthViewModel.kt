@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.madsaz.app.R
+import id.madsaz.app.data.local.RecordingStore
 import id.madsaz.app.data.remote.AuthApi
 import id.madsaz.app.data.remote.SessionManager
 import id.madsaz.app.notifications.FcmRegistration
@@ -33,6 +34,7 @@ class AuthViewModel(
     private val sessionManager: SessionManager,
     private val authApi: AuthApi,
     private val fcmRegistration: FcmRegistration,
+    private val recordingStore: (userId: String) -> RecordingStore,
 ) : ViewModel() {
     var uiState: AuthUiState by mutableStateOf(
         sessionManager.session.value?.let { AuthUiState.SignedIn(it.userId, it.email) } ?: AuthUiState.SignedOut,
@@ -92,15 +94,22 @@ class AuthViewModel(
     }
 
     fun logout() {
-        val refreshToken = sessionManager.session.value?.refreshToken ?: return
-        if (logoutInProgress) return
+        if (sessionManager.session.value == null || logoutInProgress) return
         logoutInProgress = true
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     try {
-                        fcmRegistration.unregisterDevice()
-                        authApi.logout(refreshToken)
+                        try {
+                            fcmRegistration.unregisterDevice()
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                            // Token FCM gagal dilepas: refresh token di server tetap harus dicabut.
+                        }
+                        // Dibaca setelah unregisterDevice: access token kedaluwarsa memicu refresh yang merotasi refresh token,
+                        // dan token lama yang tertangkap sebelumnya sudah dicabut sehingga logout ke BE tidak berefek.
+                        sessionManager.session.value?.let { authApi.logout(it.refreshToken) }
                     } catch (error: CancellationException) {
                         throw error
                     } catch (_: Exception) {
@@ -116,13 +125,15 @@ class AuthViewModel(
     }
 
     fun deleteAccount(password: String) {
-        val email = (uiState as? AuthUiState.SignedIn)?.email ?: return
+        val account = uiState as? AuthUiState.SignedIn ?: return
+        val email = account.email
         viewModelScope.launch {
             deleteState = DeleteAccountState.Deleting
             try {
                 withContext(Dispatchers.IO) {
                     authApi.deleteAccount(email, password)
                     try {
+                        recordingStore(account.userId).deleteAll()
                         fcmRegistration.clearLocal()
                     } catch (error: CancellationException) {
                         throw error

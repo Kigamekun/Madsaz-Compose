@@ -43,6 +43,9 @@ sealed interface BillingEvent {
     data object Pending : BillingEvent
     data object Canceled : BillingEvent
 
+    /** Play melaporkan produk sudah dimiliki; [byOtherAccount] berarti langganan itu milik akun Madsaz lain. */
+    data class AlreadyOwned(val byOtherAccount: Boolean) : BillingEvent
+
     /** [cause] null berarti Play Billing menolak; selain itu kegagalan verifikasi ke BE. */
     data class Failed(val cause: Throwable?) : BillingEvent
 }
@@ -93,8 +96,7 @@ class PlayBilling(context: Context, private val api: PlanApi) {
                 BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(details).setOfferToken(offerToken).build(),
             ))
             // BE mencocokkan nilai ini dengan identitas pembelian sebelum memberi akses.
-            .setObfuscatedAccountId(MessageDigest.getInstance("SHA-256")
-                .digest(userId.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 0xff) })
+            .setObfuscatedAccountId(accountHash(userId))
             .build()
         return client.launchBillingFlow(activity, params)
     }
@@ -102,8 +104,11 @@ class PlayBilling(context: Context, private val api: PlanApi) {
     /**
      * Memverifikasi ke BE pembelian Madsaz Plus yang dimiliki akun Google di perangkat ini. Tiap token hanya sekali per sesi;
      * [force] mengulang (pengguna memintanya, atau Play melaporkan produk sudah dimiliki).
+     *
+     * Mengembalikan true bila akun Google ini memiliki Madsaz Plus milik akun Madsaz lain. Pembelian itu tidak dikirim ke BE
+     * (BE pasti menolaknya); Google juga tidak akan mengizinkan akun Google ini membeli lagi untuk akun Madsaz sekarang.
      */
-    suspend fun sync(userId: String, force: Boolean = false) {
+    suspend fun sync(userId: String, force: Boolean = false): Boolean {
         this.userId = userId
         if (force) verifiedTokens.clear()
         val productId = (catalog ?: loadCatalog()).productId
@@ -114,8 +119,16 @@ class PlayBilling(context: Context, private val api: PlanApi) {
             }
         }
         if (result.responseCode != BillingClient.BillingResponseCode.OK) throw BillingException(result.responseCode)
-        purchases.filter { productId in it.products }.forEach { handle(it, userId) }
+        val (own, others) = purchases.filter { productId in it.products }.partition { isOwnedBy(it, userId) }
+        own.forEach { handle(it, userId) }
+        return others.isNotEmpty()
     }
+
+    // Pembelian dari luar aplikasi (mis. kode promo di Play Store) tidak punya id akun dan memang ditolak BE.
+    private fun isOwnedBy(purchase: Purchase, userId: String) = purchase.accountIdentifiers?.obfuscatedAccountId == accountHash(userId)
+
+    private fun accountHash(userId: String) = MessageDigest.getInstance("SHA-256")
+        .digest(userId.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 0xff) }
 
     private suspend fun ensureConnected() = connectLock.withLock {
         if (client.isReady) return@withLock
@@ -137,14 +150,14 @@ class PlayBilling(context: Context, private val api: PlanApi) {
             BillingClient.BillingResponseCode.OK -> scope.launch {
                 val user = userId ?: return@launch
                 val productId = catalog?.productId ?: return@launch
-                purchases.filter { productId in it.products }.forEach { handle(it, user) }
+                purchases.filter { productId in it.products && isOwnedBy(it, user) }.forEach { handle(it, user) }
             }
             BillingClient.BillingResponseCode.USER_CANCELED -> mutableEvents.tryEmit(BillingEvent.Canceled)
             // Produk sudah dimiliki akun Google ini: verifikasi ulang miliknya ke BE alih-alih menampilkan galat.
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> scope.launch {
                 val user = userId ?: return@launch
                 try {
-                    sync(user, force = true)
+                    mutableEvents.emit(BillingEvent.AlreadyOwned(byOtherAccount = sync(user, force = true)))
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Exception) {

@@ -54,6 +54,12 @@ class RecordingStore(context: Context, userId: String) {
         pending.edit().remove(pendingKey).apply()
     }
 
+    /** Akun dihapus: semua salinan lokal milik pengguna ini ikut dibuang. */
+    fun deleteAll() {
+        directory.deleteRecursively()
+        pending.edit().remove(pendingKey).apply()
+    }
+
     fun deletePartial(file: File) {
         if (file.parentFile?.canonicalFile == directory.canonicalFile && file.exists()) file.delete()
     }

@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.history
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -73,9 +74,11 @@ fun HistoryScreen(
     modifier: Modifier = Modifier,
     avatarUrl: String? = null,
     accountName: String? = null,
+    refreshing: Boolean = false,
+    onPullRefresh: () -> Unit = {},
 ) {
     CompactContainer(modifier = modifier) {
-        when (state) {
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { when (state) {
             HistoryUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp, color = BrandBlue)
             }
@@ -98,7 +101,7 @@ fun HistoryScreen(
                     accountName = accountName,
                 )
             }
-        }
+        } }
     }
 }
 

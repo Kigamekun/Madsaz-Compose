@@ -43,8 +43,8 @@ class ChangePasswordViewModel(
                     state = ChangePasswordState.Submitting
                     state = try {
                         // BE mencabut sesi lain dan memberi sesi baru untuk perangkat ini; token lama sudah tidak berlaku.
-                        val session = withContext(Dispatchers.IO) { api.changePassword(current, new) }
-                        sessionManager.signIn(session)
+                        // signIn menulis Keystore + disk dan memakai lock yang sama dengan refresh token: bukan di thread utama.
+                        withContext(Dispatchers.IO) { sessionManager.signIn(api.changePassword(current, new)) }
                         ChangePasswordState.Done
                     } catch (error: CancellationException) {
                         throw error

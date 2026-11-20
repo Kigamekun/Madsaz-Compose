@@ -26,7 +26,10 @@ class GuestApi(private val client: ApiClient) {
             JSONObject().put("device_id", deviceId),
             readTimeoutMs = READ_TIMEOUT_MS,
         ).obj("data")
-        return GuestResult(result.array("scores").objects().map { CryScore(it.string("code"), it.string("label"), it.double("confidence")) })
+        val scores = result.array("scores").objects().map { CryScore(it.string("code"), it.string("label"), it.double("confidence")) }
+        // Hasil tamu tidak punya layar log: tanpa skor tidak ada yang bisa ditampilkan, dan PatternResult mengambil skor pertama.
+        if (scores.isEmpty()) throw ContractException("Guest analysis returned no scores")
+        return GuestResult(scores)
     }
 
     private companion object {

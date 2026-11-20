@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.result
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.net.Uri
@@ -87,6 +88,8 @@ fun ResultScreen(
     onOpenCue: (CryCue) -> Unit,
     startInLog: Boolean = false,
     modifier: Modifier = Modifier,
+    refreshing: Boolean = false,
+    onPullRefresh: () -> Unit = {},
 ) {
     CompactContainer(modifier) {
         when (state) {
@@ -95,9 +98,9 @@ fun ResultScreen(
             is ResultUiState.Error -> ErrorContent(stringResource(state.messageRes), true, onRefresh, null, onBack)
             is ResultUiState.Content -> {
                 val recording = state.recording
-                if (recording.status == RecordingStatus.PROCESSING && !startInLog) {
+                if (recording.status == RecordingStatus.PROCESSING && !startInLog && !state.pollingExhausted) {
                     ProgressContent(stringResource(R.string.result_processing_title), stringResource(R.string.result_processing_body))
-                } else {
+                } else PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) {
                     CompletedContent(recording, loadVideoUrl, onBack, onRefresh, onFeedback, onOpenCue, startInLog)
                 }
             }

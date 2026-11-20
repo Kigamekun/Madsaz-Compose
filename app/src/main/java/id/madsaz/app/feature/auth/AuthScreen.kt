@@ -108,11 +108,13 @@ fun AuthScreen(
     guestDailyLimit: Int? = null,
 ) {
     var register by rememberSaveable(startInRegister) { mutableStateOf(startInRegister) }
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+    // Activity dibuat ulang saat bahasa diganti dari layar ini: nama, email, dan persetujuan dipertahankan.
+    // Kata sandi sengaja tidak disimpan di saved state.
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var acceptTerms by remember { mutableStateOf(false) }
+    var acceptTerms by rememberSaveable { mutableStateOf(false) }
     var showGuestInfo by remember { mutableStateOf(false) }
     // Tinggi isi kartu per mode (px), diukur setelah tata letak; nilai awal 0 membuat hero maksimal sampai pengukuran pertama.
     var cardContentPx by remember(register) { mutableIntStateOf(0) }

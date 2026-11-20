@@ -58,7 +58,13 @@ class ApiClient(private val baseUrl: String, private val credentials: Credential
             val stream = if (status in 200..299) connection.inputStream else connection.errorStream
             val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
             if (status !in 200..299) throw apiException(status, text)
-            return if (text.isEmpty()) null else JSONObject(text)
+            if (text.isEmpty()) return null
+            // Bukan JSON walau status 2xx (mis. halaman portal Wi-Fi): jangan menyalin isinya ke pesan error dan log.
+            return try {
+                JSONObject(text)
+            } catch (_: JSONException) {
+                throw ContractException("$method $path returned a non-JSON body (HTTP $status)")
+            }
         } finally {
             connection.disconnect()
         }

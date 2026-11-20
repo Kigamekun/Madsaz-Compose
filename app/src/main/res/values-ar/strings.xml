@@ -161,6 +161,10 @@
     <string name="plan_plus_ends">ينتهي في %1$s. لن يتجدد تلقائيًا.</string>
     <string name="plan_start">ابدأ Madsaz Plus</string>
     <string name="plan_cancel_anytime">يمكنك الإلغاء في أي وقت. تبقى باقتك المجانية متاحة.</string>
+    <string name="plan_payment_account_hint">يتم الدفع بحساب Google المسجّل في Play Store على هذا الهاتف، وقد يختلف عن بريدك في Madsaz. تحقّق من البريد أعلى نافذة الدفع من Google.</string>
+    <string name="plan_account_in_use_title">حساب Google هذا مستخدم بالفعل</string>
+    <string name="plan_account_in_use_body">حساب Google في Play Store على هذا الهاتف يدفع بالفعل اشتراك Plus لحساب Madsaz آخر. يمكن لحساب Google واحد الدفع لحساب Madsaz واحد فقط.\n\nللحصول على Plus لهذا الحساب، ادفع بحساب Google آخر: اضغط على البريد أعلى نافذة الدفع، أو بدّل الحساب في Play Store (صورة الملف الشخصي أعلى اليمين).</string>
+    <string name="plan_account_in_use_continue">متابعة الدفع</string>
 
     <!-- الملف الشخصي -->
     <string name="profile_account">الحساب</string>

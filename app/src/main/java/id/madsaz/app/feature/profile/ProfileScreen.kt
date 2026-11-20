@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.profile
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.content.ContentResolver
@@ -99,6 +100,7 @@ import id.madsaz.app.ui.theme.MutedInk
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -127,6 +129,8 @@ fun ProfileScreen(
     contentPadding: PaddingValues,
     loggingOut: Boolean = false,
     modifier: Modifier = Modifier,
+    refreshing: Boolean = false,
+    onPullRefresh: () -> Unit = {},
 ) {
     var editing by remember { mutableStateOf(false) }
     var confirmingDelete by remember { mutableStateOf(false) }
@@ -145,6 +149,11 @@ fun ProfileScreen(
                 onUploadAvatar(jpeg)
             } catch (error: PhotoException) {
                 photoErrorRes = error.messageRes
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                // Gambar yang tak bisa didekode (rasio ekstrem, URI dicabut): pesan yang sama dengan file tak terbaca, bukan crash.
+                photoErrorRes = R.string.profile_photo_unreadable
             } finally {
                 photoBusy = false
             }
@@ -160,7 +169,7 @@ fun ProfileScreen(
 
     Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.statusBars) { padding ->
         CompactContainer(Modifier.padding(padding).consumeWindowInsets(padding)) {
-            LazyColumn(
+            PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { LazyColumn(
                 modifier = Modifier.fillMaxSize().testTag("profile_screen"),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
             ) {
@@ -199,7 +208,7 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 20.dp), style = MaterialTheme.typography.bodySmall, color = MutedInk, textAlign = TextAlign.Center,
                     )
                 }
-            }
+            } }
         }
     }
 

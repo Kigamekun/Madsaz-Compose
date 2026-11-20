@@ -19,7 +19,8 @@ import kotlinx.coroutines.withContext
 
 sealed interface ResultUiState {
     data object Loading : ResultUiState
-    data class Content(val recording: RecordingItem) : ResultUiState
+    /** [pollingExhausted]: batas poll habis dan analisis masih berjalan; layar berhenti menunggu dan menawarkan muat ulang. */
+    data class Content(val recording: RecordingItem, val pollingExhausted: Boolean = false) : ResultUiState
     data class Error(@StringRes val messageRes: Int) : ResultUiState
 }
 
@@ -35,6 +36,10 @@ class ResultViewModel(
     var uiState: ResultUiState by mutableStateOf(ResultUiState.Loading)
         private set
 
+    /** Hanya untuk indikator tarik-untuk-memuat-ulang; true sampai pengambilan pertama selesai, bukan selama polling. */
+    var refreshing by mutableStateOf(false)
+        private set
+
     private var job: Job? = null
 
     init { load() }
@@ -43,8 +48,9 @@ class ResultViewModel(
     suspend fun videoUrl(): String = withContext(Dispatchers.IO) { api.presignedVideoUrl(recordingId) }
 
     /** Memuat ulang dan melanjutkan polling; dipakai juga oleh tombol "Perbarui hasil". */
-    fun load() {
+    fun load(pulled: Boolean = false) {
         job?.cancel()
+        refreshing = pulled
         job = viewModelScope.launch {
             if (uiState is ResultUiState.Error) uiState = ResultUiState.Loading
             repeat(MAX_POLLS) { attempt ->
@@ -54,11 +60,14 @@ class ResultViewModel(
                     throw error
                 } catch (error: Exception) {
                     uiState = ResultUiState.Error(error.userMessageRes())
+                    refreshing = false
                     return@launch
                 }
-                uiState = ResultUiState.Content(recording)
+                val lastPoll = attempt == MAX_POLLS - 1
+                uiState = ResultUiState.Content(recording, pollingExhausted = lastPoll && recording.status == RecordingStatus.PROCESSING)
+                refreshing = false
                 if (recording.status != RecordingStatus.PROCESSING) return@launch
-                if (attempt < MAX_POLLS - 1) delay(pollIntervalMs)
+                if (!lastPoll) delay(pollIntervalMs)
             }
         }
     }

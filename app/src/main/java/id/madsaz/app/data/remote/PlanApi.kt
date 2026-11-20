@@ -35,6 +35,14 @@ class PlanApi(private val client: ApiClient) {
         }
     }
 
+    /**
+     * Meminta BE membaca ulang langganan dari Google sekarang (GET /plan memakai cache satu jam), misalnya setelah pengguna
+     * membatalkan di Play Store. Body diabaikan; ambil [status] sesudahnya.
+     */
+    fun refreshSubscription() {
+        client.requestJson("GET", "/payments/subscription")
+    }
+
     /** BE memverifikasi token pembelian ke Google Play dan mengaktifkan Plus. Ambil [status] lagi sesudahnya. */
     fun verify(purchaseToken: String) {
         client.requestJson("POST", "/payments/google-play/verify", JSONObject().put("purchaseToken", purchaseToken))
