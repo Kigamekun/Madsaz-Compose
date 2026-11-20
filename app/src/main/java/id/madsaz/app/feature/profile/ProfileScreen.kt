@@ -100,6 +100,7 @@ import id.madsaz.app.ui.theme.MutedInk
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -148,6 +149,11 @@ fun ProfileScreen(
                 onUploadAvatar(jpeg)
             } catch (error: PhotoException) {
                 photoErrorRes = error.messageRes
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                // Gambar yang tak bisa didekode (rasio ekstrem, URI dicabut): pesan yang sama dengan file tak terbaca, bukan crash.
+                photoErrorRes = R.string.profile_photo_unreadable
             } finally {
                 photoBusy = false
             }

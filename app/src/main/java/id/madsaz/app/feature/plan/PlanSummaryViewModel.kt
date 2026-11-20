@@ -10,6 +10,7 @@ import id.madsaz.app.data.remote.PlanApi
 import id.madsaz.app.data.remote.PlanStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -19,8 +20,11 @@ class PlanSummaryViewModel(private val api: PlanApi) : ViewModel() {
     var status: PlanStatus? by mutableStateOf(null)
         private set
 
+    private var refreshJob: Job? = null
+
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             try {
                 status = withContext(Dispatchers.IO) { api.status() }
             } catch (error: CancellationException) {

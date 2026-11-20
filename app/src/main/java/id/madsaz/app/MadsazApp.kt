@@ -15,7 +15,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,8 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -71,6 +68,7 @@ import id.madsaz.app.notifications.canRequestNotificationPermission
 import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.components.MadsazScaffold
 import id.madsaz.app.ui.components.MainDestination
+import id.madsaz.app.ui.rememberScopedViewModelStoreOwner
 import id.madsaz.app.ui.userMessageRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -115,11 +113,6 @@ internal fun usesDetailTransition(from: String?, to: String?): Boolean {
         (from !in mainRoutes || to !in mainRoutes)
 }
 
-/** Pemilik ViewModel yang hidup selama satu sesi login; isinya dibuang saat logout atau akun berganti. */
-private class SessionViewModelStoreOwner : ViewModelStoreOwner {
-    override val viewModelStore = ViewModelStore()
-}
-
 @Composable
 fun MadsazApp(
     notificationDestination: String? = null,
@@ -128,7 +121,7 @@ fun MadsazApp(
     val context = LocalContext.current
     val container = context.appContainer
     val authViewModel: AuthViewModel = viewModel {
-        AuthViewModel(container.sessionManager, container.authApi, container.fcmRegistration)
+        AuthViewModel(container.sessionManager, container.authApi, container.fcmRegistration, container::recordingStore)
     }
 
     when (val auth = authViewModel.uiState) {
@@ -156,8 +149,8 @@ private fun SignedInApp(
     // NavController dan ViewModel dibuat ulang untuk setiap sesi login, sehingga data akun sebelumnya tidak terbawa.
     val navController = rememberNavController()
     var appSheet by remember { mutableStateOf<AppSheet?>(null) }
-    val sessionOwner = remember(auth.userId) { SessionViewModelStoreOwner() }
-    DisposableEffect(sessionOwner) { onDispose { sessionOwner.viewModelStore.clear() } }
+    // ViewModel hidup selama satu sesi login: dibuang saat logout atau akun berganti, bukan saat Activity dibuat ulang.
+    val sessionOwner = rememberScopedViewModelStoreOwner("session:${auth.userId}")
     val historyViewModel: HistoryViewModel = viewModel(sessionOwner) { HistoryViewModel(container.recordingApi) }
     val profileViewModel: ProfileViewModel = viewModel(sessionOwner) { ProfileViewModel(container.profileApi) }
     val planSummary: PlanSummaryViewModel = viewModel(sessionOwner) { PlanSummaryViewModel(container.planApi) }
@@ -261,7 +254,7 @@ private fun SignedInApp(
                     onHistory = { navigateMain(Routes.HISTORY) },
                     onCryCues = { navigateMain(Routes.CUES) },
                     onProfile = { navigateMain(Routes.PROFILE) },
-                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
+                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) { launchSingleTop = true } },
                     contentPadding = padding,
                     freeQuota = freePlan,
                     onUpgrade = { appSheet = AppSheet.PLAN },
@@ -279,7 +272,7 @@ private fun SignedInApp(
                     onRecord = openRecorder,
                     onRetry = historyViewModel::refresh,
                     onProfile = { navigateMain(Routes.PROFILE) },
-                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) },
+                    onOpenRecording = { navController.navigate(Routes.result(it.id, log = true)) { launchSingleTop = true } },
                     onNoticeShown = historyViewModel::dismissNotice,
                     contentPadding = padding,
                     avatarUrl = accountProfile?.avatarUrl,
@@ -292,7 +285,7 @@ private fun SignedInApp(
         composable(Routes.CUES) {
             MainDestinationScaffold(MainDestination.CUES, ::navigateMain, openRecorder, onMainShown) { padding ->
                 CryCuesScreen(
-                    onOpenCue = { navController.navigate(Routes.cue(it.code)) },
+                    onOpenCue = { navController.navigate(Routes.cue(it.code)) { launchSingleTop = true } },
                     onProfile = { navigateMain(Routes.PROFILE) },
                     contentPadding = padding,
                     avatarUrl = accountProfile?.avatarUrl,
@@ -333,7 +326,7 @@ private fun SignedInApp(
                     plusSubtitleRes = if (freePlan != null) R.string.home_upgrade_cta else R.string.profile_plus_subtitle,
                     onChangePassword = { passwordViewModel.reset(); appSheet = AppSheet.PASSWORD },
                     onNotifications = { appSheet = AppSheet.NOTIFICATIONS },
-                    onPrivacy = { navController.navigate(Routes.PRIVACY) },
+                    onPrivacy = { navController.navigate(Routes.PRIVACY) { launchSingleTop = true } },
                     onLanguage = { appSheet = AppSheet.LANGUAGE },
                     contentPadding = padding,
                     refreshing = profileViewModel.refreshing,
@@ -391,8 +384,8 @@ private fun SignedInApp(
                 onRefresh = resultViewModel::load,
                 refreshing = resultViewModel.refreshing,
                 onPullRefresh = { resultViewModel.load(pulled = true) },
-                onFeedback = { navController.navigate(Routes.feedback(it)) },
-                onOpenCue = { navController.navigate(Routes.cue(it.code)) },
+                onFeedback = { navController.navigate(Routes.feedback(it)) { launchSingleTop = true } },
+                onOpenCue = { navController.navigate(Routes.cue(it.code)) { launchSingleTop = true } },
                 startInLog = entry.arguments?.getBoolean("log") == true,
             )
         }

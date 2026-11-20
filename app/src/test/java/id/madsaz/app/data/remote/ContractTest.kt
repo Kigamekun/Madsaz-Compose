@@ -26,6 +26,16 @@ class ContractTest {
         assertThrows(ContractException::class.java) { GuestApi(ApiClient(server.baseUrl)).dailyLimit() }
     }
 
+    @Test
+    fun `a guest analysis without scores is a contract error, not an empty result`() {
+        server.on("POST", "/guest/upload-url") { Response(200, """{"data":{"analysis_id":"g1","upload_url":"${server.baseUrl}/put"}}""") }
+        server.on("PUT", "/put") { Response(200) }
+        server.on("POST", "/guest/g1/analyze") { Response(200, """{"data":{"scores":[]}}""") }
+        val video = java.io.File.createTempFile("guest", ".mp4").apply { writeBytes(ByteArray(4)); deleteOnExit() }
+
+        assertThrows(ContractException::class.java) { GuestApi(ApiClient(server.baseUrl)).analyze(video, "device-1") }
+    }
+
     private fun recordingJson(
         status: String = "completed",
         size: String = "1048576",

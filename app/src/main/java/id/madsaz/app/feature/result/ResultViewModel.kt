@@ -19,7 +19,8 @@ import kotlinx.coroutines.withContext
 
 sealed interface ResultUiState {
     data object Loading : ResultUiState
-    data class Content(val recording: RecordingItem) : ResultUiState
+    /** [pollingExhausted]: batas poll habis dan analisis masih berjalan; layar berhenti menunggu dan menawarkan muat ulang. */
+    data class Content(val recording: RecordingItem, val pollingExhausted: Boolean = false) : ResultUiState
     data class Error(@StringRes val messageRes: Int) : ResultUiState
 }
 
@@ -62,10 +63,11 @@ class ResultViewModel(
                     refreshing = false
                     return@launch
                 }
-                uiState = ResultUiState.Content(recording)
+                val lastPoll = attempt == MAX_POLLS - 1
+                uiState = ResultUiState.Content(recording, pollingExhausted = lastPoll && recording.status == RecordingStatus.PROCESSING)
                 refreshing = false
                 if (recording.status != RecordingStatus.PROCESSING) return@launch
-                if (attempt < MAX_POLLS - 1) delay(pollIntervalMs)
+                if (!lastPoll) delay(pollIntervalMs)
             }
         }
     }

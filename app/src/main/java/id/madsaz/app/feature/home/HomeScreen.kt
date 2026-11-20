@@ -51,6 +51,7 @@ import androidx.compose.ui.res.pluralStringResource
 import id.madsaz.app.data.remote.PlanStatus
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -219,7 +220,8 @@ private fun HomeHero(
             // Tanpa rekaman kartu ini mengajak merekam; dengan rekaman ia membuka hasilnya.
             onClick = { if (latestRecording == null) onRecord() else onOpenRecording(latestRecording) },
             modifier = Modifier.align(Alignment.TopCenter).offset(y = 241.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp)
-                .semantics { onClick(openLabel) { false } },
+                // Aksi null: hanya menambah label; aksi klik Surface tetap dipakai (aksi yang mengembalikan false menimpanya dan mematikan TalkBack).
+                .semantics { onClick(openLabel, null) },
             shape = RoundedCornerShape(23.dp),
             color = BrandBlue,
         ) {
@@ -301,7 +303,7 @@ private fun RecentRecordings(
                 stringResource(R.string.home_see_all),
                 modifier = Modifier
                     .clip(CircleShape)
-                    .clickable(onClick = onSeeAll)
+                    .clickable(role = Role.Button, onClick = onSeeAll)
                     .padding(horizontal = 10.dp, vertical = 12.dp),
                 color = BrandBlueDark,
                 fontSize = 12.sp,

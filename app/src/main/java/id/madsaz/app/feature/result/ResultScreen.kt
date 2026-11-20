@@ -98,7 +98,7 @@ fun ResultScreen(
             is ResultUiState.Error -> ErrorContent(stringResource(state.messageRes), true, onRefresh, null, onBack)
             is ResultUiState.Content -> {
                 val recording = state.recording
-                if (recording.status == RecordingStatus.PROCESSING && !startInLog) {
+                if (recording.status == RecordingStatus.PROCESSING && !startInLog && !state.pollingExhausted) {
                     ProgressContent(stringResource(R.string.result_processing_title), stringResource(R.string.result_processing_body))
                 } else PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) {
                     CompletedContent(recording, loadVideoUrl, onBack, onRefresh, onFeedback, onOpenCue, startInLog)

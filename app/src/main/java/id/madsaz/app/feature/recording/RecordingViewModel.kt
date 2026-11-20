@@ -95,8 +95,12 @@ class RecordingViewModel(
             } catch (error: ApiException) {
                 if (error.code in LIMIT_CODES) {
                     // Mengulang tidak akan berhasil dan BE sudah membuang videonya; jangan biarkan file menghalangi rekaman baru.
-                    withContext(Dispatchers.IO) { store.delete(file) }
-                    pendingFile = null
+                    try {
+                        withContext(Dispatchers.IO) { store.delete(file) }
+                        pendingFile = null
+                    } catch (_: IOException) {
+                        // Gagal membuang salinan: file tetap pending sehingga pengguna masih bisa membuangnya lewat "Buang rekaman".
+                    }
                     RecordingUiState.Error(error.userMessageRes(), canRetry = false)
                 } else {
                     RecordingUiState.Error(error.userMessageRes())

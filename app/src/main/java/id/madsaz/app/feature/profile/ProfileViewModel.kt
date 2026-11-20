@@ -10,6 +10,7 @@ import id.madsaz.app.R
 import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.data.remote.ProfileApi
 import id.madsaz.app.ui.userMessageRes
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,9 +36,14 @@ class ProfileViewModel(private val api: ProfileApi) : ViewModel() {
     init { refresh() }
 
     /** Profil yang sudah tampil dipertahankan selama memuat ulang; gagal memuat ulang ditampilkan sebagai galat sesaat. */
+    private var refreshJob: Job? = null
+
     fun refresh(pulled: Boolean = false) {
+        // Respons refresh tidak boleh menimpa simpan yang sedang berjalan (sheet akan tertutup seolah berhasil).
+        if ((uiState as? ProfileUiState.Content)?.saving == true) return
+        refreshJob?.cancel()
         refreshing = pulled
-        viewModelScope.launch {
+        refreshJob = viewModelScope.launch {
             val shown = uiState as? ProfileUiState.Content
             if (shown == null) uiState = ProfileUiState.Loading
             uiState = try {
@@ -71,6 +77,9 @@ class ProfileViewModel(private val api: ProfileApi) : ViewModel() {
     }
 
     private fun save(shown: ProfileUiState.Content, request: () -> AccountProfile) {
+        // Refresh yang masih berjalan membawa data sebelum simpan: batalkan agar tidak menimpa hasil simpan.
+        refreshJob?.cancel()
+        refreshing = false
         uiState = shown.copy(saving = true, errorRes = null)
         viewModelScope.launch {
             uiState = try {

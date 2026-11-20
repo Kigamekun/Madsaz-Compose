@@ -12,7 +12,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,8 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.madsaz.app.AppContainer
 import id.madsaz.app.R
@@ -41,6 +38,7 @@ import id.madsaz.app.feature.profile.PrivacyViewModel
 import id.madsaz.app.feature.recording.RecordingRoute
 import id.madsaz.app.feature.recording.RecordingViewModel
 import id.madsaz.app.feature.result.PatternResult
+import id.madsaz.app.ui.rememberScopedViewModelStoreOwner
 import id.madsaz.app.ui.theme.BrandBlueDark
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -117,7 +115,7 @@ fun SignedOutApp(auth: AuthUiState, authViewModel: AuthViewModel, container: App
                 Page.FORGOT -> {
                     BackHandler { page = Page.AUTH }
                     // Dibuang saat halaman ditutup agar membukanya lagi menampilkan formulir, bukan "Cek email" dari permintaan lama.
-                    val forgot: ForgotPasswordViewModel = viewModel(rememberPageViewModelStoreOwner()) { ForgotPasswordViewModel(container.authApi, language) }
+                    val forgot: ForgotPasswordViewModel = viewModel(rememberScopedViewModelStoreOwner("page:forgot")) { ForgotPasswordViewModel(container.authApi, language) }
                     ForgotPasswordScreen(forgot.state, onSend = forgot::send, onBack = { page = Page.AUTH })
                 }
                 Page.TERMS -> PolicyPage("terms:$language", R.string.auth_terms_link, onBack = { page = Page.AUTH }) { container.policyApi.terms(language) }
@@ -155,7 +153,7 @@ private fun PolicyPage(key: String, titleRes: Int, onBack: () -> Unit, load: () 
 /** Rekam 5 detik lalu kirim ke BE untuk dianalisis sekali; ViewModel dibuang saat keluar agar percobaan berikutnya mulai bersih. */
 @Composable
 private fun GuestRecording(container: AppContainer, onBack: () -> Unit, onResult: () -> Unit) {
-    val viewModel: RecordingViewModel = viewModel(rememberPageViewModelStoreOwner()) {
+    val viewModel: RecordingViewModel = viewModel(rememberScopedViewModelStoreOwner("page:guest-record")) {
         RecordingViewModel(container.recordingStore(GUEST_STORE_ID)) { file, _ ->
             container.guestResult = container.guestApi.analyze(file, container.guestDevice.id())
             container.guestDevice.recordAnalysis()
@@ -165,10 +163,3 @@ private fun GuestRecording(container: AppContainer, onBack: () -> Unit, onResult
     RecordingRoute(viewModel = viewModel, onBack = onBack, onRecordingSaved = { onResult() })
 }
 
-/** Pemilik ViewModel yang hidup selama halaman yang memakainya ada di komposisi; isinya dibuang saat halaman ditutup. */
-@Composable
-private fun rememberPageViewModelStoreOwner(): ViewModelStoreOwner {
-    val owner = remember { object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() } }
-    DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
-    return owner
-}

@@ -26,12 +26,18 @@ class FcmRegistration(context: Context, private val api: NotificationApi) {
     /** Build tanpa google-services.json tidak punya Firebase; jangan menghabiskan permintaan izin pada build seperti itu. */
     fun configured(): Boolean = FirebaseApp.getApps(appContext).isNotEmpty()
 
-    fun token(): String = Tasks.await(FirebaseMessaging.getInstance().token)
+    // Tanpa batas waktu, Play Services yang tidak merespons membuat logout dan pendaftaran menggantung selamanya.
+    fun token(): String = Tasks.await(FirebaseMessaging.getInstance().token, TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
     /** Hasil dialog izin notifikasi pertama. Bila diberikan, perangkat langsung didaftarkan. */
     fun onPermissionResult(granted: Boolean) {
-        preferences.edit().putBoolean("permission_prompted", true).apply()
-        if (granted) enable() else preferences.edit().putBoolean("enabled", false).apply()
+        // `enabled` ditulis sebelum mendaftar: bila pendaftaran gagal (jaringan), refresh() mencobanya lagi di tiap peluncuran.
+        // Dialog izin hanya muncul sekali, jadi tanpa ini perangkat tidak pernah terdaftar.
+        preferences.edit().putBoolean("permission_prompted", true).putBoolean("enabled", granted).apply()
+        if (granted) {
+            check(configured()) { "Firebase belum dikonfigurasi" }
+            api.register(token())
+        }
     }
 
     fun enable() {
@@ -67,12 +73,11 @@ class FcmRegistration(context: Context, private val api: NotificationApi) {
         if (configured()) awaitDeleteToken()
     }
 
-    // Tanpa batas waktu, Play Services yang tidak merespons membuat logout dan hapus akun menggantung selamanya.
     private fun awaitDeleteToken() {
-        Tasks.await(FirebaseMessaging.getInstance().deleteToken(), DELETE_TOKEN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        Tasks.await(FirebaseMessaging.getInstance().deleteToken(), TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     }
 
     private companion object {
-        const val DELETE_TOKEN_TIMEOUT_SECONDS = 10L
+        const val TASK_TIMEOUT_SECONDS = 10L
     }
 }

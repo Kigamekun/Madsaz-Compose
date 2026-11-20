@@ -18,6 +18,7 @@ import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.userMessageRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -69,8 +70,12 @@ class PlanViewModel(
         viewModelScope.launch { billing.events.collect(::onBillingEvent) }
     }
 
+    private var refreshJob: Job? = null
+
     fun refresh(pulled: Boolean = false) {
-        viewModelScope.launch {
+        // Muat ulang saat kembali dari Play dan saat Verified bisa tumpang tindih: hanya yang terbaru boleh menentukan status.
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             uiState = uiState.copy(loading = true, refreshing = pulled, errorRes = null)
             try {
                 val (loadedCatalog, status) = coroutineScope {

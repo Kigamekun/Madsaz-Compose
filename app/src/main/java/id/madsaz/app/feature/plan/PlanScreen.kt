@@ -63,6 +63,10 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import id.madsaz.app.R
 import id.madsaz.app.data.remote.PlanStatus
 import id.madsaz.app.ui.components.formatDate
@@ -89,7 +93,6 @@ fun PlanScreen(
     var showSubscription by remember(isPlus) { mutableStateOf(isPlus) }
     val selectedPrice = state.prices[selectedPlan]?.formatted
 
-    BackHandler(enabled = showSubscription && !isPlus) { showSubscription = false }
     val sheetMaxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.92f
 
     ModalBottomSheet(
@@ -98,6 +101,8 @@ fun PlanScreen(
         containerColor = Color.White,
         dragHandle = null,
     ) {
+        // Di dalam sheet: ia berjendela sendiri, sehingga Back di luar konten langsung menutup seluruh sheet.
+        BackHandler(enabled = showSubscription && !isPlus) { showSubscription = false }
         Column(Modifier.fillMaxWidth().heightIn(max = sheetMaxHeight).background(Color.White)) {
             PlanSheetHeader(
                 title = if (showSubscription) R.string.plan_plus_brand else R.string.plan_title,
@@ -494,7 +499,8 @@ private fun PlanOption(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = if (badge != null) 98.dp else 76.dp),
+        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = if (badge != null) 98.dp else 76.dp)
+            .semantics { role = Role.RadioButton; this.selected = selected },
         shape = RoundedCornerShape(22.dp),
         color = if (selected) BrandBlue else Color.White,
         border = if (selected) null else BorderStroke(1.dp, Border),
