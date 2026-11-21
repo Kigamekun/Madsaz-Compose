@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.recording
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +14,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,9 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Cameraswitch
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,14 +41,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
 import id.madsaz.app.model.RecordingUiState
 import id.madsaz.app.ui.components.BabyMark
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
@@ -72,7 +70,7 @@ fun RecordingScreen(
 ) {
     BackHandler(enabled = state == RecordingUiState.PermissionRequired || state == RecordingUiState.Ready) { onBack() }
     Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.safeDrawing) { padding ->
-        CompactContainer(Modifier.padding(padding).consumeWindowInsets(padding)) {
+        Box(Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize().padding(horizontal = screenGutter())) {
             when (state) {
                 RecordingUiState.PermissionRequired -> Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -85,13 +83,17 @@ fun RecordingScreen(
                         TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
                     }
                 }
-                RecordingUiState.Ready, is RecordingUiState.Recording -> {
+                RecordingUiState.Ready, is RecordingUiState.Recording -> BoxWithConstraints(Modifier.fillMaxSize()) {
                     val elapsedSeconds = (state as? RecordingUiState.Recording)?.elapsedSeconds
                     val recording = elapsedSeconds != null
-                    Column(Modifier.fillMaxSize().testTag("recording_screen")) {
+                    // Jendela pendek (split-screen, jendela mengambang): pratinjau diberi tinggi tetap dan layar digulir,
+                    // supaya tombol rekam tidak terdorong keluar layar. Di HP biasa pratinjau mengisi sisa tinggi seperti biasa.
+                    val compact = maxHeight < MinFullRecordingHeight
+                    val scroll = rememberScrollState()
+                    Column(Modifier.fillMaxSize().then(if (compact) Modifier.verticalScroll(scroll) else Modifier).testTag("recording_screen")) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = onBack, modifier = Modifier.clip(CircleShape).background(BrandBlueSoft).testTag("recording_back")) {
-                                Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink)
+                                Icon(AppIcons.ArrowBack, stringResource(R.string.common_back), tint = Ink)
                             }
                             Text(stringResource(R.string.recording_keep_baby_in_view), Modifier.weight(1f).padding(horizontal = 12.dp), style = MaterialTheme.typography.titleMedium, color = Ink)
                             Column(horizontalAlignment = Alignment.End) {
@@ -99,7 +101,7 @@ fun RecordingScreen(
                                 if (elapsedSeconds != null) Text(stringResource(R.string.recording_timer, formatTimer(elapsedSeconds), formatTimer(MAX_RECORDING_SECONDS)), style = MaterialTheme.typography.titleMedium, color = Ink, modifier = Modifier.testTag("recording_timer"))
                             }
                         }
-                        Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp)).background(Color.Black).testTag("camera_preview")) {
+                        Box(Modifier.fillMaxWidth().then(if (compact) Modifier.height(CompactPreviewHeight) else Modifier.weight(1f)).padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp)).background(Color.Black).testTag("camera_preview")) {
                             cameraPreview(Modifier.fillMaxSize().clipToBounds())
                         }
                         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -129,12 +131,12 @@ fun RecordingScreen(
                                     },
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        Icon(painterResource(if (recording) R.drawable.phosphor_stop_circle else R.drawable.phosphor_camera), stringResource(if (recording) R.string.recording_stop else R.string.recording_start), Modifier.size(30.dp), tint = Color.White)
+                                        Icon(if (recording) AppIcons.StopCircle else AppIcons.Camera, stringResource(if (recording) R.string.recording_stop else R.string.recording_start), Modifier.size(30.dp), tint = Color.White)
                                     }
                                 }
                                 if (canSwitchCamera && !recording) {
                                     IconButton(onClick = onSwitchCamera, enabled = cameraReady, modifier = Modifier.align(Alignment.CenterEnd).clip(CircleShape).background(BrandBlueSoft).testTag("recording_switch")) {
-                                        Icon(Icons.Rounded.Cameraswitch, stringResource(R.string.recording_switch_camera), tint = Ink)
+                                        Icon(AppIcons.SwitchCamera, stringResource(R.string.recording_switch_camera), tint = Ink)
                                     }
                                 }
                             }
@@ -156,3 +158,7 @@ fun RecordingScreen(
 }
 
 private fun formatTimer(seconds: Int): String = "%02d:%02d".format(seconds / 60, seconds % 60)
+
+// Header, gelombang suara, tombol rekam, dan dua baris label butuh ~300dp (lebih pada huruf 130%); di bawah ini pratinjau terlalu kecil.
+private val MinFullRecordingHeight = 520.dp
+private val CompactPreviewHeight = 220.dp

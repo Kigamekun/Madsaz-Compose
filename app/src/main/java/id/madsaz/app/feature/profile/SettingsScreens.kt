@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.profile
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.madsaz.app.R
 import id.madsaz.app.data.local.AppLanguage
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.BrandBlue
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
@@ -62,7 +59,7 @@ fun LanguageScreen(onBack: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.language_title), modifier = Modifier.weight(1f), color = Ink, style = MaterialTheme.typography.headlineMedium)
-                IconButton(onClick = onBack) { Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk) }
+                IconButton(onClick = onBack) { Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk) }
             }
             AppLanguage.supported.forEach { (tag, name) ->
                 val flag = AppLanguage.flag(tag)
@@ -81,7 +78,7 @@ fun LanguageScreen(onBack: () -> Unit) {
                         }
                         Spacer(Modifier.width(12.dp))
                         Text(name, modifier = Modifier.weight(1f), color = Ink, style = MaterialTheme.typography.bodyLarge)
-                        if (tag == selected) Icon(Icons.Rounded.Check, null, tint = BrandBlue)
+                        if (tag == selected) Icon(AppIcons.Check, null, tint = BrandBlue)
                     }
                 }
             }
@@ -91,7 +88,7 @@ fun LanguageScreen(onBack: () -> Unit) {
 
 @Composable
 fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit, @StringRes titleRes: Int = R.string.profile_privacy_title) {
-    CompactContainer {
+    Box(Modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -138,6 +135,6 @@ fun PrivacyScreen(state: PrivacyUiState, onRetry: () -> Unit, onBack: () -> Unit
 @Composable
 private fun BackIcon(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
+        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Ink)
     }
 }

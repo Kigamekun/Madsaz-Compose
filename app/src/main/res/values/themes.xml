@@ -6,6 +6,8 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/brand_background</item>
         <item name="android:windowActionModeOverlay">true</item>
+        <!-- Sama dengan latar konten (AppBackground): di tablet sisi di luar kolom isi tidak tampak sebagai pita abu-abu. -->
+        <item name="android:windowBackground">@android:color/white</item>
     </style>
 
     <style name="Theme.Madsaz.Starting" parent="Theme.SplashScreen">

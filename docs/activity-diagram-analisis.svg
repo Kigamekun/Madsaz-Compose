@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1885" viewBox="0 0 900 1885" font-family="Arial, Helvetica, sans-serif">
+<defs><marker id="arr" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+<path d="M1,1 L11,6 L1,11" fill="none" stroke="#000" stroke-width="1.4"/></marker>
+<style>
+.act{fill:#fff;stroke:#000;stroke-width:1.4}
+.lane{fill:none;stroke:#000;stroke-width:1.6}
+.flow{fill:none;stroke:#000;stroke-width:1.3;marker-end:url(#arr)}
+.t{font-size:14px;text-anchor:middle;fill:#000}
+.d{font-size:13px;text-anchor:middle;fill:#000}
+.g{font-size:12.5px;fill:#000}
+.h{font-size:16px;text-anchor:middle;fill:#000}
+.title{font-size:18px;font-weight:bold;text-anchor:middle;fill:#000}
+</style></defs>
+<rect x="0" y="0" width="900" height="1885" fill="#fff"/>
+<text x="450.0" y="32" class="title">Activity Diagram Login hingga Analisis Tangisan Bayi (Madsaz)</text>
+<rect x="1" y="50" width="898" height="1834" class="lane"/>
+<line x1="1" y1="95" x2="899" y2="95" class="lane"/>
+<text x="150" y="78" class="h">Pengguna</text>
+<line x1="300" y1="50" x2="300" y2="1884" class="lane"/>
+<text x="450" y="78" class="h">Aplikasi Madsaz</text>
+<line x1="600" y1="50" x2="600" y2="1884" class="lane"/>
+<text x="750" y="78" class="h">Server (Backend)</text>
+<circle cx="150" cy="140" r="14" fill="#000"/>
+<path d="M150,154 L150,186" class="flow"/>
+<rect x="60.0" y="186.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="206.5" class="t">Membuka aplikasi</text>
+<text x="150" y="223.5" class="t">Madsaz</text>
+<path d="M240,210 L375,210" class="flow"/>
+<polygon points="450,175.0 525.0,210 450,245.0 375.0,210" class="act"/>
+<text x="450" y="207.0" class="d">Sesi login</text>
+<text x="450" y="222.0" class="d">tersimpan?</text>
+<path d="M525,210 L880,210 L880,670 L540,670" class="flow"/>
+<text x="560" y="203" class="g" text-anchor="middle">[ya]</text>
+<path d="M450,245 L450,281" class="flow"/>
+<text x="458" y="267" class="g" text-anchor="start">[tidak]</text>
+<rect x="360.0" y="281.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="301.5" class="t">Menampilkan</text>
+<text x="450" y="318.5" class="t">halaman masuk</text>
+<path d="M360,305 L240,305" class="flow"/>
+<rect x="60.0" y="281.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="301.5" class="t">Mengisi email dan</text>
+<text x="150" y="318.5" class="t">kata sandi</text>
+<path d="M150,329 L150,395 L360,395" class="flow"/>
+<rect x="360.0" y="371.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="391.5" class="t">Mengirim data</text>
+<text x="450" y="408.5" class="t">login</text>
+<path d="M540,395 L660,395" class="flow"/>
+<rect x="660.0" y="371.0" width="180" height="48" rx="14" class="act"/>
+<text x="750" y="391.5" class="t">Memverifikasi email</text>
+<text x="750" y="408.5" class="t">dan kata sandi</text>
+<path d="M750,419 L750,485 L525,485" class="flow"/>
+<polygon points="450,450.0 525.0,485 450,520.0 375.0,485" class="act"/>
+<text x="450" y="482.0" class="d">Login</text>
+<text x="450" y="497.0" class="d">berhasil?</text>
+<path d="M375,485 L240,485" class="flow"/>
+<text x="340" y="478" class="g" text-anchor="middle">[tidak]</text>
+<rect x="60.0" y="461.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="481.5" class="t">Melihat pesan</text>
+<text x="150" y="498.5" class="t">kesalahan login</text>
+<path d="M60,485 L30,485 L30,305 L60,305" class="flow"/>
+<path d="M450,520 L450,556" class="flow"/>
+<text x="458" y="542" class="g" text-anchor="start">[ya]</text>
+<rect x="360.0" y="556.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="576.5" class="t">Menyimpan</text>
+<text x="450" y="593.5" class="t">sesi login</text>
+<path d="M450,604 L450,646" class="flow"/>
+<rect x="360.0" y="646.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="666.5" class="t">Menampilkan</text>
+<text x="450" y="683.5" class="t">Beranda</text>
+<path d="M360,670 L150,670 L150,736" class="flow"/>
+<rect x="60.0" y="736.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="756.5" class="t">Menekan tombol</text>
+<text x="150" y="773.5" class="t">Rekam di Beranda</text>
+<path d="M240,760 L360,760" class="flow"/>
+<rect x="360.0" y="736.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="756.5" class="t">Meminta status</text>
+<text x="450" y="773.5" class="t">paket pengguna</text>
+<path d="M540,760 L660,760" class="flow"/>
+<rect x="660.0" y="736.0" width="180" height="48" rx="14" class="act"/>
+<text x="750" y="756.5" class="t">Mengirim status paket</text>
+<text x="750" y="773.5" class="t">dan sisa kuota</text>
+<path d="M750,784 L750,850 L525,850" class="flow"/>
+<polygon points="450,815.0 525.0,850 450,885.0 375.0,850" class="act"/>
+<text x="450" y="847.0" class="d">Kuota harian</text>
+<text x="450" y="862.0" class="d">habis?</text>
+<path d="M375,850 L240,850" class="flow"/>
+<text x="340" y="843" class="g" text-anchor="middle">[ya]</text>
+<rect x="60.0" y="826.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="846.5" class="t">Melihat ajakan</text>
+<text x="150" y="863.5" class="t">upgrade ke Plus</text>
+<path d="M150,874 L150,900" class="flow"/>
+<polygon points="150,900.0 215.0,935 150,970.0 85.0,935" class="act"/>
+<text x="150" y="932.0" class="d">Upgrade</text>
+<text x="150" y="947.0" class="d">ke Plus?</text>
+<path d="M215,935 L270,935 L270,1075 L20,1075 L20,1775 L135,1775" class="flow"/>
+<text x="242" y="927" class="g" text-anchor="middle">[tidak]</text>
+<path d="M150,970 L150,1006" class="flow"/>
+<text x="158" y="992" class="g" text-anchor="start">[ya]</text>
+<rect x="60.0" y="1006.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="1026.5" class="t">Berlangganan Plus</text>
+<text x="150" y="1043.5" class="t">via Google Play</text>
+<path d="M60,1030 L30,1030 L30,760 L60,760" class="flow"/>
+<text x="38" y="900" class="g" text-anchor="start">[rekam lagi]</text>
+<path d="M450,885 L450,1085" class="flow"/>
+<text x="458" y="990" class="g" text-anchor="start">[tidak]</text>
+<polygon points="450,1085.0 525.0,1120 450,1155.0 375.0,1120" class="act"/>
+<text x="450" y="1117.0" class="d">Izin kamera &amp;</text>
+<text x="450" y="1132.0" class="d">mikrofon ada?</text>
+<path d="M375,1120 L240,1120" class="flow"/>
+<text x="340" y="1113" class="g" text-anchor="middle">[belum]</text>
+<rect x="60.0" y="1096.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="1116.5" class="t">Memberi izin kamera</text>
+<text x="150" y="1133.5" class="t">dan mikrofon</text>
+<path d="M150,1144 L150,1210 L360,1210" class="flow"/>
+<path d="M450,1155 L450,1186" class="flow"/>
+<text x="458" y="1175" class="g" text-anchor="start">[sudah]</text>
+<rect x="360.0" y="1186.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="1206.5" class="t">Menampilkan</text>
+<text x="450" y="1223.5" class="t">pratinjau kamera</text>
+<path d="M450,1234 L450,1290 L240,1290" class="flow"/>
+<rect x="60.0" y="1266.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="1286.5" class="t">Merekam bayi menangis</text>
+<text x="150" y="1303.5" class="t">(maks. 5 detik)</text>
+<path d="M150,1314 L150,1370 L360,1370" class="flow"/>
+<rect x="360.0" y="1346.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="1366.5" class="t">Menyimpan dan</text>
+<text x="450" y="1383.5" class="t">mengunggah video</text>
+<path d="M540,1370 L660,1370" class="flow"/>
+<rect x="660.0" y="1346.0" width="180" height="48" rx="14" class="act"/>
+<text x="750" y="1366.5" class="t">Menerima dan</text>
+<text x="750" y="1383.5" class="t">menyimpan video</text>
+<path d="M750,1394 L750,1426" class="flow"/>
+<rect x="660.0" y="1426.0" width="180" height="48" rx="14" class="act"/>
+<text x="750" y="1446.5" class="t">Menganalisis pola</text>
+<text x="750" y="1463.5" class="t">tangisan bayi</text>
+<path d="M660,1450 L450,1450 L450,1506" class="flow"/>
+<rect x="360.0" y="1506.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="1526.5" class="t">Memeriksa hasil analisis</text>
+<text x="450" y="1543.5" class="t">(berkala tiap 2 detik)</text>
+<path d="M450,1554 L450,1585" class="flow"/>
+<polygon points="450,1585.0 525.0,1620 450,1655.0 375.0,1620" class="act"/>
+<text x="450" y="1617.0" class="d">Hasil analisis</text>
+<text x="450" y="1632.0" class="d">sudah siap?</text>
+<path d="M525,1620 L580,1620 L580,1530 L540,1530" class="flow"/>
+<text x="552" y="1613" class="g" text-anchor="middle">[belum]</text>
+<path d="M450,1655 L450,1681" class="flow"/>
+<text x="458" y="1672" class="g" text-anchor="start">[ya]</text>
+<rect x="360.0" y="1681.0" width="180" height="48" rx="14" class="act"/>
+<text x="450" y="1701.5" class="t">Menampilkan hasil</text>
+<text x="450" y="1718.5" class="t">pola tangisan</text>
+<path d="M360,1705 L240,1705" class="flow"/>
+<rect x="60.0" y="1681.0" width="180" height="48" rx="14" class="act"/>
+<text x="150" y="1701.5" class="t">Melihat hasil dan</text>
+<text x="150" y="1718.5" class="t">penjelasan pola tangisan</text>
+<path d="M150,1729 L150,1760" class="flow"/>
+<polygon points="150,1760.0 165.0,1775 150,1790.0 135.0,1775" class="act"/>
+<path d="M150,1790 L150,1821" class="flow"/>
+<circle cx="150" cy="1835" r="14" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<circle cx="150" cy="1835" r="9" fill="#000"/>
+</svg>

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +45,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import id.madsaz.app.R
 import id.madsaz.app.ui.theme.BrandBlue
@@ -62,20 +63,12 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Ruang tambahan kiri-kanan di layar lebar (tablet, ≥600dp): isi tetap selebar layar tetapi tidak menempel ke tepi.
+ * Di HP 0, sehingga margin bawaan tiap layar (16–20dp) tidak berubah.
+ */
 @Composable
-fun CompactContainer(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Box(Modifier.widthIn(max = 420.dp).fillMaxSize()) {
-            content()
-        }
-    }
-}
+fun screenGutter(): Dp = if (LocalConfiguration.current.screenWidthDp >= 600) 32.dp else 0.dp
 
 @Composable
 fun BabyMark(modifier: Modifier = Modifier) {
@@ -86,7 +79,7 @@ fun BabyMark(modifier: Modifier = Modifier) {
         contentColor = BrandBlue,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(painterResource(R.drawable.phosphor_baby), contentDescription = null, modifier = Modifier.size(24.dp))
+            Icon(AppIcons.Baby, contentDescription = null, modifier = Modifier.size(24.dp))
         }
     }
 }

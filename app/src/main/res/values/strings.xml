@@ -178,7 +178,6 @@
     <string name="profile_save">Simpan Perubahan</string>
 
     <!-- Masukan -->
-    <string name="feedback_eyebrow">Bantu bentuk Madsaz</string>
     <string name="feedback_title">Sampaikan pendapat Anda.</string>
     <string name="feedback_subtitle">Tanggapan singkat Anda sangat membantu kami untuk meningkatkan performa analisis aplikasi.</string>
     <string name="feedback_question">Bagaimana pengalaman Anda menggunakan Madsaz hari ini?</string>
@@ -187,13 +186,12 @@
     <string name="feedback_rating_3">Suka Sekali</string>
     <string name="feedback_improve_title">Apa yang perlu kami tingkatkan?</string>
     <string name="feedback_topic_accuracy">Akurasi Analisis</string>
-    <string name="feedback_topic_usability">Kemudahan Penggunaan</string>
+    <string name="feedback_topic_usability">Kemudahan</string>
     <string name="feedback_topic_other">Lainnya</string>
     <string name="feedback_note_prompt">Berikan saran Anda agar Madsaz menjadi lebih baik.</string>
     <string name="feedback_note_hint">Tuliskan masukan atau saran Anda di sini.</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Kirim Masukan</string>
-    <string name="feedback_requirements">Silakan beri penilaian untuk mengirimkan masukan. Pilihan topik dan catatan bersifat opsional.</string>
     <string name="feedback_sending">Mengirimkan…</string>
 
     <!-- Notifikasi -->

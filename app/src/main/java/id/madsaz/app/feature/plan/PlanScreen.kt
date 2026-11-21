@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.plan
 
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.app.Activity
@@ -25,10 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -177,7 +174,7 @@ private fun PlanSheetHeader(title: Int, onNavigateBack: (() -> Unit)?, onDismiss
     ) {
         if (onNavigateBack != null) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink)
+                Icon(AppIcons.ArrowBack, stringResource(R.string.common_back), tint = Ink)
             }
         }
         Text(
@@ -189,7 +186,7 @@ private fun PlanSheetHeader(title: Int, onNavigateBack: (() -> Unit)?, onDismiss
             fontWeight = FontWeight.SemiBold,
         )
         IconButton(onClick = onDismiss) {
-            Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+            Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk)
         }
     }
 }
@@ -285,7 +282,7 @@ private fun FreePlanContent(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(painterResource(R.drawable.ic_crown), contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            Icon(AppIcons.Crown, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                             Text(stringResource(R.string.plan_plus_promo_price), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -325,7 +322,7 @@ private fun FreeBenefit(label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(Modifier.size(28.dp), CircleShape, Color(0xFFE7F5FA), border = BorderStroke(1.dp, Color(0xFF2E6E54))) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Check, null, tint = Color(0xFF2E6E54), modifier = Modifier.size(18.dp))
+                Icon(AppIcons.Check, null, tint = Color(0xFF2E6E54), modifier = Modifier.size(18.dp))
             }
         }
         Text(label, modifier = Modifier.padding(start = 14.dp), color = Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)

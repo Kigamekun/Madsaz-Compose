@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,7 +29,7 @@ fun RecordingEmptyState(title: String, body: String, onRecord: () -> Unit, modif
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(painterResource(R.drawable.phosphor_clock_counter_clockwise), null, Modifier.size(32.dp), tint = MutedInk)
+        Icon(AppIcons.History, null, Modifier.size(32.dp), tint = MutedInk)
         Text(title, style = MaterialTheme.typography.titleMedium, color = Ink, textAlign = TextAlign.Center)
         Text(body, style = MaterialTheme.typography.bodyMedium, color = MutedInk, textAlign = TextAlign.Center)
         TextButton(onClick = onRecord, modifier = Modifier.heightIn(min = 48.dp).testTag("empty_record")) {

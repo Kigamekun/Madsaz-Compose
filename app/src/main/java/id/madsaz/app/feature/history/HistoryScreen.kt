@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.history
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -21,8 +23,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.HorizontalDivider
 import id.madsaz.app.ui.components.RecordingEmptyState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,10 +46,8 @@ import id.madsaz.app.R
 import id.madsaz.app.ui.components.cueTitle
 import id.madsaz.app.model.CryCue
 import id.madsaz.app.ui.components.cryCueLabel
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.components.formatDuration
@@ -77,7 +75,7 @@ fun HistoryScreen(
     refreshing: Boolean = false,
     onPullRefresh: () -> Unit = {},
 ) {
-    CompactContainer(modifier = modifier) {
+    Box(modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { when (state) {
             HistoryUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp, color = BrandBlue)
@@ -191,7 +189,7 @@ private fun HistoryRecordingRow(
             )
         }
         // Penanda bahwa baris membuka detail (video dan hasil). Dekoratif: seluruh baris adalah satu tombol.
-        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MutedInk)
+        Icon(AppIcons.ChevronRight, contentDescription = null, tint = MutedInk)
     }
 }
 

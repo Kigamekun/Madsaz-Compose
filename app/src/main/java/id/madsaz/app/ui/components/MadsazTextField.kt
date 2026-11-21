@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,7 +70,7 @@ fun MadsazTextField(
             trailingIcon = if (secret) ({
                 IconButton(onClick = { visible = !visible }, enabled = enabled) {
                     Icon(
-                        if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                        if (visible) AppIcons.EyeOff else AppIcons.Eye,
                         stringResource(if (visible) R.string.auth_hide_password else R.string.auth_show_password),
                     )
                 }

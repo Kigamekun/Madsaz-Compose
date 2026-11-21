@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.profile
 
+import id.madsaz.app.ui.components.AppIcons
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,7 +70,7 @@ fun ChangePasswordSheet(state: ChangePasswordState, onSubmit: (String, String, S
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.profile_password_title), Modifier.weight(1f), color = Ink, style = MaterialTheme.typography.headlineSmall)
-                IconButton(onClick = onDismiss, enabled = !submitting) { Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk) }
+                IconButton(onClick = onDismiss, enabled = !submitting) { Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk) }
             }
             val error = state as? ChangePasswordState.Error
             MadsazTextField(current, { current = it }, stringResource(R.string.password_current), Modifier.testTag("password_current"), enabled = !submitting, secret = true,

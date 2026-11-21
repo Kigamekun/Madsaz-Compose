@@ -21,16 +21,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -40,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -123,7 +116,7 @@ private fun FloatingNav(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier.fillMaxWidth().padding(horizontal = 12.dp).widthIn(max = 420.dp).height(navHeight),
+        modifier.fillMaxWidth().padding(horizontal = 12.dp + screenGutter()).height(navHeight),
         contentAlignment = Alignment.BottomCenter,
     ) {
         // Lembut: bayangan lebar dan pucat berwarna biru-abu (bukan bayangan gelap Material), tepi tipis nyaris tak terlihat.
@@ -136,11 +129,11 @@ private fun FloatingNav(
         ) {
             // Lima kolom sama lebar; kolom tengah dikosongkan untuk tombol Rekam. Row ikut mencerminkan di RTL.
             Row(Modifier.fillMaxSize().selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-                NavItem(MainDestination.HOME, selected, Icons.Outlined.Home, R.string.nav_home, "nav_home", onNavigate)
-                NavItem(MainDestination.HISTORY, selected, Icons.Outlined.History, R.string.nav_history, "nav_history", onNavigate)
+                NavItem(MainDestination.HOME, selected, AppIcons.House, R.string.nav_home, "nav_home", onNavigate)
+                NavItem(MainDestination.HISTORY, selected, AppIcons.History, R.string.nav_history, "nav_history", onNavigate)
                 Spacer(Modifier.weight(1f))
-                NavItem(MainDestination.CUES, selected, Icons.AutoMirrored.Outlined.MenuBook, R.string.nav_cues, "nav_cues", onNavigate)
-                NavItem(MainDestination.PROFILE, selected, Icons.Outlined.Person, R.string.nav_profile, "nav_profile", onNavigate)
+                NavItem(MainDestination.CUES, selected, AppIcons.BookOpen, R.string.nav_cues, "nav_cues", onNavigate)
+                NavItem(MainDestination.PROFILE, selected, AppIcons.User, R.string.nav_profile, "nav_profile", onNavigate)
             }
         }
         RecordAction(onRecord, Modifier.align(Alignment.BottomCenter).padding(bottom = recordBottomPadding))
@@ -204,7 +197,7 @@ private fun RecordAction(onRecord: () -> Unit, modifier: Modifier = Modifier) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Surface(modifier = Modifier.size(RecordButtonSize), shape = CircleShape, color = BrandBlue) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(painterResource(R.drawable.phosphor_camera), contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                        Icon(AppIcons.Camera, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
                     }
                 }
             }
@@ -219,16 +212,6 @@ private fun RecordAction(onRecord: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * Label navigasi ikut ukuran huruf sistem sampai 130%, lalu berhenti membesar: lima slot di layar 360dp tidak muat
- * untuk satu kata pada 200% ("Beranda", "Petunjuk"), dan label terpotong lebih buruk daripada label yang sedikit lebih kecil.
- * Teks lain di layar tetap mengikuti ukuran huruf penuh.
- */
+/** Ukuran huruf label navigasi; batas 130% ukuran huruf sistem sudah diterapkan [id.madsaz.app.ui.theme.MadsazTheme]. */
 @Composable
-private fun navLabelStyle(): TextStyle {
-    val fontScale = LocalDensity.current.fontScale
-    val factor = minOf(fontScale, MaxNavLabelScale) / fontScale
-    return MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * factor, lineHeight = 16.sp * factor)
-}
-
-private const val MaxNavLabelScale = 1.3f
+private fun navLabelStyle(): TextStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 16.sp)

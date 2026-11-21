@@ -193,7 +193,6 @@
     <string name="profile_save">حفظ التغييرات</string>
 
     <!-- الملاحظات -->
-    <string name="feedback_eyebrow">ساعد في تشكيل Madsaz</string>
     <string name="feedback_title">شاركنا رأيك</string>
     <string name="feedback_subtitle">بضع نقرات تساعدنا على جعل الاستماع أكثر فائدة.</string>
     <string name="feedback_question">كيف كانت تجربتك مع Madsaz اليوم؟</string>
@@ -208,7 +207,6 @@
     <string name="feedback_note_hint">اكتب ملاحظتك هنا…</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">إرسال الملاحظات</string>
-    <string name="feedback_requirements">اختر تقييمًا للإرسال. الموضوع والملاحظة اختياريان.</string>
     <string name="feedback_sending">جارٍ الإرسال…</string>
 
     <!-- الإشعارات -->

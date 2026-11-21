@@ -7,7 +7,10 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -89,9 +92,19 @@ private val MadsazShapes = Shapes(
     extraLarge = RoundedCornerShape(24.dp),
 )
 
+/**
+ * Ukuran huruf sistem diikuti sampai 130%, lalu berhenti: di atas itu judul dan kartu berukuran tetap tidak muat di layar 360dp.
+ * Di bawah batas, Density asli dipakai apa adanya supaya skala huruf non-linear Android 14+ tetap berlaku.
+ */
+const val MaxFontScale = 1.3f
+
 @Composable
 fun MadsazTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = MadsazColors, typography = MadsazTypography, shapes = MadsazShapes, content = content)
+    val density = LocalDensity.current
+    val capped = if (density.fontScale > MaxFontScale) Density(density.density, MaxFontScale) else density
+    CompositionLocalProvider(LocalDensity provides capped) {
+        MaterialTheme(colorScheme = MadsazColors, typography = MadsazTypography, shapes = MadsazShapes, content = content)
+    }
 }
 
 /**
