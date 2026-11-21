@@ -67,6 +67,7 @@ fun RecordingScreen(
     cameraReady: Boolean = true,
     cameraPreview: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
+    onPickVideo: (() -> Unit)? = null,
 ) {
     BackHandler(enabled = state == RecordingUiState.PermissionRequired || state == RecordingUiState.Ready) { onBack() }
     Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.safeDrawing) { padding ->
@@ -79,6 +80,9 @@ fun RecordingScreen(
                         Text(stringResource(R.string.permission_body), style = MaterialTheme.typography.bodyMedium, color = MutedInk, textAlign = TextAlign.Center)
                         Button(onClick = if (permissionPreviouslyRequested) onOpenSettings else onRequestPermission, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(if (permissionPreviouslyRequested) R.string.permission_settings else R.string.permission_allow))
+                        }
+                        if (onPickVideo != null) {
+                            TextButton(onClick = onPickVideo) { Text(stringResource(R.string.recording_pick_video)) }
                         }
                         TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
                     }
@@ -132,6 +136,15 @@ fun RecordingScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(if (recording) AppIcons.StopCircle else AppIcons.Camera, stringResource(if (recording) R.string.recording_stop else R.string.recording_start), Modifier.size(30.dp), tint = Color.White)
+                                    }
+                                }
+                                if (!recording && onPickVideo != null) {
+                                    IconButton(
+                                        onClick = onPickVideo,
+                                        modifier = Modifier.align(Alignment.CenterStart).size(48.dp).clip(CircleShape)
+                                            .background(BrandBlueSoft).testTag("recording_upload"),
+                                    ) {
+                                        Icon(Icons.Rounded.FileUpload, stringResource(R.string.recording_pick_video), Modifier.size(24.dp), tint = Ink)
                                     }
                                 }
                                 if (canSwitchCamera && !recording) {

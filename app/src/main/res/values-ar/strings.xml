@@ -88,6 +88,16 @@
     <string name="recording_save_error">تعذّر حفظ الفيديو. يرجى محاولة التسجيل مرة أخرى.</string>
     <string name="recording_upload_error">لم يكتمل رفع الفيديو إلى الخادم. الملف المؤقت ما زال موجودًا؛ تحقّق من الاتصال ثم اضغط «حاول مرة أخرى».</string>
     <string name="recording_keep_baby_in_view">أبقِ الطفل في الإطار</string>
+    <string name="recording_pick_video">اختر ملف فيديو</string>
+    <string name="recording_trim_title">قص الفيديو</string>
+    <string name="recording_trim_hint">اسحب مقابض القص. الحد الأقصى ٥ ثوانٍ.</string>
+    <string name="recording_trim_duration">%1$.2f ثانية</string>
+    <string name="recording_trim_play">تشغيل المقطع</string>
+    <string name="recording_trim_pause">إيقاف المقطع مؤقتًا</string>
+    <string name="recording_trim_upload">رفع</string>
+    <string name="recording_trim_preparing">جارٍ تجهيز المقطع…</string>
+    <string name="recording_trim_read_error">تعذّر فتح هذا الفيديو.</string>
+    <string name="recording_trim_export_error">تعذّر تجهيز المقطع. جرّب قصه مجددًا أو اختر فيديو آخر.</string>
     <string name="recording_tap_to_record">اضغط للتسجيل</string>
     <string name="recording_camera_ready">الكاميرا والميكروفون جاهزان</string>
     <string name="recording_camera_starting">جارٍ تشغيل الكاميرا…</string>

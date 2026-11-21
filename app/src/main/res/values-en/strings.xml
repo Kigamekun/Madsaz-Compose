@@ -84,6 +84,16 @@
     <string name="recording_save_error">The video couldn\'t be saved. Please try recording again.</string>
     <string name="recording_upload_error">The video hasn\'t finished uploading. The temporary file is kept; check your connection and tap Try again.</string>
     <string name="recording_keep_baby_in_view">Keep your baby in view</string>
+    <string name="recording_pick_video">Choose a video file</string>
+    <string name="recording_trim_title">Trim video</string>
+    <string name="recording_trim_hint">Drag the clip handles. Max 5 seconds.</string>
+    <string name="recording_trim_duration">%1$.2f seconds</string>
+    <string name="recording_trim_play">Play clip</string>
+    <string name="recording_trim_pause">Pause clip</string>
+    <string name="recording_trim_upload">Upload</string>
+    <string name="recording_trim_preparing">Preparing clip…</string>
+    <string name="recording_trim_read_error">This video could not be opened.</string>
+    <string name="recording_trim_export_error">Could not prepare the clip. Try trimming it again or choose a different video.</string>
     <string name="recording_tap_to_record">Tap to record</string>
     <string name="recording_camera_ready">Camera + microphone ready</string>
     <string name="recording_camera_starting">Starting the camera…</string>

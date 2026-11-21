@@ -87,6 +87,16 @@
     <string name="recording_save_error">Video gagal disimpan. Silakan coba merekam ulang.</string>
     <string name="recording_upload_error">Video belum selesai diunggah ke server. Fail sementara masih tersimpan: periksa koneksi internet Anda, lalu ketuk. Coba lagi.</string>
     <string name="recording_keep_baby_in_view">Pastikan bayi tetap terlihat</string>
+    <string name="recording_pick_video">Pilih file video</string>
+    <string name="recording_trim_title">Potong video</string>
+    <string name="recording_trim_hint">Geser batas klip. Maksimal 5 detik.</string>
+    <string name="recording_trim_duration">%1$.2f detik</string>
+    <string name="recording_trim_play">Putar klip</string>
+    <string name="recording_trim_pause">Jeda klip</string>
+    <string name="recording_trim_upload">Unggah</string>
+    <string name="recording_trim_preparing">Menyiapkan klip…</string>
+    <string name="recording_trim_read_error">Video ini tidak bisa dibaca.</string>
+    <string name="recording_trim_export_error">Klip gagal disiapkan. Coba potong ulang atau pilih video lain.</string>
     <string name="recording_tap_to_record">Ketuk untuk merekam</string>
     <string name="recording_camera_ready">Kamera dan mikrofon siap</string>
     <string name="recording_camera_starting">Menyiapkan kamera…</string>

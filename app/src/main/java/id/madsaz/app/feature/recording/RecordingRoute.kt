@@ -9,6 +9,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.video.FileOutputOptions
@@ -83,6 +84,11 @@ fun RecordingRoute(
         permissionsGranted = context.hasRecordingPermissions()
     }
 
+    var selectedVideo by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        selectedVideo = uri
+    }
+
     val latestActiveRecording by rememberUpdatedState(activeRecording)
 
     // Tombol ganti kamera hanya bila CameraX benar-benar menemukan kedua lensa (CameraController.hasCamera, setelah kamera
@@ -137,6 +143,21 @@ fun RecordingRoute(
 
     BackHandler(enabled = state is RecordingUiState.Recording) { stopRecording() }
     BackHandler(enabled = state is RecordingUiState.Saving || state is RecordingUiState.Analyzing) { }
+
+    val video = selectedVideo
+    if (video != null && (state == RecordingUiState.Ready || state == RecordingUiState.PermissionRequired)) {
+        VideoTrimScreen(
+            uri = video,
+            onBack = { selectedVideo = null },
+            createOutputFile = viewModel::createOutputFile,
+            onUpload = { file ->
+                selectedVideo = null
+                viewModel.onRecordingFinalized(file)
+            },
+            modifier = modifier,
+        )
+        return
+    }
 
     when (state) {
         RecordingUiState.PermissionRequired,
@@ -208,6 +229,11 @@ fun RecordingRoute(
                 }
             },
             onStop = ::stopRecording,
+            onPickVideo = {
+                if (activeRecording == null) {
+                    videoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+                }
+            },
             audioLevels = audioLevels,
             cameraReady = cameraReady,
             cameraPreview = { previewModifier ->

@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.video)
+    implementation("androidx.media3:media3-transformer:1.9.0")
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.lucide.icons)
