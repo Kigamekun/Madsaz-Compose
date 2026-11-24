@@ -36,11 +36,14 @@ object AppIcons {
     val Lock @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_lock)
     val Mail @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_mail)
     val Meh @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_meh)
+    val Pause @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_pause)
+    val Play @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_play)
     val ShieldCheck @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_shield_check)
     val Smile @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_smile)
     val StopCircle @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_circle_stop)
     val SwitchCamera @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_switch_camera)
     val Trash @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_trash_2)
+    val Upload @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_upload)
     val User @Composable get() = ImageVector.vectorResource(LucideR.drawable.lucide_ic_user)
 }
 

@@ -138,18 +138,22 @@ fun RecordingScreen(
                                         Icon(if (recording) AppIcons.StopCircle else AppIcons.Camera, stringResource(if (recording) R.string.recording_stop else R.string.recording_start), Modifier.size(30.dp), tint = Color.White)
                                     }
                                 }
+                                val sideButton = Modifier.size(48.dp).clip(CircleShape).background(BrandBlueSoft)
                                 if (!recording && onPickVideo != null) {
                                     IconButton(
                                         onClick = onPickVideo,
-                                        modifier = Modifier.align(Alignment.CenterStart).size(48.dp).clip(CircleShape)
-                                            .background(BrandBlueSoft).testTag("recording_upload"),
+                                        modifier = Modifier.align(Alignment.CenterStart).then(sideButton).testTag("recording_upload"),
                                     ) {
-                                        Icon(Icons.Rounded.FileUpload, stringResource(R.string.recording_pick_video), Modifier.size(24.dp), tint = Ink)
+                                        Icon(AppIcons.Upload, stringResource(R.string.recording_pick_video), Modifier.size(24.dp), tint = Ink)
                                     }
                                 }
                                 if (canSwitchCamera && !recording) {
-                                    IconButton(onClick = onSwitchCamera, enabled = cameraReady, modifier = Modifier.align(Alignment.CenterEnd).clip(CircleShape).background(BrandBlueSoft).testTag("recording_switch")) {
-                                        Icon(AppIcons.SwitchCamera, stringResource(R.string.recording_switch_camera), tint = Ink)
+                                    IconButton(
+                                        onClick = onSwitchCamera,
+                                        enabled = cameraReady,
+                                        modifier = Modifier.align(Alignment.CenterEnd).then(sideButton).testTag("recording_switch"),
+                                    ) {
+                                        Icon(AppIcons.SwitchCamera, stringResource(R.string.recording_switch_camera), Modifier.size(24.dp), tint = Ink)
                                     }
                                 }
                             }
