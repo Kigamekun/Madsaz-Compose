@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.profile
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -39,17 +41,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.NotificationsNone
-import androidx.compose.material.icons.rounded.PrivacyTip
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.WorkspacePremium
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -91,7 +82,6 @@ import androidx.compose.material3.ripple
 import id.madsaz.app.R
 import id.madsaz.app.data.remote.AccountProfile
 import id.madsaz.app.feature.auth.DeleteAccountState
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.ProfileAvatar
 import id.madsaz.app.ui.components.formatStorageSize
 import id.madsaz.app.ui.theme.BrandBlueDark
@@ -168,7 +158,7 @@ fun ProfileScreen(
     }
 
     Scaffold(modifier = modifier, containerColor = Color.White, contentWindowInsets = WindowInsets.statusBars) { padding ->
-        CompactContainer(Modifier.padding(padding).consumeWindowInsets(padding)) {
+        Box(Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize().padding(horizontal = screenGutter())) {
             PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { LazyColumn(
                 modifier = Modifier.fillMaxSize().testTag("profile_screen"),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = contentPadding.calculateBottomPadding() + 20.dp),
@@ -184,15 +174,15 @@ fun ProfileScreen(
                 val shownError = photoErrorRes ?: (state as? ProfileUiState.Content)?.errorRes
                 if (shownError != null && !editing) item { Text(stringResource(shownError), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 item { Text(stringResource(R.string.profile_account), Modifier.padding(top = 20.dp, bottom = 8.dp), style = MaterialTheme.typography.labelLarge, color = MutedInk) }
-                item { ProfileRow(Icons.Rounded.WorkspacePremium, stringResource(R.string.plan_plus_brand), stringResource(plusSubtitleRes), onPlan) }
-                item { ProfileRow(Icons.Rounded.Lock, stringResource(R.string.profile_password_title), stringResource(R.string.profile_password_subtitle), onChangePassword, tag = "profile_password") }
-                item { ProfileRow(Icons.Rounded.NotificationsNone, stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), onNotifications) }
-                item { ProfileRow(Icons.Rounded.PrivacyTip, stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle), onPrivacy) }
-                item { ProfileRow(Icons.Rounded.Language, stringResource(R.string.profile_language_title), stringResource(R.string.profile_language_subtitle), onLanguage) }
+                item { ProfileRow(AppIcons.Crown, stringResource(R.string.plan_plus_brand), stringResource(plusSubtitleRes), onPlan) }
+                item { ProfileRow(AppIcons.Lock, stringResource(R.string.profile_password_title), stringResource(R.string.profile_password_subtitle), onChangePassword, tag = "profile_password") }
+                item { ProfileRow(AppIcons.Bell, stringResource(R.string.notifications_title), stringResource(R.string.profile_notifications_subtitle), onNotifications) }
+                item { ProfileRow(AppIcons.ShieldCheck, stringResource(R.string.profile_privacy_title), stringResource(R.string.profile_privacy_subtitle), onPrivacy) }
+                item { ProfileRow(AppIcons.Globe, stringResource(R.string.profile_language_title), stringResource(R.string.profile_language_subtitle), onLanguage) }
                 item { Spacer(Modifier.height(16.dp)) }
                 item {
                     ProfileRow(
-                        Icons.AutoMirrored.Rounded.Logout,
+                        AppIcons.LogOut,
                         stringResource(R.string.profile_logout_title),
                         stringResource(R.string.profile_logout_subtitle),
                         onLogout,
@@ -201,7 +191,7 @@ fun ProfileScreen(
                         loading = loggingOut,
                     )
                 }
-                item { ProfileRow(Icons.Rounded.DeleteOutline, stringResource(R.string.profile_delete_title), stringResource(R.string.profile_delete_subtitle), { confirmingDelete = true }, destructive = true, tag = "profile_delete") }
+                item { ProfileRow(AppIcons.Trash, stringResource(R.string.profile_delete_title), stringResource(R.string.profile_delete_subtitle), { confirmingDelete = true }, destructive = true, tag = "profile_delete") }
                 item {
                     if (recordingCount != null && storageBytes != null) Text(
                         pluralStringResource(R.plurals.profile_usage, recordingCount, recordingCount, formatStorageSize(storageBytes)),
@@ -305,7 +295,7 @@ private fun EditableAvatar(account: AccountProfile, saving: Boolean, changePhoto
         ProfileAvatar(account.avatarUrl, account.name, Modifier.size(60.dp).align(Alignment.TopStart), initialSize = 24.sp)
         Surface(Modifier.size(26.dp).align(Alignment.BottomEnd), shape = CircleShape, color = BrandBlueDark, border = BorderStroke(2.dp, Color.White)) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+                Icon(AppIcons.Camera, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
             }
         }
     }
@@ -346,7 +336,7 @@ private fun ProfileRow(
                     Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MutedInk)
                 }
                 if (loading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = accent)
-                else Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, Modifier.size(20.dp), tint = MutedInk)
+                else Icon(AppIcons.ArrowForward, null, Modifier.size(20.dp), tint = MutedInk)
             }
         }
         HorizontalDivider(color = CardBorder)
@@ -380,7 +370,7 @@ private fun AccountEditSheet(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.profile_account_row_title), Modifier.weight(1f), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 IconButton(onClick = onDismiss, enabled = !saving) {
-                    Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+                    Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk)
                 }
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {

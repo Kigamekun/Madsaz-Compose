@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.notifications
 
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.Manifest
@@ -22,8 +23,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -118,7 +117,7 @@ fun NotificationsScreen(viewModel: NotificationsViewModel, onBack: () -> Unit) {
                     fontWeight = FontWeight.SemiBold,
                 )
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+                    Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk)
                 }
             }
             Surface(

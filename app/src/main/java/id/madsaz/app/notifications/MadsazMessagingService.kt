@@ -45,7 +45,7 @@ class MadsazMessagingService : FirebaseMessagingService() {
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(this, getString(R.string.notification_channel_plan_id))
-            .setSmallIcon(R.drawable.phosphor_baby)
+            .setSmallIcon(com.composables.icons.lucide.R.drawable.lucide_ic_baby)
             .setColor(getColor(R.color.notification_accent))
             .setContentTitle(title)
             .setContentText(body)

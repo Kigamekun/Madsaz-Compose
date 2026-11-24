@@ -130,7 +130,7 @@ class UiComponentsTest {
         }
         compose.onNodeWithText(context.getString(R.string.plan_explore_plus)).performClick()
 
-        compose.onAllNodes(isSelectable()).assertCountEquals(2)
+        compose.onAllNodes(isSelectable()).assertCountEquals(3)
         compose.onAllNodes(isSelected()).assertCountEquals(1)
     }
 

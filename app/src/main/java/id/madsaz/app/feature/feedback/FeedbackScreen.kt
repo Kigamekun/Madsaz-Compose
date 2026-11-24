@@ -1,8 +1,11 @@
 package id.madsaz.app.feature.feedback
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
@@ -46,19 +49,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.icons.rounded.SentimentDissatisfied
-import androidx.compose.material.icons.rounded.SentimentNeutral
-import androidx.compose.material.icons.rounded.SentimentSatisfied
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import id.madsaz.app.R
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.Icons
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.theme.BrandBlueSoft
 import id.madsaz.app.ui.theme.Ink
 import id.madsaz.app.ui.theme.MutedInk
@@ -82,14 +78,10 @@ fun FeedbackScreen(
     val noteLabel = stringResource(R.string.feedback_note_prompt)
     LaunchedEffect(state) { if (state is FeedbackUiState.Sent) onSubmitted() }
 
-    CompactContainer {
+    Box(Modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         Column(Modifier.fillMaxSize().background(Color.White).windowInsetsPadding(WindowInsets.safeDrawing).imePadding().verticalScroll(rememberScrollState())) {
-            // Masukan bersifat opsional: tombol tutup yang terlihat, bukan hanya tombol kembali sistem.
-            IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 4.dp)) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = Ink)
-            }
-            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
-                Text(stringResource(R.string.feedback_eyebrow), color = FeedbackBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            // Masukan bersifat opsional: keluar lewat tombol "Lewati" di bawah atau tombol kembali sistem.
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 24.dp, bottom = 24.dp)) {
                 Text(
                     stringResource(R.string.feedback_title),
                     color = Ink,
@@ -111,9 +103,9 @@ fun FeedbackScreen(
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.selectableGroup()) {
                             listOf(
-                                Icons.Rounded.SentimentDissatisfied to R.string.feedback_rating_1,
-                                Icons.Rounded.SentimentNeutral to R.string.feedback_rating_2,
-                                Icons.Rounded.SentimentSatisfied to R.string.feedback_rating_3,
+                                AppIcons.Frown to R.string.feedback_rating_1,
+                                AppIcons.Meh to R.string.feedback_rating_2,
+                                AppIcons.Smile to R.string.feedback_rating_3,
                             ).forEachIndexed { index, (icon, labelRes) ->
                                 RatingCard(icon, stringResource(labelRes), rating == index + 1, { rating = index + 1 }, Modifier.weight(1f).testTag("feedback_rating_${index + 1}"))
                             }
@@ -153,11 +145,7 @@ fun FeedbackScreen(
                 Text(stringResource(R.string.feedback_note_hint), style = MaterialTheme.typography.bodySmall, color = MutedInk, modifier = Modifier.padding(top = 6.dp))
                 Text(stringResource(R.string.feedback_note_counter, note.length, MAX_NOTE_LENGTH), modifier = Modifier.fillMaxWidth(), color = MutedInk, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.End)
                 Spacer(Modifier.height(24.dp))
-                // Hanya penilaian yang wajib; topik dan catatan boleh dikosongkan.
-                if (rating == 0) {
-                    Text(stringResource(R.string.feedback_requirements), color = MutedInk, style = MaterialTheme.typography.bodySmall)
-                    Spacer(Modifier.height(10.dp))
-                }
+                // Hanya penilaian yang wajib (tombol kirim nonaktif sampai dipilih); topik dan catatan boleh dikosongkan.
                 if (state is FeedbackUiState.Error) {
                     Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(10.dp))
@@ -195,7 +183,14 @@ private fun FeedbackChoice(
         border = if (selected || filled) null else BorderStroke(1.dp, FeedbackBorder),
     ) {
         Box(Modifier.padding(horizontal = 8.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
-            Text(label, color = if (selected) Color.White else FeedbackBlue, fontSize = 14.sp, textAlign = TextAlign.Center)
+            // Label satu kata ("Kemudahan") tidak boleh terpotong di tengah kata pada chip sempit/huruf besar: satu baris dan mengecil.
+            Text(
+                label,
+                color = if (selected) Color.White else FeedbackBlue,
+                textAlign = TextAlign.Center,
+                maxLines = if (' ' in label) 2 else 1,
+                autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 14.sp),
+            )
         }
     }
 }

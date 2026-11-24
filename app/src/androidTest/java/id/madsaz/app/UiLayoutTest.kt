@@ -65,6 +65,7 @@ class UiLayoutTest {
                 setLocales(LocaleList(Locale.forLanguageTag(spec.language)))
                 fontScale = spec.scale
                 screenWidthDp = spec.width
+                spec.height?.let { screenHeightDp = it }
             }
             val localized = context.createConfigurationContext(configuration)
             val density = LocalDensity.current.density
@@ -79,7 +80,8 @@ class UiLayoutTest {
             ) {
                 MadsazTheme {
                     Box(Modifier.fillMaxSize().background(Color.White), contentAlignment = Alignment.TopCenter) {
-                        Box(Modifier.requiredWidth(spec.width.dp).fillMaxHeight().testTag("layout")) {
+                        val size = spec.height?.let { Modifier.requiredSize(spec.width.dp, it.dp) } ?: Modifier.requiredWidth(spec.width.dp).fillMaxHeight()
+                        Box(size.testTag("layout")) {
                             key(spec) { Screen(spec.screen) }
                         }
                     }
@@ -87,13 +89,17 @@ class UiLayoutTest {
             }
         }
         val overflows = mutableListOf<String>()
-        // Tiga ukuran saja: kecil (360dp dengan huruf besar), sedang (411dp), besar (600dp, tablet kecil); layar inti di tiga bahasa.
-        for ((width, scale) in listOf(360 to 1.3f, 411 to 1f, 600 to 1f)) {
+        // Lebar kecil (360dp dengan huruf besar), sedang (411dp), besar (600dp, tablet kecil), lalu jendela pendek:
+        // tablet landscape/split-screen dengan keyboard (600x320dp) dan HP split-screen (360x300dp). Layar inti di tiga bahasa.
+        val sizes = listOf(Triple(360, null, 1.3f), Triple(411, null, 1f), Triple(600, null, 1f), Triple(600, 320, 1f), Triple(360, 300, 1.3f))
+        for ((width, height, scale) in sizes) {
             for (language in listOf("id", "en", "ar")) for (screen in listOf("home_free", "history", "cues", "cue", "profile", "recording", "auth", "register", "feedback")) {
-                val next = LayoutSpec(language, scale, width, screen)
+                val next = LayoutSpec(language, scale, width, screen, height)
                 compose.runOnIdle { spec = next }
                 compose.waitForIdle()
                 if (screen == "recording") {
+                    // Di jendela pendek tombol rekam boleh di bawah, asalkan bisa digulir ke layar.
+                    if (height != null) compose.onNodeWithTag("recording_start").performScrollTo()
                     compose.onNodeWithTag("recording_start").assertIsDisplayed()
                     compose.onNodeWithTag("recording_switch").assertIsDisplayed()
                 }
@@ -109,7 +115,7 @@ class UiLayoutTest {
                 }
                 if (saveScreenshots) {
                     val directory = File(context.cacheDir, "ui-audit").apply { mkdirs() }
-                    File(directory, "$screen-$width-$scale-$language.png").outputStream().use {
+                    File(directory, "$screen-$width${height?.let { "x$it" }.orEmpty()}-$scale-$language.png").outputStream().use {
                         compose.onNodeWithTag("layout").captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
                     }
                 }
@@ -148,5 +154,5 @@ class UiLayoutTest {
         }
     }
 
-    private data class LayoutSpec(val language: String, val scale: Float, val width: Int, val screen: String)
+    private data class LayoutSpec(val language: String, val scale: Float, val width: Int, val screen: String, val height: Int? = null)
 }

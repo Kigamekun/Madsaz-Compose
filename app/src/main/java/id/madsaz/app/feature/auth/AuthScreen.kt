@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.auth
 
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
@@ -24,15 +25,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -80,8 +78,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.semantics.Role
 import id.madsaz.app.R
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.LightStatusBarIcons
+import id.madsaz.app.ui.components.screenGutter
 import id.madsaz.app.ui.components.MadsazTextField
 import id.madsaz.app.ui.theme.BrandBlueDark
 import id.madsaz.app.ui.theme.BrandBlue
@@ -125,174 +123,176 @@ fun AuthScreen(
     val submit = { if (!submitting) { focus.clearFocus(); onSubmit(register, name, email, password, confirmPassword, acceptTerms) } }
 
     LightStatusBarIcons()
-    CompactContainer {
-        BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFEFF8FC)).imePadding()) {
-            // Tinggi hero = sisa layar di atas kartu: kartu pas mengisi layar (tanpa sisa kosong di bawah dan tanpa digulir di layar
-            // umum). Bila formulir lebih tinggi dari itu (layar pendek, keyboard, huruf besar), hero berhenti mengecil dan kartu digulir.
-            val density = LocalDensity.current
-            val heroHeight = (maxHeight - with(density) { cardContentPx.toDp() } + CardOverlap).coerceIn(MinHeroHeight, maxHeight * 0.45f)
-            Image(
-                painter = painterResource(R.drawable.auth_hero),
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(heroHeight),
-                contentScale = ContentScale.Crop,
-            )
-            Box(
-                Modifier.fillMaxWidth().height(heroHeight)
-                    .background(Brush.horizontalGradient(0f to BrandBlueDark.copy(alpha = 0.32f), 0.7f to BrandBlueDark.copy(alpha = 0.48f), 1f to Color.Transparent)),
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, top = 16.dp, end = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = RoundedCornerShape(13.dp), color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
-                        Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.55f))
-                    }
-                    Text(
-                        stringResource(R.string.auth_brand),
-                        modifier = Modifier.padding(start = 10.dp).weight(1f),
-                        color = Color.White,
-                        fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    // Bahasa bisa diganti sebelum masuk; layar ini dan dokumen S&K/privasi langsung mengikuti.
-                    // Area sentuh 48dp (standar aksesibilitas) berisi lingkaran visual seukuran logo.
-                    Box(
-                        Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onLanguage).testTag("auth_language"),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    AppLanguage.flag(language),
-                                    fontSize = 24.sp,
-                                    lineHeight = 28.sp,
-                                    modifier = Modifier.semantics { contentDescription = languageDescription },
-                                )
-                            }
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFEFF8FC)).imePadding()) {
+        // Tinggi hero = sisa layar di atas kartu: kartu pas mengisi layar (tanpa sisa kosong di bawah dan tanpa digulir di layar
+        // umum). Bila formulir lebih tinggi dari itu (layar pendek, keyboard, huruf besar), hero berhenti mengecil dan kartu digulir.
+        val density = LocalDensity.current
+        // Batas atas tidak boleh di bawah MinHeroHeight: di jendela pendek (tablet landscape/split-screen dengan keyboard,
+        // tinggi < ~333dp) coerceIn melempar exception dan app force close saat login.
+        val heroHeight = (maxHeight - with(density) { cardContentPx.toDp() } + CardOverlap).coerceIn(MinHeroHeight, maxOf(MinHeroHeight, maxHeight * 0.45f))
+        Image(
+            painter = painterResource(R.drawable.auth_hero),
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth().height(heroHeight),
+            contentScale = ContentScale.Crop,
+        )
+        Box(
+            Modifier.fillMaxWidth().height(heroHeight)
+                .background(Brush.horizontalGradient(0f to BrandBlueDark.copy(alpha = 0.32f), 0.7f to BrandBlueDark.copy(alpha = 0.48f), 1f to Color.Transparent)),
+        )
+        Column(
+            modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp + screenGutter(), top = 16.dp, end = 20.dp + screenGutter()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+                Surface(shape = RoundedCornerShape(13.dp), color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
+                    Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.55f))
+                }
+                Text(
+                    stringResource(R.string.auth_brand),
+                    modifier = Modifier.padding(start = 10.dp).weight(1f),
+                    color = Color.White,
+                    fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                // Bahasa bisa diganti sebelum masuk; layar ini dan dokumen S&K/privasi langsung mengikuti.
+                // Area sentuh 48dp (standar aksesibilitas) berisi lingkaran visual seukuran logo.
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onLanguage).testTag("auth_language"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(HeaderControlSize)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                AppLanguage.flag(language),
+                                fontSize = 24.sp,
+                                lineHeight = 28.sp,
+                                modifier = Modifier.semantics { contentDescription = languageDescription },
+                            )
                         }
                     }
                 }
             }
+        }
 
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    // Kartu menempel ke tepi bawah layar seperti sheet; hanya sudut atas yang membulat.
-                    .padding(top = heroHeight - CardOverlap)
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                    .background(Color.White)
-                    // Selalu bisa digulir: mode daftar lebih tinggi dari kartu di layar pendek, dan tanpa keyboard tombol kirim terpotong.
-                    .verticalScroll(rememberScrollState())
-                    // Diukur sebelum padding: tinggi seluruh isi kartu termasuk padding dan inset bilah navigasi.
-                    .onSizeChanged { cardContentPx = it.height }
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 25.dp, bottom = 20.dp)
-                    // Ruang bawah untuk bilah navigasi sistem ada di dalam kartu, bukan celah di bawahnya.
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(if (register) 8.dp else 12.dp),
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .fillMaxHeight()
+                // Kartu menempel ke tepi bawah layar seperti sheet; hanya sudut atas yang membulat.
+                .padding(top = heroHeight - CardOverlap)
+                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                .background(Color.White)
+                // Selalu bisa digulir: mode daftar lebih tinggi dari kartu di layar pendek, dan tanpa keyboard tombol kirim terpotong.
+                .verticalScroll(rememberScrollState())
+                // Diukur sebelum padding: tinggi seluruh isi kartu termasuk padding dan inset bilah navigasi.
+                .onSizeChanged { cardContentPx = it.height }
+                // Kartu tetap selebar layar seperti sheet; isinya mendapat ruang tambahan kiri-kanan di tablet.
+                .padding(horizontal = 20.dp + screenGutter())
+                .padding(top = 25.dp, bottom = 20.dp)
+                // Ruang bawah untuk bilah navigasi sistem ada di dalam kartu, bukan celah di bawahnya.
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(if (register) 8.dp else 12.dp),
+        ) {
+            Text(
+                stringResource(if (register) R.string.auth_register_title else R.string.auth_login_title),
+                color = Ink,
+                fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                autoSize = TextAutoSize.StepBased(minFontSize = 22.sp, maxFontSize = 30.sp),
+            )
+            if (!register) Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodyMedium)
+
+            if (register) MadsazTextField(
+                name,
+                { name = it },
+                stringResource(R.string.auth_field_name),
+                Modifier.testTag("auth_name"),
+                enabled = !submitting,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
+                placeholder = stringResource(R.string.auth_placeholder_name),
+                leadingIcon = AppIcons.User,
+            )
+            MadsazTextField(
+                email,
+                { email = it },
+                stringResource(R.string.auth_field_email),
+                Modifier.testTag("auth_email"),
+                enabled = !submitting,
+                isError = state is AuthUiState.Error,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
+                placeholder = stringResource(R.string.auth_placeholder_email),
+                leadingIcon = AppIcons.Mail,
+            )
+            MadsazTextField(
+                password,
+                { password = it },
+                stringResource(R.string.auth_field_password),
+                Modifier.testTag("auth_password"),
+                enabled = !submitting,
+                isError = state is AuthUiState.Error,
+                secret = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = if (register) ImeAction.Next else ImeAction.Done),
+                keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }, onDone = { submit() }),
+                placeholder = stringResource(R.string.auth_placeholder_password),
+                leadingIcon = AppIcons.Lock,
+            )
+            if (register) {
+                MadsazTextField(
+                    confirmPassword,
+                    { confirmPassword = it },
+                    stringResource(R.string.auth_field_confirm),
+                    Modifier.testTag("auth_confirm"),
+                    enabled = !submitting,
+                    isError = state is AuthUiState.Error && state.messageRes == R.string.error_password_mismatch,
+                    secret = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { submit() }),
+                    placeholder = stringResource(R.string.auth_placeholder_confirm),
+                    leadingIcon = AppIcons.Lock,
+                )
+                TermsAgreement(acceptTerms, { acceptTerms = it }, !submitting, onOpenTerms, onOpenPrivacy)
+            }
+            if (state is AuthUiState.Error) {
+                Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+            if (!register) {
+                TextButton(onClick = onForgotPassword, modifier = Modifier.align(Alignment.End).heightIn(min = 44.dp)) {
+                    Text(stringResource(R.string.auth_forgot), color = BrandBlueDark)
+                }
+            }
+            Button(
+                onClick = submit,
+                enabled = !submitting,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("auth_submit"),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandBlueDark),
+            ) {
+                if (submitting) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                else Text(stringResource(if (register) R.string.auth_submit_register else R.string.auth_submit_login))
+            }
+            if (!register) OutlinedButton(
+                onClick = { showGuestInfo = true },
+                enabled = !submitting,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("auth_try_free"),
+                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(1.dp, BrandBlueDark),
             ) {
                 Text(
-                    stringResource(if (register) R.string.auth_register_title else R.string.auth_login_title),
-                    color = Ink,
-                    fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    if (guestDailyLimit == null) stringResource(R.string.auth_try_free)
+                    else stringResource(R.string.auth_try_free_daily, guestDailyLimit),
+                    color = BrandBlueDark,
                 )
-                if (!register) Text(stringResource(R.string.auth_privacy_note), color = MutedInk, style = MaterialTheme.typography.bodyMedium)
-
-                if (register) MadsazTextField(
-                    name,
-                    { name = it },
-                    stringResource(R.string.auth_field_name),
-                    Modifier.testTag("auth_name"),
-                    enabled = !submitting,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
-                    placeholder = stringResource(R.string.auth_placeholder_name),
-                    leadingIcon = Icons.Rounded.Person,
-                )
-                MadsazTextField(
-                    email,
-                    { email = it },
-                    stringResource(R.string.auth_field_email),
-                    Modifier.testTag("auth_email"),
-                    enabled = !submitting,
-                    isError = state is AuthUiState.Error,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }),
-                    placeholder = stringResource(R.string.auth_placeholder_email),
-                    leadingIcon = Icons.Rounded.Email,
-                )
-                MadsazTextField(
-                    password,
-                    { password = it },
-                    stringResource(R.string.auth_field_password),
-                    Modifier.testTag("auth_password"),
-                    enabled = !submitting,
-                    isError = state is AuthUiState.Error,
-                    secret = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = if (register) ImeAction.Next else ImeAction.Done),
-                    keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Next) }, onDone = { submit() }),
-                    placeholder = stringResource(R.string.auth_placeholder_password),
-                    leadingIcon = Icons.Rounded.Lock,
-                )
-                if (register) {
-                    MadsazTextField(
-                        confirmPassword,
-                        { confirmPassword = it },
-                        stringResource(R.string.auth_field_confirm),
-                        Modifier.testTag("auth_confirm"),
-                        enabled = !submitting,
-                        isError = state is AuthUiState.Error && state.messageRes == R.string.error_password_mismatch,
-                        secret = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { submit() }),
-                        placeholder = stringResource(R.string.auth_placeholder_confirm),
-                        leadingIcon = Icons.Rounded.Lock,
-                    )
-                    TermsAgreement(acceptTerms, { acceptTerms = it }, !submitting, onOpenTerms, onOpenPrivacy)
-                }
-                if (state is AuthUiState.Error) {
-                    Text(stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                }
-                if (!register) {
-                    TextButton(onClick = onForgotPassword, modifier = Modifier.align(Alignment.End).heightIn(min = 44.dp)) {
-                        Text(stringResource(R.string.auth_forgot), color = BrandBlueDark)
-                    }
-                }
-                Button(
-                    onClick = submit,
-                    enabled = !submitting,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("auth_submit"),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandBlueDark),
-                ) {
-                    if (submitting) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
-                    else Text(stringResource(if (register) R.string.auth_submit_register else R.string.auth_submit_login))
-                }
-                if (!register) OutlinedButton(
-                    onClick = { showGuestInfo = true },
-                    enabled = !submitting,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("auth_try_free"),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(1.dp, BrandBlueDark),
-                ) {
-                    Text(
-                        if (guestDailyLimit == null) stringResource(R.string.auth_try_free)
-                        else stringResource(R.string.auth_try_free_daily, guestDailyLimit),
-                        color = BrandBlueDark,
-                    )
-                }
-                Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(if (register) R.string.auth_prompt_have_account else R.string.auth_prompt_new), color = MutedInk, style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { register = !register }, enabled = !submitting, modifier = Modifier.testTag("auth_toggle")) {
-                        Text(stringResource(if (register) R.string.auth_login_title else R.string.auth_switch_to_register), color = BrandBlueDark)
-                    }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(if (register) R.string.auth_prompt_have_account else R.string.auth_prompt_new), color = MutedInk, style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = { register = !register }, enabled = !submitting, modifier = Modifier.testTag("auth_toggle")) {
+                    Text(stringResource(if (register) R.string.auth_login_title else R.string.auth_switch_to_register), color = BrandBlueDark)
                 }
             }
         }

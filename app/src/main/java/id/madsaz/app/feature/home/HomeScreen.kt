@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.home
 
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -28,13 +29,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,11 +62,11 @@ import id.madsaz.app.ui.components.cueTitle
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.ui.components.RecordingEmptyState
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.cryCueLabel
 import id.madsaz.app.model.CryCue
 import id.madsaz.app.ui.components.MadsazHeader
+import id.madsaz.app.ui.components.screenGutter
 import id.madsaz.app.ui.components.formatPercent
 import id.madsaz.app.ui.components.formatTime
 import id.madsaz.app.ui.theme.Border
@@ -97,25 +96,27 @@ fun HomeScreen(
     refreshing: Boolean = false,
     onPullRefresh: () -> Unit = {},
 ) {
-    CompactContainer(modifier = modifier) {
-        PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = Modifier.fillMaxSize()) { LazyColumn(
-            modifier = Modifier.fillMaxSize().background(Color.White).testTag("home_screen"),
-            contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            item {
-                HomeHero(
-                    latestRecording = latestRecording,
-                    onRecord = onRecord,
-                    onProfile = onProfile,
-                    avatarUrl = avatarUrl,
-                    accountName = accountName,
-                    onOpenRecording = onOpenRecording,
-                )
-            }
-            freeQuota?.let { quota -> item { QuotaHint(quota.remaining, onUpgrade) } }
-            item { LearningDestinations(onCryCues) }
-            item {
+    // Gambar hero tetap selebar layar; isi di bawahnya mendapat ruang tambahan kiri-kanan di tablet.
+    val gutter = Modifier.padding(horizontal = screenGutter())
+    PullToRefreshBox(isRefreshing = refreshing, onRefresh = onPullRefresh, modifier = modifier.fillMaxSize()) { LazyColumn(
+        modifier = Modifier.fillMaxSize().background(Color.White).testTag("home_screen"),
+        contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        item {
+            HomeHero(
+                latestRecording = latestRecording,
+                onRecord = onRecord,
+                onProfile = onProfile,
+                avatarUrl = avatarUrl,
+                accountName = accountName,
+                onOpenRecording = onOpenRecording,
+            )
+        }
+        freeQuota?.let { quota -> item { Box(gutter) { QuotaHint(quota.remaining, onUpgrade) } } }
+        item { Box(gutter) { LearningDestinations(onCryCues) } }
+        item {
+            Box(gutter) {
                 RecentRecordings(
                     recordings = recentRecordings,
                     loading = historyLoading,
@@ -125,8 +126,8 @@ fun HomeScreen(
                     onRecord = onRecord,
                 )
             }
-        } }
-    }
+        }
+    } }
 }
 
 /** Penanda halus untuk akun gratis: sisa rekaman hari ini dan jalan ke Plus; tidak menutupi konten dan tidak muncul untuk Plus. */
@@ -142,7 +143,7 @@ private fun QuotaHint(remaining: Int, onUpgrade: () -> Unit) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp).heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(pluralStringResource(R.plurals.home_quota_left, remaining, remaining), Modifier.weight(1f), color = MutedInk, style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.home_upgrade_cta), color = BrandBlueDark, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = BrandBlueDark, modifier = Modifier.size(18.dp))
+            Icon(AppIcons.ChevronRight, null, tint = BrandBlueDark, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -181,7 +182,7 @@ private fun LearningCard(
                     fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 Text(description, color = Color(0xFF476576), fontSize = 12.sp, lineHeight = 16.sp)
             }
-            Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null, tint = accent, modifier = Modifier.size(20.dp))
+            Icon(AppIcons.ArrowForward, contentDescription = null, tint = accent, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -198,7 +199,8 @@ private fun HomeHero(
     val latestScore = latestRecording?.scores?.firstOrNull()
     val latestCode = latestRecording?.let { CryCue.fromCode(it.category ?: latestScore?.code)?.code ?: it.category ?: latestScore?.code }
     val openLabel = stringResource(if (latestRecording == null) R.string.home_latest_start else R.string.home_latest_open)
-    Box(Modifier.fillMaxWidth().height(366.dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
+    // Tinggi hero mengikuti kartu (minimal 241 + 125 = 366dp): teks panjang atau huruf besar memanjangkan kartu, bukan menumpuk.
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White)) {
         Image(
             painter = painterResource(R.drawable.home_hero),
             contentDescription = null,
@@ -212,35 +214,39 @@ private fun HomeHero(
         )
         MadsazHeader(
             onProfile = onProfile,
-            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
+            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(horizontal = screenGutter()),
             avatarUrl = avatarUrl,
             name = accountName,
         )
         Surface(
             // Tanpa rekaman kartu ini mengajak merekam; dengan rekaman ia membuka hasilnya.
             onClick = { if (latestRecording == null) onRecord() else onOpenRecording(latestRecording) },
-            modifier = Modifier.align(Alignment.TopCenter).offset(y = 241.dp).fillMaxWidth().padding(horizontal = 16.dp).height(125.dp)
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 241.dp).fillMaxWidth().padding(horizontal = 16.dp + screenGutter()).heightIn(min = 125.dp)
                 // Aksi null: hanya menambah label; aksi klik Surface tetap dipakai (aksi yang mengembalikan false menimpanya dan mematikan TalkBack).
                 .semantics { onClick(openLabel, null) },
             shape = RoundedCornerShape(23.dp),
             color = BrandBlue,
         ) {
-            Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxWidth()) {
+                // Jarak vertikal sama dengan posisi lama (label y=14, kode y=39, keterangan y=89, sisa bawah 12dp); sisi kanan
+                // dikosongkan untuk jam/panah dan ikon pola supaya teks membungkus alih-alih menimpanya.
+                Column(Modifier.padding(start = 18.dp, top = 14.dp, end = if (latestRecording != null) 88.dp else 40.dp, bottom = 12.dp)) {
                 Text(
                     text = stringResource(R.string.home_latest_cry),
-                    modifier = Modifier.offset(x = 18.dp, y = 14.dp),
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     text = latestCode ?: latestRecording?.let { stringResource(it.status.labelRes) } ?: "—",
-                    modifier = Modifier.offset(x = 18.dp, y = 39.dp),
+                    modifier = Modifier.padding(top = 1.dp),
                     color = Color.White,
                     fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
-                    fontSize = 34.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 40.sp,
+                    maxLines = 1,
+                    // Kode pola (mis. "EAIRH") atau status panjang mengecil di layar sempit alih-alih terpotong.
+                    autoSize = TextAutoSize.StepBased(minFontSize = 22.sp, maxFontSize = 34.sp),
                 )
                 Text(
                     text = when {
@@ -258,14 +264,15 @@ private fun HomeHero(
                             },
                         )
                     },
-                    modifier = Modifier.offset(x = 18.dp, y = 89.dp),
+                    modifier = Modifier.padding(top = 10.dp),
                     color = Color.White.copy(alpha = 0.88f),
                     fontSize = 12.sp,
                 )
+                }
                 // Jam rekaman dan penanda bahwa kartu bisa diketuk sebaris di pojok kanan atas; ikonnya dekoratif, aksinya dibaca lewat semantics kartu.
                 Row(Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     latestRecording?.let { Text(formatTime(it.recordedAtEpochMillis), color = Color.White.copy(alpha = 0.88f), fontSize = 11.sp) }
-                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                    Icon(AppIcons.ChevronRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                 }
                 if (latestRecording != null) CryCueIcon(
                     latestCode,
@@ -408,6 +415,6 @@ private fun ActivityContent(recording: RecordingItem) {
             }
         }
         // Penanda bahwa kartu membuka detail rekaman; dekoratif karena seluruh kartu adalah satu tombol.
-        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MutedInk)
+        Icon(AppIcons.ChevronRight, contentDescription = null, tint = MutedInk)
     }
 }

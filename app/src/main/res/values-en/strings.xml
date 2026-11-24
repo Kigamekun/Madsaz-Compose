@@ -16,7 +16,7 @@
     <string name="nav_cues">Cues</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_record_label">Record</string>
-    <string name="cues_intro">Madsaz translates or identifies the cries of infants aged 0—3 months to help parents understand their baby better. The app recognises the five sounds of the Dunstan Baby Language (DBL): neh means hungry; owh means tired and starting to get sleepy; eh means the need to burp; eairh means wind (a bloated tummy), and heh means discomfort (for example, a wet diaper or nappy, being too hot or too cold, or something else)</string>
+    <string name="cues_intro">Madsaz translates or identifies the cries of infants aged 0–3 months to help parents understand their baby better. The app recognizes the five sounds of the Dunstan Baby Language (DBL): neh means hungry; owh means tired and starting to get sleepy; eh means the need to burp; eairh means gas (a bloated tummy); and heh means discomfort (for example, a wet diaper, being too hot or too cold, or something else).</string>
     <string name="cue_open_detail">See details</string>
     <string name="home_latest_open">See result</string>
     <string name="home_latest_start">Start recording</string>
@@ -50,13 +50,13 @@
     <string name="home_status_failed">Analysis failed</string>
     <string name="home_status_result">Analysis result</string>
     <string name="home_cry_cues_title">Cry Cues</string>
-    <string name="home_cry_cues_description">Understand your baby\'s cry cues</string>
+    <string name="home_cry_cues_description">Understand your baby’s cry cues</string>
     <string name="home_recent_title">Recent recordings</string>
-    <string name="home_see_all">See all  ›</string>
+    <string name="home_see_all">See all ›</string>
     <string name="home_recent_empty_title">No recordings yet</string>
     <string name="home_recent_empty_message">Your recordings will show up here.</string>
     <string name="home_recent_empty_action">Start recording</string>
-    <string name="home_recent_error_title">History couldn\'t be loaded</string>
+    <string name="home_recent_error_title">History couldn’t be loaded</string>
     <string name="home_recorded_at">Recorded at %1$s</string>
 
     <!-- History -->
@@ -80,10 +80,20 @@
     <string name="permission_settings">Open settings</string>
     <string name="recording_start">Start recording</string>
     <string name="recording_stop">Stop recording</string>
-    <string name="recording_camera_error">The camera can\'t be used. Check the permissions and try again.</string>
-    <string name="recording_save_error">The video couldn\'t be saved. Please try recording again.</string>
-    <string name="recording_upload_error">The video hasn\'t finished uploading. The temporary file is kept; check your connection and tap Try again.</string>
+    <string name="recording_camera_error">The camera can’t be used. Check the permissions and try again.</string>
+    <string name="recording_save_error">The video couldn’t be saved. Please try recording again.</string>
+    <string name="recording_upload_error">The video hasn’t finished uploading. The temporary file is kept; check your connection and tap Try again.</string>
     <string name="recording_keep_baby_in_view">Keep your baby in view</string>
+    <string name="recording_pick_video">Choose a video file</string>
+    <string name="recording_trim_title">Trim video</string>
+    <string name="recording_trim_hint">Drag the clip handles. Max 5 seconds.</string>
+    <string name="recording_trim_duration">%1$.2f seconds</string>
+    <string name="recording_trim_play">Play clip</string>
+    <string name="recording_trim_pause">Pause clip</string>
+    <string name="recording_trim_upload">Upload</string>
+    <string name="recording_trim_preparing">Preparing clip…</string>
+    <string name="recording_trim_read_error">This video could not be opened.</string>
+    <string name="recording_trim_export_error">Could not prepare the clip. Try trimming it again or choose a different video.</string>
     <string name="recording_tap_to_record">Tap to record</string>
     <string name="recording_camera_ready">Camera + microphone ready</string>
     <string name="recording_camera_starting">Starting the camera…</string>
@@ -98,10 +108,10 @@
     <string name="analysis_saving_body">Please keep this page open for a moment.</string>
     <string name="analysis_running_title">Uploading your video</string>
     <string name="analysis_running_body">Please wait.</string>
-    <string name="analysis_disclaimer">This result is not a medical diagnosis. Contact a healthcare professional if you are concerned about your baby\'s condition.</string>
+    <string name="analysis_disclaimer">This result is not a medical diagnosis. Contact a healthcare professional if you are concerned about your baby’s condition.</string>
     <string name="result_loading_title">Loading the result</string>
     <string name="result_loading_body">Just a moment.</string>
-    <string name="result_processing_title">Analysing your recording</string>
+    <string name="result_processing_title">Analyzing your recording</string>
     <string name="result_processing_body">The result will appear automatically.</string>
     <string name="result_title">Cry pattern result</string>
     <string name="result_confidence_title">Cry cue confidence</string>
@@ -109,9 +119,9 @@
     <string name="result_feedback">Feedback</string>
     <string name="result_log_title">Recording history</string>
     <string name="result_log_failed">Analysis failed. The video is still saved.</string>
-    <string name="result_log_pending">Video saved. The analysis isn\'t available yet.</string>
+    <string name="result_log_pending">Video saved. The analysis isn’t available yet.</string>
     <string name="result_play">Play recording</string>
-    <string name="result_play_error">The video couldn\'t be played. Check your connection and try again.</string>
+    <string name="result_play_error">The video couldn’t be played. Check your connection and try again.</string>
     <string name="result_refresh">Refresh result</string>
 
     <!-- Plan -->
@@ -131,13 +141,14 @@
     <string name="plan_benefit_cues">Basic cue interpretation</string>
     <string name="plan_benefit_recent">Recent recordings saved</string>
     <string name="plan_explore_plus">Explore Madsaz Plus</string>
-    <string name="plan_plus_promo_price">Only Rp15,000</string>
-    <string name="plan_continue_free">Continue with free plan</string>
+    <string name="plan_plus_from_price">From %1$s</string>
+    <string name="plan_continue_free">Continue with the Free plan</string>
     <string name="plan_limit_reset">Your limit resets every day at 00:00 WIB.</string>
     <string name="plan_plus_tagline">More calm, more understanding</string>
     <string name="plan_plus_benefit_unlimited">Unlimited recordings</string>
     <string name="plan_choose">Choose your plan</string>
     <string name="plan_yearly">Yearly</string>
+    <string name="plan_quarterly">3 months</string>
     <string name="plan_monthly">Monthly</string>
     <string name="plan_best_value">Best value</string>
     <string name="plan_flexible">Flexible</string>
@@ -164,7 +175,7 @@
     <string name="profile_logout_subtitle">See you soon</string>
     <string name="profile_delete_title">Delete account</string>
     <string name="profile_delete_subtitle">Remove your data permanently</string>
-    <string name="profile_delete_warning">Your account, all video recordings with their results, and feedback will be permanently deleted and can\'t be restored.</string>
+    <string name="profile_delete_warning">Your account, all video recordings with their results, and feedback will be permanently deleted and can’t be restored.</string>
     <string name="profile_delete_subscription_note">A Madsaz Plus subscription on Google Play is not cancelled automatically. Cancel it first in Google Play &gt; Payments and subscriptions.</string>
     <string name="profile_delete_password">Password</string>
     <string name="profile_delete_confirm">Delete my account</string>
@@ -177,9 +188,8 @@
     <string name="profile_save">Save changes</string>
 
     <!-- Feedback -->
-    <string name="feedback_eyebrow">Help shape Madsaz</string>
     <string name="feedback_title">Share your thoughts</string>
-    <string name="feedback_subtitle">A few taps help us make the listening feature more useful</string>
+    <string name="feedback_subtitle">Your quick feedback helps us improve the analysis</string>
     <string name="feedback_question">How was your experience with Madsaz today?</string>
     <string name="feedback_rating_1">Not great</string>
     <string name="feedback_rating_2">Okay</string>
@@ -192,12 +202,11 @@
     <string name="feedback_note_hint">Write your note here</string>
     <string name="feedback_note_counter">%1$d / %2$d</string>
     <string name="feedback_send">Send feedback</string>
-    <string name="feedback_requirements">Choose a rating to send your feedback. Topic and note are optional.</string>
     <string name="feedback_sending">Sending…</string>
 
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
-    <string name="notifications_status_unconfigured">Firebase isn\'t configured in this build.</string>
+    <string name="notifications_status_unconfigured">Firebase isn’t configured in this build.</string>
     <string name="notifications_open_settings">Open notification settings</string>
     <string name="notifications_permission_denied">Allow notifications in Android settings.</string>
 
@@ -218,25 +227,25 @@
     <string name="cue_owh_feature_3">Your baby’s movements start to slow down</string>
     <string name="cue_eh_meaning">Wants to burp</string>
     <string name="cue_eh_description">Your baby wants to burp</string>
-    <string name="cue_eh_metric_detail">Need to burp</string>
+    <string name="cue_eh_metric_detail">Needs a burp</string>
     <string name="cue_eh_feature_1">A short “eh” sound</string>
     <string name="cue_eh_feature_2">The cry often comes after feeds</string>
     <string name="cue_eh_feature_3">Your baby wriggles or looks uncomfortable</string>
     <string name="cue_heh_meaning">Uncomfortable</string>
-    <string name="cue_heh_description">Your baby feels uncomfortable (possibly because of a wet diaper or nappy, being too hot or too cold, or something else)</string>
+    <string name="cue_heh_description">Your baby feels uncomfortable (possibly because of a wet diaper, being too hot or too cold, or something else)</string>
     <string name="cue_heh_metric_detail">Needs a diaper, temperature, or position check</string>
     <string name="cue_heh_feature_1">A “heh” sound with short pauses</string>
     <string name="cue_heh_feature_2">Your baby moves a lot or fusses</string>
     <string name="cue_heh_feature_3">Your baby’s face looks uncomfortable</string>
     <string name="cue_eairh_meaning">Bloated</string>
-    <string name="cue_eairh_description">Your baby has wind (a bloated tummy)</string>
+    <string name="cue_eairh_description">Your baby has gas (a bloated tummy)</string>
     <string name="cue_eairh_metric_detail">Has a gassy tummy</string>
     <string name="cue_eairh_feature_1">An “eairh” sound with straining</string>
     <string name="cue_eairh_feature_2">Your baby pulls their legs up towards the tummy</string>
     <string name="cue_eairh_feature_3">The tummy feels full or your baby is hard to settle</string>
 
     <!-- Errors -->
-    <string name="error_network">Can\'t connect to the server. Check your internet connection and try again.</string>
+    <string name="error_network">Can’t connect to the server. Check your internet connection and try again.</string>
     <string name="error_server">The server is having problems. Please try again shortly.</string>
     <string name="error_unknown">Something went wrong. Please try again.</string>
     <string name="error_session_expired">Your session has ended. Please log in again.</string>
@@ -244,12 +253,12 @@
     <string name="error_invalid_credentials">Incorrect email or password.</string>
     <string name="error_email_taken">This email is already registered.</string>
     <string name="error_invalid_input">Please complete the form correctly. The password needs at least 8 characters.</string>
-    <string name="error_free_limit">Today\'s free recordings are used up. Upgrade to Madsaz Plus or try again tomorrow.</string>
+    <string name="error_free_limit">Today’s free recordings are used up. Upgrade to Madsaz Plus or try again tomorrow.</string>
     <string name="error_analysis_in_progress">The previous analysis is still running. Please try again in a moment.</string>
-    <string name="error_upload_invalid">The server didn\'t receive the video. Please upload it again.</string>
+    <string name="error_upload_invalid">The server didn’t receive the video. Please upload it again.</string>
     <string name="error_storage">Video storage is unavailable right now. Please try again later.</string>
-    <string name="error_plan_unavailable">The plan isn\'t available on Google Play yet. Please try again later.</string>
-    <string name="error_billing_unavailable">Google Play Billing isn\'t available on this device.</string>
+    <string name="error_plan_unavailable">The plan isn’t available on Google Play yet. Please try again later.</string>
+    <string name="error_billing_unavailable">Google Play Billing isn’t available on this device.</string>
     <string name="error_billing_pending">The payment is still waiting for Google Play confirmation.</string>
     <string name="error_billing_failed">The payment failed.</string>
     <string name="error_billing_server">We can’t process payments right now. Please try again later.</string>
@@ -288,15 +297,15 @@
     <string name="auth_try_free">Try for free without an account</string>
     <string name="auth_try_free_daily">Try for free without an account %1$dx/day</string>
     <string name="guest_info_title">Try for free</string>
-    <string name="guest_info_body">Record a 5 second video and see the result without an account. The video is analysed and then deleted from the server. The result is shown only once and is not saved to your history. Limit: %1$d tries per day. Sign up to save your videos and history.</string>
+    <string name="guest_info_body">Record a 5-second video and see the result without an account. The video is analyzed and then deleted from the server. The result is shown only once and is not saved to your history. Daily limit: %1$d. Sign up to save your videos and history.</string>
     <string name="guest_info_start">Try it now</string>
     <string name="guest_limit_title">You’ve used up today’s free tries</string>
     <string name="guest_limit_body">Sign up for free to keep recording, save your videos and view your history.</string>
     <string name="guest_limit_register">Sign up for free</string>
     <string name="guest_limit_login">Already have an account? Log in</string>
-    <string name="error_guest_limit">Today\'s free tries are used up. Sign up for free to continue.</string>
+    <string name="error_guest_limit">Today’s free tries are used up. Sign up for free to continue.</string>
     <string name="forgot_title">Forgot password</string>
-    <string name="forgot_body">Enter your account email. We’ll send you a link to create a new password</string>
+    <string name="forgot_body">Enter your account email. We’ll send you a link to create a new password.</string>
     <string name="forgot_send">Send link</string>
     <string name="forgot_sent_title">Check your email</string>
     <string name="forgot_sent_body">If the email is registered, a password reset link has been sent and is valid for 30 minutes. Check your spam folder too.</string>
@@ -313,8 +322,8 @@
         <item quantity="one">%d recording left today</item>
         <item quantity="other">%d recordings left today</item>
     </plurals>
-    <string name="upgrade_dialog_title">You\'ve used up today\'s recordings</string>
-    <string name="upgrade_dialog_body">Today\'s Free plan recordings are used up. Upgrade to Madsaz Plus to record without limits, or try again tomorrow.</string>
+    <string name="upgrade_dialog_title">You’ve used up today’s recordings</string>
+    <string name="upgrade_dialog_body">Today’s Free plan recordings are used up. Upgrade to Madsaz Plus to record without limits, or try again tomorrow.</string>
     <string name="upgrade_dialog_cta">Upgrade to Plus</string>
     <string name="upgrade_dialog_later">Not now</string>
     <string name="plan_cancel_sub">Cancel subscription</string>
@@ -322,24 +331,24 @@
     <string name="feedback_skip">Skip</string>
     <string name="cue_neh_sol_1">Feed your baby</string>
     <string name="cue_neh_sol_2">Don’t interrupt your baby’s feeding time</string>
-    <string name="cue_neh_sol_3">Don’t try to burp your baby in the middle of feed</string>
+    <string name="cue_neh_sol_3">Don’t try to burp your baby in the middle of a feed</string>
     <string name="cue_neh_sol_4">Let your baby feed for as long as they want, unless they make the “Eh” sound during the feed</string>
     <string name="cue_owh_sol_1">Help your baby fall asleep</string>
-    <string name="cue_owh_sol_2">If your baby is windy or gassy, make sure they sleep in the correct position</string>
+    <string name="cue_owh_sol_2">If your baby is gassy, keep them slightly upright when you put them to sleep</string>
     <string name="cue_owh_sol_3">Make sure your baby has been burped so that they can fall asleep more easily</string>
     <string name="cue_owh_sol_4">Rock your baby to sleep; it’s a wonderful time for bonding</string>
     <string name="cue_eh_sol_1">Burp your baby</string>
     <string name="cue_eh_sol_2">Be ready to burp your baby throughout the day, not only after feeds</string>
     <string name="cue_eh_sol_3">If your baby makes the “Eh” sound before a feed, burp them first. Don’t feed a baby who needs to be burped</string>
     <string name="cue_eh_sol_4">Don’t assume that a loud burp means the air bubbles have been removed; you will know when your baby stops making the “Eh” sound</string>
-    <string name="cue_eh_sol_5">If your baby is sleeping when you hear the "Eh" sound, try burping them first and then put them back to sleep to finish their nap</string>
-    <string name="cue_eh_sol_6">When you swaddle a windy baby, wrap them snugly around the tummy, but leave their legs and arms free so they can move them when necessary</string>
-    <string name="cue_eairh_sol_1">Use massage and wind-relieving holds. For example, cross your legs, lay your baby’s tummy down across your thigh and rock gently, applying light pressure with your knee to your baby’s lower tummy</string>
+    <string name="cue_eh_sol_5">If your baby is sleeping when you hear the “Eh” sound, try burping them first and then put them back to sleep to finish their nap</string>
+    <string name="cue_eh_sol_6">When you swaddle a gassy baby, wrap them snugly around the tummy, but leave their legs and arms free so they can move them when necessary</string>
+    <string name="cue_eairh_sol_1">Use massage and gas-relieving holds. For example, cross your legs, lay your baby’s tummy down across your thigh and rock gently, applying light pressure with your knee to your baby’s lower tummy</string>
     <string name="cue_eairh_sol_2">Put your baby over your shoulder and hold them securely, or walk around with your baby lying along your arm</string>
-    <string name="cue_eairh_sol_3">Lay your baby on their tummy and rubbing their back also helps</string>
+    <string name="cue_eairh_sol_3">Lay your baby on their tummy and rub their back gently</string>
     <string name="cue_eairh_sol_4">Massage your baby’s tummy to help move the air bubbles</string>
     <string name="cue_eairh_sol_5">Always burp your baby when they make the “Eh” sound to stop the air bubbles from moving lower</string>
-    <string name="cue_eairh_sol_6">Never put your baby to sleep while they are making the "Eairh" sound</string>
+    <string name="cue_eairh_sol_6">Never put your baby to sleep while they are making the “Eairh” sound</string>
     <string name="cue_heh_sol_1">If your baby feels too hot, remove some clothing or bedding; if they feel too cold, add more</string>
     <string name="cue_heh_sol_2">If wet, change the diaper</string>
     <string name="cue_heh_sol_3">Try to pick your baby up and change their position</string>

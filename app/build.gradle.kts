@@ -13,7 +13,9 @@ android {
         // Memperbarui app yang sudah terbit di Play (com.madsaz); kode tetap di namespace id.madsaz.app.
         applicationId = "com.madsaz"
         minSdk = 24
-        targetSdk = 37
+        // 36, bukan 37: mulai target API 37 tablet (≥600dp) mengabaikan screenOrientation=portrait tanpa opt-out
+        // (developer.android.com/about/versions/17/changes/ff-restrictions-ignored). Play mewajibkan 37 mulai Agustus 2027.
+        targetSdk = 36
         // CI memberi versionCode berbasis menit sejak epoch, sama seperti Ngepets.
         versionCode = providers.gradleProperty("versionCode").map(String::toInt).orElse(100).get()
         versionName = "2.1.0"
@@ -96,7 +98,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.activity.compose)
@@ -105,8 +106,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.video)
+    implementation("androidx.media3:media3-transformer:1.9.0")
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.lucide.icons)
     testImplementation(libs.junit)
     // org.json di android.jar hanyalah stub untuk unit test JVM; ApiClient memakai implementasi asli ini saat diuji.
     testImplementation(libs.org.json)

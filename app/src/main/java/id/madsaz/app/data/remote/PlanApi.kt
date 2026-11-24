@@ -12,17 +12,28 @@ sealed interface PlanStatus {
 }
 
 /** Id produk Google Play dari BE; app tidak menebak id sendiri. */
-data class PlanCatalog(val productId: String, val monthlyBasePlanId: String, val yearlyBasePlanId: String, val purchaseEnabled: Boolean)
+data class PlanCatalog(
+    val productId: String,
+    val monthlyBasePlanId: String,
+    val quarterlyBasePlanId: String,
+    val yearlyBasePlanId: String,
+    val purchaseEnabled: Boolean,
+)
 
 class PlanApi(private val client: ApiClient) {
     fun catalog(): PlanCatalog {
         val plus = client.requestJson("GET", "/payments/plans").obj("data").obj("plus")
-        return PlanCatalog(
+        val catalog = PlanCatalog(
             productId = plus.string("product_id"),
             monthlyBasePlanId = plus.string("monthly_base_plan_id"),
+            quarterlyBasePlanId = plus.string("quarterly_base_plan_id"),
             yearlyBasePlanId = plus.string("yearly_base_plan_id"),
             purchaseEnabled = plus.boolean("purchase_enabled"),
         )
+        // Satu id untuk dua paket membuat harga dan pembelian menempel ke paket yang salah tanpa tanda apa pun.
+        val basePlanIds = listOf(catalog.monthlyBasePlanId, catalog.quarterlyBasePlanId, catalog.yearlyBasePlanId)
+        if (basePlanIds.toSet().size != basePlanIds.size) throw ContractException("Plus base plan ids must be distinct")
+        return catalog
     }
 
     fun status(): PlanStatus {

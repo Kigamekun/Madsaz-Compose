@@ -1,5 +1,7 @@
 package id.madsaz.app.feature.result
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -36,16 +38,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.Icons
 import id.madsaz.app.ui.components.cryCueLabel
 import id.madsaz.app.model.CryCue
 import id.madsaz.app.model.CryScore
 import id.madsaz.app.model.RecordingItem
 import id.madsaz.app.model.RecordingStatus
 import id.madsaz.app.model.RecordingUiState
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.formatDateTime
 import id.madsaz.app.ui.components.formatDuration
@@ -66,7 +64,7 @@ fun RecordingStatusScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    CompactContainer(modifier) {
+    Box(modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         when (state) {
             RecordingUiState.Saving -> ProgressContent(stringResource(R.string.analysis_saving_title), stringResource(R.string.analysis_saving_body))
             // Completed sebentar tampil di sini sebelum rute hasil terbuka.
@@ -91,7 +89,7 @@ fun ResultScreen(
     refreshing: Boolean = false,
     onPullRefresh: () -> Unit = {},
 ) {
-    CompactContainer(modifier) {
+    Box(modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         when (state) {
             ResultUiState.Loading ->
                 ProgressContent(stringResource(R.string.result_loading_title), stringResource(R.string.result_loading_body))
@@ -156,7 +154,7 @@ fun PatternResult(
     Column(modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
         // Jalan keluar yang terlihat (selain tombol kembali sistem): tutup kembali ke layar asal.
         IconButton(onClick = onDone, modifier = Modifier.padding(start = 8.dp, top = 4.dp)) {
-            Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = Ink)
+            Icon(AppIcons.Close, stringResource(R.string.common_close), tint = Ink)
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             Text(stringResource(R.string.result_title), style = MaterialTheme.typography.headlineMedium, color = Ink, fontWeight = FontWeight.Bold)

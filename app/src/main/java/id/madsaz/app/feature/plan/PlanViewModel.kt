@@ -23,7 +23,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-enum class PlanInterval { MONTHLY, YEARLY }
+/** Urutan deklarasi = urutan tampil di layar Paket; [months] dipakai membandingkan harga dengan paket bulanan. */
+enum class PlanInterval(val months: Int) { YEARLY(12), QUARTERLY(3), MONTHLY(1) }
+
+private fun PlanCatalog.basePlanId(interval: PlanInterval) = when (interval) {
+    PlanInterval.MONTHLY -> monthlyBasePlanId
+    PlanInterval.QUARTERLY -> quarterlyBasePlanId
+    PlanInterval.YEARLY -> yearlyBasePlanId
+}
 
 /** Harga dari Google Play: [formatted] untuk ditampilkan, [micros] untuk membandingkan paket. */
 data class PlanPrice(val formatted: String, val micros: Long)
@@ -45,13 +52,15 @@ data class PlanUiState(
     /** Penjelasan [playAccountInUse] sedang ditampilkan, menggantikan dialog Google yang hanya berkata "sudah berlangganan". */
     val showAccountInUse: Boolean = false,
 ) {
-    /** Persen hemat paket tahunan terhadap 12 bulan paket bulanan, dihitung dari harga Play; null bila tidak lebih murah. */
-    val yearlySavingsPercent: Int?
-        get() {
-            val monthly = prices[PlanInterval.MONTHLY]?.micros ?: return null
-            val yearly = prices[PlanInterval.YEARLY]?.micros ?: return null
-            return ((1.0 - yearly.toDouble() / (monthly * 12)) * 100).toInt().takeIf { it > 0 }
-        }
+    /** Persen hemat [interval] terhadap membayar paket bulanan sebanyak [PlanInterval.months] kali, dari harga Play; null bila tidak lebih murah. */
+    fun savingsPercent(interval: PlanInterval): Int? {
+        val monthly = prices[PlanInterval.MONTHLY]?.micros ?: return null
+        val price = prices[interval]?.micros ?: return null
+        val full = monthly * interval.months
+        if (full <= 0 || price <= 0) return null
+        // Bilangan bulat dibulatkan ke terdekat: pecahan Double memotong diskon 10% (1.0 - 270/300 = 0.0999…) menjadi "HEMAT 9%".
+        return (((full - price) * 100 + full / 2) / full).toInt().takeIf { it > 0 }
+    }
 }
 
 class PlanViewModel(
@@ -106,10 +115,7 @@ class PlanViewModel(
         uiState = uiState.copy(showAccountInUse = false)
         val loadedCatalog = catalog
         val details = product
-        val basePlanId = when (interval) {
-            PlanInterval.MONTHLY -> loadedCatalog?.monthlyBasePlanId
-            PlanInterval.YEARLY -> loadedCatalog?.yearlyBasePlanId
-        }
+        val basePlanId = loadedCatalog?.basePlanId(interval)
         val offer = details?.subscriptionOfferDetails?.firstOrNull { it.basePlanId == basePlanId && it.offerId == null }
         if (!uiState.purchaseEnabled || details == null || offer == null) {
             uiState = uiState.copy(errorRes = R.string.error_plan_unavailable)
@@ -130,11 +136,7 @@ class PlanViewModel(
         product = details
         val prices = buildMap {
             details?.subscriptionOfferDetails.orEmpty().filter { it.offerId == null }.forEach { offer ->
-                val interval = when (offer.basePlanId) {
-                    loadedCatalog.monthlyBasePlanId -> PlanInterval.MONTHLY
-                    loadedCatalog.yearlyBasePlanId -> PlanInterval.YEARLY
-                    else -> return@forEach
-                }
+                val interval = PlanInterval.entries.firstOrNull { loadedCatalog.basePlanId(it) == offer.basePlanId } ?: return@forEach
                 // Penawaran tanpa fase harga tidak bisa ditampilkan; dibiarkan tanpa harga sehingga tombol beli nonaktif.
                 offer.pricingPhases.pricingPhaseList.lastOrNull()?.let { put(interval, PlanPrice(it.formattedPrice, it.priceAmountMicros)) }
             }

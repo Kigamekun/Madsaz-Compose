@@ -1,5 +1,6 @@
 package id.madsaz.app.feature.plan
 
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.app.Activity
@@ -16,19 +17,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -177,7 +174,7 @@ private fun PlanSheetHeader(title: Int, onNavigateBack: (() -> Unit)?, onDismiss
     ) {
         if (onNavigateBack != null) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink)
+                Icon(AppIcons.ArrowBack, stringResource(R.string.common_back), tint = Ink)
             }
         }
         Text(
@@ -189,7 +186,7 @@ private fun PlanSheetHeader(title: Int, onNavigateBack: (() -> Unit)?, onDismiss
             fontWeight = FontWeight.SemiBold,
         )
         IconButton(onClick = onDismiss) {
-            Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = MutedInk)
+            Icon(AppIcons.Close, stringResource(R.string.common_close), tint = MutedInk)
         }
     }
 }
@@ -279,14 +276,17 @@ private fun FreePlanContent(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(stringResource(R.string.plan_explore_plus), modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-                    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.2f)) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Icon(painterResource(R.drawable.ic_crown), contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                            Text(stringResource(R.string.plan_plus_promo_price), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    // Harga dari Google Play; sebelum termuat, pil tidak ditampilkan.
+                    state.prices[PlanInterval.MONTHLY]?.let { monthly ->
+                        Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.2f)) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Icon(AppIcons.Crown, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Text(stringResource(R.string.plan_plus_from_price, monthly.formatted), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
@@ -325,7 +325,7 @@ private fun FreeBenefit(label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(Modifier.size(28.dp), CircleShape, Color(0xFFE7F5FA), border = BorderStroke(1.dp, Color(0xFF2E6E54))) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Check, null, tint = Color(0xFF2E6E54), modifier = Modifier.size(18.dp))
+                Icon(AppIcons.Check, null, tint = Color(0xFF2E6E54), modifier = Modifier.size(18.dp))
             }
         }
         Text(label, modifier = Modifier.padding(start = 14.dp), color = Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
@@ -378,26 +378,23 @@ private fun SubscriptionContent(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            item {
-                val savings = state.yearlySavingsPercent
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
-                    title = stringResource(R.string.plan_yearly),
-                    price = state.prices[PlanInterval.YEARLY]?.formatted,
-                    // "Paling hemat" dan badge hanya bila harga Play memang lebih murah daripada 12 bulan paket bulanan.
-                    helper = savings?.let { stringResource(R.string.plan_best_value) },
-                    badge = savings?.let { stringResource(R.string.plan_save_badge, NumberFormat.getPercentInstance().format(it / 100.0)) },
-                    selected = selectedPlan == PlanInterval.YEARLY,
-                    onClick = { onSelectPlan(PlanInterval.YEARLY) },
-                ) }
-            }
-            item { Spacer(Modifier.height(14.dp)) }
-            item {
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) { PlanOption(
-                    title = stringResource(R.string.plan_monthly),
-                    price = state.prices[PlanInterval.MONTHLY]?.formatted,
-                    helper = stringResource(R.string.plan_flexible),
-                    selected = selectedPlan == PlanInterval.MONTHLY,
-                    onClick = { onSelectPlan(PlanInterval.MONTHLY) },
+            // Badge hanya bila harga Play memang lebih murah daripada membayar paket bulanan sebanyak periodenya;
+            // "Paling hemat" hanya untuk yang paling hemat (urutan tampil menentukan bila sama).
+            val savings = PlanInterval.entries.mapNotNull { interval -> state.savingsPercent(interval)?.let { interval to it } }
+            val bestValue = savings.maxByOrNull { it.second }?.first
+            itemsIndexed(PlanInterval.entries) { index, interval ->
+                val percent = savings.firstOrNull { it.first == interval }?.second
+                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = if (index == 0) 0.dp else 14.dp)) { PlanOption(
+                    title = stringResource(interval.titleRes),
+                    price = state.prices[interval]?.formatted,
+                    helper = when {
+                        interval == bestValue -> stringResource(R.string.plan_best_value)
+                        interval == PlanInterval.MONTHLY -> stringResource(R.string.plan_flexible)
+                        else -> null
+                    },
+                    badge = percent?.let { stringResource(R.string.plan_save_badge, NumberFormat.getPercentInstance().format(it / 100.0)) },
+                    selected = selectedPlan == interval,
+                    onClick = { onSelectPlan(interval) },
                 ) }
             }
         }
@@ -466,6 +463,13 @@ private fun SubscriptionContent(
         }
     }
 }
+
+private val PlanInterval.titleRes: Int
+    get() = when (this) {
+        PlanInterval.YEARLY -> R.string.plan_yearly
+        PlanInterval.QUARTERLY -> R.string.plan_quarterly
+        PlanInterval.MONTHLY -> R.string.plan_monthly
+    }
 
 @Composable
 private fun PlusStatus(plus: PlanStatus.Plus) {

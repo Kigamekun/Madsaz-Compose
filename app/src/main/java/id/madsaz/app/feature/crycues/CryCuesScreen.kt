@@ -1,6 +1,9 @@
 package id.madsaz.app.feature.crycues
 
+import id.madsaz.app.ui.components.screenGutter
+import id.madsaz.app.ui.components.AppIcons
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,9 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -49,7 +48,6 @@ import id.madsaz.app.ui.components.BulletLine
 import id.madsaz.app.ui.components.SolutionList
 import id.madsaz.app.ui.components.cueTitle
 import id.madsaz.app.model.CryCue
-import id.madsaz.app.ui.components.CompactContainer
 import id.madsaz.app.ui.components.CryCueIcon
 import id.madsaz.app.ui.components.MadsazHeader
 import id.madsaz.app.ui.theme.Border
@@ -67,7 +65,7 @@ fun CryCuesScreen(
     avatarUrl: String? = null,
     accountName: String? = null,
 ) {
-    CompactContainer(modifier) {
+    Box(modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().background(Color.White).statusBarsPadding().testTag("cues_screen"),
             contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + 16.dp),
@@ -127,7 +125,7 @@ private fun CueRow(cue: CryCue, onClick: () -> Unit, modifier: Modifier = Modifi
                 // Teks ajakan yang terlihat, agar pengguna tahu kartu ini membuka halaman detail.
                 Text(openLabel, color = BrandBlueDark, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
             }
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = BrandBlueDark)
+            Icon(AppIcons.ChevronRight, contentDescription = null, tint = BrandBlueDark)
         }
     }
 }
@@ -135,11 +133,11 @@ private fun CueRow(cue: CryCue, onClick: () -> Unit, modifier: Modifier = Modifi
 /** Detail satu pola: arti, ciri-ciri, dan yang bisa dilakukan. */
 @Composable
 fun CryCueDetailScreen(cue: CryCue, onBack: () -> Unit, modifier: Modifier = Modifier) {
-    CompactContainer(modifier) {
+    Box(modifier.fillMaxSize().padding(horizontal = screenGutter())) {
         Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding().testTag("cue_detail")) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.common_back), tint = Ink)
+                    Icon(AppIcons.ArrowBack, stringResource(R.string.common_back), tint = Ink)
                 }
                 Text(
                     stringResource(R.string.home_cry_cues_title),
@@ -160,8 +158,9 @@ fun CryCueDetailScreen(cue: CryCue, onBack: () -> Unit, modifier: Modifier = Mod
                             modifier = Modifier.semantics { heading() },
                             color = Ink,
                             fontFamily = MaterialTheme.typography.headlineMedium.fontFamily,
-                            fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = 28.sp),
                         )
                         Text(stringResource(cue.label), color = BrandBlueDark, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -179,7 +178,7 @@ fun CryCueDetailScreen(cue: CryCue, onBack: () -> Unit, modifier: Modifier = Mod
                     background = Color(0xFFFFF0D2),
                     tint = Color(0xFFE6A02C),
                     firstIsHeading = true,
-                ) { Icon(painterResource(R.drawable.phosphor_heartbeat), null, tint = Color(0xFFE6A02C), modifier = Modifier.padding(9.dp)) }
+                ) { Icon(AppIcons.HeartPulse, null, tint = Color(0xFFE6A02C), modifier = Modifier.padding(9.dp)) }
                 Spacer(Modifier.height(4.dp))
                 Text(stringResource(R.string.analysis_disclaimer), color = MutedInk, style = MaterialTheme.typography.bodySmall)
             }
