@@ -34,17 +34,17 @@ class RecordingStore(context: Context, userId: String) {
 
     fun durationSeconds(file: File): Int? {
         checkFile(file)
-        return runCatching {
-            MediaMetadataRetriever().run {
-                try {
-                    setDataSource(file.absolutePath)
-                    extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull()?.let { ((it + 999) / 1000).toInt() }
-                } finally {
-                    release()
-                }
-            }
-        }.getOrNull()
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.absolutePath)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull()?.let { ((it + 999) / 1000).toInt() }
+        } catch (_: RuntimeException) {
+            // Durasi hanya metadata opsional unggahan; berkas yang tak terbaca tetap diunggah tanpanya.
+            null
+        } finally {
+            retriever.release()
+        }
     }
 
     /** Membuang salinan lokal (sudah terkirim, atau dibuang pengguna) dan melepas status pending. */

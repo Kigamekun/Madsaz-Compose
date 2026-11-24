@@ -357,7 +357,7 @@ private fun readTrimVideo(context: Context, uri: Uri): TrimVideo {
         require(duration in 1..Int.MAX_VALUE.toLong())
         val frames = List(THUMBNAIL_COUNT) { index ->
             val timestamp = duration * 1_000L * index / THUMBNAIL_COUNT
-            runCatching {
+            try {
                 if (Build.VERSION.SDK_INT >= 27) {
                     retriever.getScaledFrameAtTime(timestamp, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 120, 90)
                 } else {
@@ -365,7 +365,10 @@ private fun readTrimVideo(context: Context, uri: Uri): TrimVideo {
                         Bitmap.createScaledBitmap(it, 120, 90, true)
                     }
                 }
-            }.getOrNull()
+            } catch (_: RuntimeException) {
+                // Satu thumbnail yang gagal diambil hanya tampil kosong; pemangkasan tetap bisa dipakai.
+                null
+            }
         }
         return TrimVideo(duration, frames)
     } finally {

@@ -16,7 +16,7 @@
     <string name="nav_cues">الإشارات</string>
     <string name="nav_profile">حسابي</string>
     <string name="nav_record_label">تسجيل</string>
-    <string name="cues_intro">يُستخدم تطبيق مدساز لترجمة (تحديد) بكاء الرضّع من عمر 0 إلى 3 أشهر ليفهم الوالدان طفلهما بصورة أفضل. هناك خمس لغات من نسخة DBL (لغة دانستان للرضّع) يتعرّف عليها التطبيق: نيه (Neh) تعني الجوع، وأوه (Owh) تعني التعب والنعاس، وإيه (Eh) تعني الرغبة في التجشؤ، وإيرخ (Eairh) تعني الغازات وانتفاخ البطن، وهيه (Heh) تعني عدم الارتياح (قد يكون بسبب حفاض مبلل أو حرارة أو برودة الجو أو أمر آخر).</string>
+    <string name="cues_intro">يُستخدم تطبيق Madsaz لترجمة (تحديد) بكاء الرضّع من عمر 0 إلى 3 أشهر ليفهم الوالدان طفلهما بصورة أفضل. هناك خمس لغات من نسخة DBL (لغة دانستان للرضّع) يتعرّف عليها التطبيق: نيه (Neh) تعني الجوع، وأوه (Owh) تعني التعب والنعاس، وإيه (Eh) تعني الرغبة في التجشؤ، وإيرخ (Eairh) تعني الغازات وانتفاخ البطن، وهيه (Heh) تعني عدم الارتياح (قد يكون بسبب حفاض مبلل أو حرارة أو برودة الجو أو أمر آخر).</string>
     <string name="cue_open_detail">عرض التفاصيل</string>
     <string name="home_latest_open">عرض النتيجة</string>
     <string name="home_latest_start">ابدأ التسجيل</string>
@@ -45,14 +45,14 @@
     <string name="auth_hide_password">إخفاء كلمة المرور</string>
 
     <!-- الرئيسية -->
-    <string name="home_latest_cry">أحدث إشارة البكاء</string>
+    <string name="home_latest_cry">أحدث إشارة بكاء</string>
     <string name="home_status_waiting">بانتظار التحليل</string>
     <string name="home_status_failed">فشل التحليل</string>
     <string name="home_status_result">نتيجة التحليل</string>
     <string name="home_cry_cues_title">إشارات البكاء</string>
     <string name="home_cry_cues_description">افهم إشارات طفلك</string>
     <string name="home_recent_title">أحدث التسجيلات</string>
-    <string name="home_see_all">عرض الكل  ‹</string>
+    <string name="home_see_all">عرض الكل ‹</string>
     <string name="home_recent_empty_title">لا توجد تسجيلات بعد</string>
     <string name="home_recent_empty_message">ستظهر تسجيلاتك هنا.</string>
     <string name="home_recent_empty_action">ابدأ التسجيل</string>
@@ -153,13 +153,14 @@
     <string name="plan_benefit_cues">تفسير أساسي للإشارات</string>
     <string name="plan_benefit_recent">حفظ أحدث التسجيلات</string>
     <string name="plan_explore_plus">استكشف Madsaz Plus</string>
-    <string name="plan_plus_promo_price">فقط 15 ألف روبية</string>
+    <string name="plan_plus_from_price">ابتداءً من %1$s</string>
     <string name="plan_continue_free">المتابعة بالباقة المجانية</string>
     <string name="plan_limit_reset">يُعاد ضبط الحد يوميًا عند الساعة 00:00 بتوقيت غرب إندونيسيا.</string>
     <string name="plan_plus_tagline">مزيد من الهدوء ومزيد من الفهم.</string>
     <string name="plan_plus_benefit_unlimited">تسجيلات غير محدودة</string>
     <string name="plan_choose">اختر باقتك</string>
     <string name="plan_yearly">سنوي</string>
+    <string name="plan_quarterly">3 أشهر</string>
     <string name="plan_monthly">شهري</string>
     <string name="plan_best_value">الأفضل قيمة</string>
     <string name="plan_flexible">مرن</string>
@@ -255,7 +256,7 @@
     <string name="cue_eairh_meaning">انتفاخ البطن</string>
     <string name="cue_eairh_description">الطفل يعاني من الغازات (انتفاخ البطن)</string>
     <string name="cue_eairh_metric_detail">غازات في البطن</string>
-    <string name="cue_eairh_feature_1">صوت «إيرْ» مع ضغط</string>
+    <string name="cue_eairh_feature_1">صوت «إيرخ» مع ضغط</string>
     <string name="cue_eairh_feature_2">يثني الطفل ساقيه نحو البطن</string>
     <string name="cue_eairh_feature_3">البطن ممتلئ أو يصعب تهدئة الطفل</string>
 
@@ -268,7 +269,7 @@
     <string name="error_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة.</string>
     <string name="error_email_taken">هذا البريد الإلكتروني مسجّل بالفعل.</string>
     <string name="error_invalid_input">أكمل البيانات بشكل صحيح. يجب ألا تقل كلمة المرور عن 8 أحرف.</string>
-    <string name="error_free_limit">انتهت التسجيلات المجانية لهذا اليوم. رقِّ إلى مدساز بلس أو حاول غدًا.</string>
+    <string name="error_free_limit">انتهت التسجيلات المجانية لهذا اليوم. رقِّ إلى Madsaz Plus أو حاول غدًا.</string>
     <string name="error_analysis_in_progress">التحليل السابق ما زال قيد التنفيذ. حاول مرة أخرى بعد قليل.</string>
     <string name="error_upload_invalid">لم يستلم الخادم الفيديو. حاول رفعه مرة أخرى.</string>
     <string name="error_storage">تخزين الفيديو غير متاح حاليًا. حاول مرة أخرى لاحقًا.</string>
@@ -310,9 +311,9 @@
     <string name="auth_terms_link">الشروط والأحكام</string>
     <string name="error_terms_required">وافق على الشروط والأحكام للتسجيل.</string>
     <string name="auth_try_free">جرّب مجانًا بلا حساب</string>
-    <string name="auth_try_free_daily">جرّب مجانًا بلا حساب %1$d مرات/يوم</string>
+    <string name="auth_try_free_daily">جرّب مجانًا بلا حساب (%1$d/يوم)</string>
     <string name="guest_info_title">جرّب مجانًا</string>
-    <string name="guest_info_body">سجّل 5 ثوانٍ واطّلع على النتيجة دون حساب. يُحلَّل الفيديو ثم يُحذف من الخادم، وتظهر النتيجة مرة واحدة دون سجل. الحد %1$d محاولات يوميًا. سجّل لحفظ الفيديوهات والسجل.</string>
+    <string name="guest_info_body">سجّل 5 ثوانٍ واطّلع على النتيجة دون حساب. يُحلَّل الفيديو ثم يُحذف من الخادم، وتظهر النتيجة مرة واحدة دون سجل. الحد اليومي: %1$d. سجّل لحفظ الفيديوهات والسجل.</string>
     <string name="guest_info_start">ابدأ</string>
     <string name="guest_limit_title">انتهت التجارب المجانية لهذا اليوم</string>
     <string name="guest_limit_body">سجّل مجانًا لمواصلة التسجيل وحفظ الفيديوهات ومشاهدة سجلك.</string>
@@ -332,7 +333,7 @@
     <string name="password_new">كلمة المرور الجديدة</string>
     <string name="password_save">حفظ كلمة المرور</string>
     <string name="password_changed">تم تغيير كلمة المرور.</string>
-    <string name="home_upgrade_cta">الترقية إلى بلس</string>
+    <string name="home_upgrade_cta">الترقية إلى Plus</string>
     <plurals name="home_quota_left">
         <item quantity="zero">لا تسجيلات متبقية اليوم</item>
         <item quantity="one">تسجيل واحد متبقٍ اليوم</item>
@@ -342,11 +343,11 @@
         <item quantity="other">%d تسجيل متبقٍ اليوم</item>
     </plurals>
     <string name="upgrade_dialog_title">استخدمت تسجيلات اليوم</string>
-    <string name="upgrade_dialog_body">انتهت تسجيلات الباقة المجانية لهذا اليوم. رقِّ إلى مدساز بلس للتسجيل دون حدود، أو حاول غدًا.</string>
-    <string name="upgrade_dialog_cta">الترقية إلى بلس</string>
+    <string name="upgrade_dialog_body">انتهت تسجيلات الباقة المجانية لهذا اليوم. رقِّ إلى Madsaz Plus للتسجيل دون حدود، أو حاول غدًا.</string>
+    <string name="upgrade_dialog_cta">الترقية إلى Plus</string>
     <string name="upgrade_dialog_later">ليس الآن</string>
     <string name="plan_cancel_sub">إلغاء الاشتراك</string>
-    <string name="plan_cancel_note">يتم الإلغاء في Google Play ويبقى بلس فعّالًا حتى %1$s.</string>
+    <string name="plan_cancel_note">يتم الإلغاء في Google Play ويبقى Plus فعّالًا حتى %1$s.</string>
     <string name="feedback_skip">تخطّي</string>
     <string name="cue_neh_sol_1">أرضع طفلك أو أطعمه</string>
     <string name="cue_neh_sol_2">لا تقاطع وقت تغذية طفلك</string>

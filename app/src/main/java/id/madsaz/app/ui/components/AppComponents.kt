@@ -59,6 +59,7 @@ import java.time.format.FormatStyle
 import java.text.NumberFormat
 import java.util.Locale
 
+import java.io.IOException
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -131,7 +132,12 @@ fun MadsazHeader(onProfile: () -> Unit, modifier: Modifier = Modifier, avatarUrl
 fun ProfileAvatar(url: String?, name: String?, modifier: Modifier = Modifier, initialSize: TextUnit = 13.sp) {
     val image by produceState<ImageBitmap?>(null, url) {
         value = if (url == null) null else withContext(Dispatchers.IO) {
-            runCatching { URL(url).openStream().use(BitmapFactory::decodeStream)?.asImageBitmap() }.getOrNull()
+            // Hanya galat I/O (jaringan, URL) yang berarti "tidak ada foto"; Error (mis. OOM) dan bug tidak boleh disembunyikan.
+            try {
+                URL(url).openStream().use(BitmapFactory::decodeStream)?.asImageBitmap()
+            } catch (_: IOException) {
+                null
+            }
         }
     }
     Box(modifier.clip(CircleShape).background(Color(0xFFE6F4FB)), contentAlignment = Alignment.Center) {

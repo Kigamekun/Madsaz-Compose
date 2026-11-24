@@ -27,6 +27,21 @@ class ContractTest {
     }
 
     @Test
+    fun `plus catalog lists the monthly, quarterly and yearly base plans, and a missing one is a contract error`() {
+        fun plans(extra: String) = """{"data":{"plus":{"product_id":"madsaz_plus","monthly_base_plan_id":"monthly",$extra"yearly_base_plan_id":"annual","purchase_enabled":true}}}"""
+
+        server.on("GET", "/payments/plans") { Response(200, plans(""""quarterly_base_plan_id":"quarterly",""")) }
+        val catalog = PlanApi(ApiClient(server.baseUrl)).catalog()
+        assertEquals(PlanCatalog("madsaz_plus", "monthly", "quarterly", "annual", purchaseEnabled = true), catalog)
+
+        server.on("GET", "/payments/plans") { Response(200, plans("")) }
+        assertThrows(ContractException::class.java) { PlanApi(ApiClient(server.baseUrl)).catalog() }
+
+        server.on("GET", "/payments/plans") { Response(200, plans(""""quarterly_base_plan_id":"monthly",""")) }
+        assertThrows(ContractException::class.java) { PlanApi(ApiClient(server.baseUrl)).catalog() }
+    }
+
+    @Test
     fun `a guest analysis without scores is a contract error, not an empty result`() {
         server.on("POST", "/guest/upload-url") { Response(200, """{"data":{"analysis_id":"g1","upload_url":"${server.baseUrl}/put"}}""") }
         server.on("PUT", "/put") { Response(200) }
